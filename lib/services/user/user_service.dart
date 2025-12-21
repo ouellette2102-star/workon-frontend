@@ -3,10 +3,13 @@
 /// Manages user context and role resolution.
 ///
 /// **PR#10:** Initial implementation with default role (worker).
+/// **PR#12:** Added backend role resolution via UserApi.
 library;
 
 import 'package:flutter/foundation.dart';
 
+import '../auth/auth_service.dart';
+import 'user_api.dart';
 import 'user_context.dart';
 
 /// Service that manages user context and role.
@@ -114,14 +117,105 @@ abstract final class UserService {
   /// **Future implementation:** Will call backend to fetch actual role.
   /// This is a safe placeholder that does not require new API endpoints.
   static Future<UserRole> _resolveRole(String userId) async {
-    // TODO(PR#XX): Implement actual role resolution:
-    // ```dart
-    // final profile = await UserRepository.getProfile(userId);
-    // return profile.role;
-    // ```
-
-    // Safe default: all users are workers until role system is implemented
+    // Safe default: all users are workers until backend returns role
     return UserRole.worker;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Backend Role Resolution (PR#12)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// API client for user operations.
+  static const UserApi _api = UserApi();
+
+  /// Refreshes user context from backend if possible.
+  ///
+  /// This method:
+  /// 1. Checks if a valid session with token exists
+  /// 2. Calls backend to fetch user profile
+  /// 3. Extracts and updates role from response
+  ///
+  /// **Never throws** - falls back gracefully on any error.
+  /// Role remains unchanged (or defaults to worker) if fetch fails.
+  ///
+  /// Example:
+  /// ```dart
+  /// // After login, enrich context with backend data
+  /// await UserService.refreshFromBackendIfPossible();
+  /// print('Role: ${UserService.context.role}');
+  /// ```
+  static Future<void> refreshFromBackendIfPossible() async {
+    // Skip if no session
+    if (!AuthService.hasSession) {
+      return;
+    }
+
+    // Skip if no token (cannot authenticate request)
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      return;
+    }
+
+    // Skip if context is not ready (no userId)
+    final currentContext = _context.value;
+    if (!currentContext.isReady || currentContext.userId == null) {
+      return;
+    }
+
+    try {
+      // Fetch profile from backend
+      final profile = await _api.fetchMe();
+
+      // Extract role from response
+      final role = _parseRoleFromProfile(profile);
+
+      // Update context with resolved role (keep existing userId/email)
+      _context.value = UserContext.fromAuth(
+        userId: currentContext.userId!,
+        email: currentContext.email,
+        role: role,
+      );
+    } catch (_) {
+      // On any error, keep current context unchanged
+      // Role remains as set by setFromAuth (default: worker)
+    }
+  }
+
+  /// Parses user role from backend profile response.
+  ///
+  /// Looks for role in these fields (in order):
+  /// - `role`
+  /// - `userRole`
+  /// - `accountType`
+  ///
+  /// Maps string values to [UserRole]:
+  /// - "worker" → [UserRole.worker]
+  /// - "employer" → [UserRole.employer]
+  /// - "residential" → [UserRole.residential]
+  ///
+  /// Returns current role or [UserRole.worker] if not found/invalid.
+  static UserRole _parseRoleFromProfile(Map<String, dynamic> profile) {
+    // Try different field names
+    final roleValue = profile['role'] ??
+        profile['userRole'] ??
+        profile['accountType'] ??
+        profile['type'];
+
+    // Convert to string if not already
+    final roleString = roleValue?.toString().toLowerCase();
+
+    // Map to UserRole
+    switch (roleString) {
+      case 'worker':
+        return UserRole.worker;
+      case 'employer':
+        return UserRole.employer;
+      case 'residential':
+        return UserRole.residential;
+      default:
+        // Unknown/missing role - keep default
+        return _context.value.role;
+    }
   }
 
   /// Resets the user context to unknown state.
