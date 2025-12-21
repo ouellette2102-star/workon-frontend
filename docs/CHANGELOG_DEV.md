@@ -21,6 +21,29 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR#10] User Context & Role Resolution — 2025-12-21
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/services/user/user_context.dart` (created)
+- `lib/services/user/user_service.dart` (created)
+- `lib/services/auth/auth_service.dart` (updated)
+- `docs/ADR_AUTH_SERVICE.md` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added centralized user context with role resolution. Created `UserContext` model with `UserRole` enum (worker, employer, residential) and `UserContextStatus` enum (unknown, loading, ready). Created `UserService` to manage user context via `ValueNotifier`. Wired into `AuthService`: login/register sets context, logout/reset clears it. Role defaults to `worker` (safe placeholder, no new API calls). MockAuthRepository remains compatible. No UI changes.
+
+**Rollback:**
+```bash
+git rm -r lib/services/user/
+git checkout HEAD~1 -- lib/services/auth/auth_service.dart docs/ADR_AUTH_SERVICE.md docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR#10 user context"
+```
+
+---
+
 ## [PR#9] UI Auth Gate — 2025-12-21
 
 **Risk Level:** 🟡 Semi-safe (MEDIUM)

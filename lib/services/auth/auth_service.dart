@@ -8,13 +8,15 @@
 /// - Manages in-memory session state
 /// - Exposes typed errors for error handling
 /// - Exposes [AuthState] via [ValueNotifier] for reactive updates (PR#7)
+/// - Updates [UserService] context on auth events (PR#10)
 ///
-/// **Current State (PR#7):** Wired to [RealAuthRepository] (Railway backend).
+/// **Current State (PR#10):** Wired to [RealAuthRepository] (Railway backend).
 /// **Tokens:** In-memory only (no SecureStorage yet).
 library;
 
 import 'package:flutter/foundation.dart';
 
+import '../user/user_service.dart';
 import 'auth_errors.dart';
 import 'auth_models.dart';
 import 'auth_repository.dart';
@@ -176,6 +178,11 @@ abstract final class AuthService {
       userId: session.user.id,
       email: session.user.email,
     ));
+    // PR#10: Update user context
+    await UserService.setFromAuth(
+      userId: session.user.id,
+      email: session.user.email,
+    );
     return session.user;
   }
 
@@ -218,6 +225,11 @@ abstract final class AuthService {
       userId: session.user.id,
       email: session.user.email,
     ));
+    // PR#10: Update user context
+    await UserService.setFromAuth(
+      userId: session.user.id,
+      email: session.user.email,
+    );
     return session.user;
   }
 
@@ -282,6 +294,8 @@ abstract final class AuthService {
     _currentSession = null;
     // PR#7: Update auth state on logout
     setAuthState(const AuthState.unauthenticated());
+    // PR#10: Reset user context
+    UserService.reset();
 
     // Attempt server logout (fire-and-forget)
     try {
@@ -328,6 +342,7 @@ abstract final class AuthService {
   static void reset() {
     _currentSession = null;
     setAuthState(const AuthState.unknown());
+    UserService.reset(); // PR#10
   }
 
   /// Resets the repository to default [RealAuthRepository].
@@ -337,6 +352,7 @@ abstract final class AuthService {
     _repository = RealAuthRepository();
     _currentSession = null;
     setAuthState(const AuthState.unknown());
+    UserService.reset(); // PR#10
   }
 
   /// Switches to mock repository for testing.
@@ -346,6 +362,7 @@ abstract final class AuthService {
     _repository = MockAuthRepository();
     _currentSession = null;
     setAuthState(const AuthState.unknown());
+    UserService.reset(); // PR#10
   }
 
   // ─────────────────────────────────────────────────────────────────────────

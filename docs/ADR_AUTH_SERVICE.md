@@ -538,6 +538,101 @@ controller.dispose();
 
 ---
 
+## PR#10 Update: User Context & Role Resolution
+
+**Date:** 2025-12-21  
+**Status:** Implemented
+
+### What Changed
+
+1. **Created `UserContext` model** (`lib/services/user/user_context.dart`)
+   - `UserRole` enum: `worker`, `employer`, `residential`
+   - `UserContextStatus` enum: `unknown`, `loading`, `ready`
+   - `UserContext` class with `status`, `userId`, `email`, `role`
+   - Convenience constructors: `.unknown()`, `.loading()`, `.fromAuth()`
+   - Immutable with `copyWith` support
+
+2. **Created `UserService`** (`lib/services/user/user_service.dart`)
+   - Manages user context via `ValueNotifier<UserContext>`
+   - `contextListenable` getter for reactive updates
+   - `context` getter for current value
+   - `setFromAuth()` method to set context after authentication
+   - `reset()` method to clear context on logout
+   - Role resolution defaults to `UserRole.worker` (safe placeholder)
+
+3. **Wired into `AuthService`**
+   - `login()` → calls `UserService.setFromAuth()`
+   - `register()` → calls `UserService.setFromAuth()`
+   - `logout()` → calls `UserService.reset()`
+   - `reset()` / `resetRepository()` / `useMockRepository()` → calls `UserService.reset()`
+
+### Architecture (PR#10)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Authentication                         │
+└─────────────────────────────────────────────────────────────┘
+                              │
+            ┌─────────────────┴─────────────────┐
+            │                                   │
+            ▼                                   ▼
+┌─────────────────────┐           ┌─────────────────────┐
+│    AuthService      │──────────▶│    UserService      │
+│    (auth state)     │           │    (user context)   │
+└─────────────────────┘           └─────────────────────┘
+            │                                   │
+            ▼                                   ▼
+┌─────────────────────┐           ┌─────────────────────┐
+│    AuthState        │           │    UserContext      │
+│ - status            │           │ - status            │
+│ - userId            │           │ - userId            │
+│ - email             │           │ - email             │
+└─────────────────────┘           │ - role (worker)     │
+                                  └─────────────────────┘
+```
+
+### Role Resolution
+
+Current implementation uses a safe default:
+
+```dart
+static Future<UserRole> _resolveRole(String userId) async {
+  // Safe default: all users are workers until role system is implemented
+  return UserRole.worker;
+}
+```
+
+Future PRs can implement actual role fetching from backend without changing the interface.
+
+### Usage
+
+```dart
+// Listen for user context changes
+UserService.contextListenable.addListener(() {
+  final ctx = UserService.context;
+  if (ctx.isReady) {
+    print('User: ${ctx.email}, Role: ${ctx.role}');
+  }
+});
+
+// After login/register, context is automatically set
+await AuthService.login(email: 'user@example.com', password: 'pass');
+// UserService.context.role == UserRole.worker
+
+// After logout, context is automatically reset
+await AuthService.logout();
+// UserService.context.isUnknown == true
+```
+
+### Guarantees
+
+- **MockAuthRepository compatible**: Works with both real and mock
+- **No new API calls**: Role defaults to worker (no backend dependency)
+- **No UI changes**: Pure service layer addition
+- **Never throws**: Falls back to default role on any error
+
+---
+
 ## Future Work
 
 | PR | Scope |
@@ -547,9 +642,10 @@ controller.dispose();
 | ~~PR#6~~ | ~~Auth bootstrap & session check~~ ✅ Done |
 | ~~PR#7~~ | ~~Auth state exposure~~ ✅ Done |
 | ~~PR#8~~ | ~~App startup state orchestration~~ ✅ Done |
-| PR#9 | Add token refresh logic |
-| PR#10 | Persist session to secure storage |
-| PR#11 | Wire auth state to UI (login screen, protected routes) |
+| ~~PR#10~~ | ~~User context & role resolution~~ ✅ Done |
+| PR#11 | Add token refresh logic |
+| PR#12 | Persist session to secure storage |
+| PR#13 | Implement actual role resolution from backend |
 
 ---
 
