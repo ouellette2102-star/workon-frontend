@@ -9,14 +9,16 @@
 /// - Exposes typed errors for error handling
 /// - Exposes [AuthState] via [ValueNotifier] for reactive updates (PR#7)
 /// - Updates [UserService] context on auth events (PR#10)
+/// - Exposes [AppSession] for session access (PR#11)
 ///
-/// **Current State (PR#10):** Wired to [RealAuthRepository] (Railway backend).
+/// **Current State (PR#11):** Wired to [RealAuthRepository] (Railway backend).
 /// **Tokens:** In-memory only (no SecureStorage yet).
 library;
 
 import 'package:flutter/foundation.dart';
 
 import '../user/user_service.dart';
+import 'app_session.dart';
 import 'auth_errors.dart';
 import 'auth_models.dart';
 import 'auth_repository.dart';
@@ -114,6 +116,42 @@ abstract final class AuthService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // App Session (PR#11)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Internal notifier for app session changes.
+  static final ValueNotifier<AppSession> _session =
+      ValueNotifier(const AppSession.none());
+
+  /// Exposes app session as a listenable for reactive updates.
+  ///
+  /// Use this to listen for session changes:
+  /// ```dart
+  /// AuthService.sessionListenable.addListener(() {
+  ///   final session = AuthService.session;
+  ///   if (session.hasSession) {
+  ///     // User is logged in
+  ///   }
+  /// });
+  /// ```
+  static ValueListenable<AppSession> get sessionListenable => _session;
+
+  /// Returns the current app session.
+  static AppSession get session => _session.value;
+
+  /// Returns `true` if an authenticated session exists.
+  ///
+  /// Convenience getter equivalent to `session.hasSession`.
+  static bool get hasSession => _session.value.hasSession;
+
+  /// Updates the app session.
+  ///
+  /// Internal method - use login/logout methods instead.
+  static void _setSession(AppSession next) {
+    _session.value = next;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Session State (In-Memory)
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -183,6 +221,8 @@ abstract final class AuthService {
       userId: session.user.id,
       email: session.user.email,
     );
+    // PR#11: Update app session
+    _setSession(AppSession.fromToken(session.tokens.accessToken));
     return session.user;
   }
 
@@ -230,6 +270,8 @@ abstract final class AuthService {
       userId: session.user.id,
       email: session.user.email,
     );
+    // PR#11: Update app session
+    _setSession(AppSession.fromToken(session.tokens.accessToken));
     return session.user;
   }
 
@@ -296,6 +338,8 @@ abstract final class AuthService {
     setAuthState(const AuthState.unauthenticated());
     // PR#10: Reset user context
     UserService.reset();
+    // PR#11: Clear app session
+    _setSession(const AppSession.none());
 
     // Attempt server logout (fire-and-forget)
     try {
@@ -343,6 +387,7 @@ abstract final class AuthService {
     _currentSession = null;
     setAuthState(const AuthState.unknown());
     UserService.reset(); // PR#10
+    _setSession(const AppSession.none()); // PR#11
   }
 
   /// Resets the repository to default [RealAuthRepository].
@@ -353,6 +398,7 @@ abstract final class AuthService {
     _currentSession = null;
     setAuthState(const AuthState.unknown());
     UserService.reset(); // PR#10
+    _setSession(const AppSession.none()); // PR#11
   }
 
   /// Switches to mock repository for testing.
@@ -363,6 +409,7 @@ abstract final class AuthService {
     _currentSession = null;
     setAuthState(const AuthState.unknown());
     UserService.reset(); // PR#10
+    _setSession(const AppSession.none()); // PR#11
   }
 
   // ─────────────────────────────────────────────────────────────────────────

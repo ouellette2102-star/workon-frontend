@@ -21,6 +21,28 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR#11] Session Access Layer — 2025-12-21
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/services/auth/app_session.dart` (created)
+- `lib/services/auth/auth_service.dart` (updated)
+- `docs/ADR_AUTH_SERVICE.md` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added minimal session access layer. Created `AppSession` model with `hasSession` flag and optional `token`. Added `ValueNotifier<AppSession>` to `AuthService` with `sessionListenable` and `hasSession` getters. Wired into auth lifecycle: login/register sets session with token, logout/reset clears session. MockAuthRepository remains compatible. No UI changes. No SecureStorage.
+
+**Rollback:**
+```bash
+git rm lib/services/auth/app_session.dart
+git checkout HEAD~1 -- lib/services/auth/auth_service.dart docs/ADR_AUTH_SERVICE.md docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR#11 session access layer"
+```
+
+---
+
 ## [PR#10] User Context & Role Resolution — 2025-12-21
 
 **Risk Level:** 🟢 Auto-safe (LOW)

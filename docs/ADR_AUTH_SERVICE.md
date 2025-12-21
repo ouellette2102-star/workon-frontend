@@ -633,6 +633,84 @@ await AuthService.logout();
 
 ---
 
+## PR#11 Update: Session Access Layer
+
+**Date:** 2025-12-21  
+**Status:** Implemented
+
+### What Changed
+
+1. **Created `AppSession` model** (`lib/services/auth/app_session.dart`)
+   - `AppSession` class with `hasSession` and optional `token`
+   - Convenience constructors: `.none()`, `.fromToken()`, `.authenticated()`
+   - Immutable with `copyWith` support
+
+2. **Added to `AuthService`**
+   - `ValueNotifier<AppSession> _session` for reactive session updates
+   - `sessionListenable` getter for listening to changes
+   - `session` getter for current value
+   - `hasSession` convenience getter
+
+3. **Wired into auth lifecycle**
+   - `login()` → sets `AppSession.fromToken(accessToken)`
+   - `register()` → sets `AppSession.fromToken(accessToken)`
+   - `logout()` → sets `AppSession.none()`
+   - `reset()` / `resetRepository()` / `useMockRepository()` → sets `AppSession.none()`
+
+### Architecture (PR#11)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      AuthService                            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+        ▼                     ▼                     ▼
+┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
+│   AuthState     │   │   AppSession    │   │  UserContext    │
+│   (PR#7)        │   │   (PR#11)       │   │  (PR#10)        │
+├─────────────────┤   ├─────────────────┤   ├─────────────────┤
+│ - status        │   │ - hasSession    │   │ - role          │
+│ - userId        │   │ - token         │   │ - userId        │
+│ - email         │   │                 │   │ - email         │
+└─────────────────┘   └─────────────────┘   └─────────────────┘
+```
+
+### Usage
+
+```dart
+// Check if session exists (quick check)
+if (AuthService.hasSession) {
+  print('User is logged in');
+}
+
+// Access token if available
+final token = AuthService.session.token;
+if (token != null) {
+  // Use token for authenticated API calls
+}
+
+// Listen for session changes (reactive)
+AuthService.sessionListenable.addListener(() {
+  final session = AuthService.session;
+  if (session.hasSession) {
+    // User logged in
+  } else {
+    // User logged out
+  }
+});
+```
+
+### Guarantees
+
+- **MockAuthRepository compatible**: Works with mock token
+- **No new API calls**: Uses existing token from login/register
+- **No SecureStorage**: Token only in-memory
+- **No UI changes**: Pure service layer addition
+
+---
+
 ## Future Work
 
 | PR | Scope |
@@ -643,9 +721,10 @@ await AuthService.logout();
 | ~~PR#7~~ | ~~Auth state exposure~~ ✅ Done |
 | ~~PR#8~~ | ~~App startup state orchestration~~ ✅ Done |
 | ~~PR#10~~ | ~~User context & role resolution~~ ✅ Done |
-| PR#11 | Add token refresh logic |
-| PR#12 | Persist session to secure storage |
-| PR#13 | Implement actual role resolution from backend |
+| ~~PR#11~~ | ~~Session access layer~~ ✅ Done |
+| PR#12 | Add token refresh logic |
+| PR#13 | Persist session to secure storage |
+| PR#14 | Implement actual role resolution from backend |
 
 ---
 
