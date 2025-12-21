@@ -423,6 +423,121 @@ final isValid = await AuthService.refreshAuthState();
 
 ---
 
+## PR#8 Update: App Startup State Orchestration
+
+**Date:** 2025-12-21  
+**Status:** Implemented
+
+### What Changed
+
+1. **Created `AppBootState` model** (`app_boot_state.dart`)
+   - `AppBootStatus` enum: `loading`, `authenticated`, `unauthenticated`
+   - `AppBootState` class with `status`, `userId`, `email`
+   - Convenience constructors: `.loading()`, `.authenticated()`, `.unauthenticated()`
+   - Immutable with `copyWith` support
+
+2. **Created `AppStartupController`** (`app_startup_controller.dart`)
+   - Orchestrates app boot process
+   - `ValueNotifier<AppBootState>` for reactive boot state
+   - `bootStateListenable` getter for listening to changes
+   - `bootState` getter for current value
+   - `initialize()` method to start boot sequence
+   - `dispose()` method for cleanup
+   - Subscribes to `AuthService.stateListenable` for ongoing updates
+
+### Architecture (PR#8)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      App Startup                            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │   AppStartupController        │
+              │   (orchestration layer)       │
+              └───────────────────────────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │   AppBootState = loading      │
+              └───────────────────────────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │   AuthBootstrap.initialize()  │
+              └───────────────────────────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │   Subscribe to AuthState      │
+              └───────────────────────────────┘
+                              │
+           ┌──────────────────┴──────────────────┐
+           │                                     │
+           ▼                                     ▼
+┌─────────────────────┐           ┌─────────────────────┐
+│    authenticated    │           │   unauthenticated   │
+└─────────────────────┘           └─────────────────────┘
+```
+
+### State Mapping
+
+| AuthState.status   | → | AppBootState.status |
+|--------------------|---|---------------------|
+| `unknown`          | → | `loading` (briefly) → `unauthenticated` |
+| `authenticated`    | → | `authenticated`     |
+| `unauthenticated`  | → | `unauthenticated`   |
+
+### Usage
+
+```dart
+// In main.dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  final controller = AppStartupController();
+  await controller.initialize();
+  
+  runApp(MyApp(bootController: controller));
+}
+
+// In app widget
+controller.bootStateListenable.addListener(() {
+  final state = controller.bootState;
+  switch (state.status) {
+    case AppBootStatus.loading:
+      // Show splash screen
+      break;
+    case AppBootStatus.authenticated:
+      // Navigate to home
+      break;
+    case AppBootStatus.unauthenticated:
+      // Navigate to login
+      break;
+  }
+});
+
+// Cleanup
+controller.dispose();
+```
+
+### Key Design Decisions
+
+1. **Separate from AuthService**: Keeps boot orchestration independent
+2. **Single source of truth**: One place to check app boot status
+3. **Listens to AuthState**: Automatically reflects login/logout changes
+4. **Never throws**: All errors result in unauthenticated state
+5. **Disposable**: Proper cleanup of listeners and notifiers
+
+### Guarantees
+
+- **MockAuthRepository compatible**: Works with both real and mock
+- **No UI changes**: Pure service layer addition
+- **Backward compatible**: AuthService API unchanged
+
+---
+
 ## Future Work
 
 | PR | Scope |
@@ -431,9 +546,10 @@ final isValid = await AuthService.refreshAuthState();
 | ~~PR#5~~ | ~~Implement RealAuthRepository with actual API calls~~ ✅ Done |
 | ~~PR#6~~ | ~~Auth bootstrap & session check~~ ✅ Done |
 | ~~PR#7~~ | ~~Auth state exposure~~ ✅ Done |
-| PR#8 | Add token refresh logic |
-| PR#9 | Persist session to secure storage |
-| PR#10 | Wire auth state to UI (login screen, protected routes) |
+| ~~PR#8~~ | ~~App startup state orchestration~~ ✅ Done |
+| PR#9 | Add token refresh logic |
+| PR#10 | Persist session to secure storage |
+| PR#11 | Wire auth state to UI (login screen, protected routes) |
 
 ---
 
