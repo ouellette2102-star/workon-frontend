@@ -15,6 +15,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import 'serialization_util.dart';
 
 import '/index.dart';
+import '/app/auth_gate.dart';
 
 export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
@@ -52,7 +53,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                 ),
               ),
             )
-          : OnboardingWidget(),
+          : const AuthGate(), // PR#9: Route through AuthGate for auth state
       routes: [
         FFRoute(
           name: '_initialize',
@@ -67,7 +68,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                     ),
                   ),
                 )
-              : OnboardingWidget(),
+              : const AuthGate(), // PR#9: Route through AuthGate for auth state
         ),
         FFRoute(
           name: HomeWidget.routeName,
