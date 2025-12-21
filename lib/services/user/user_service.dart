@@ -4,6 +4,7 @@
 ///
 /// **PR#10:** Initial implementation with default role (worker).
 /// **PR#12:** Added backend role resolution via UserApi.
+/// **PR#13:** Improved role parsing with 'type' field support and logging.
 library;
 
 import 'package:flutter/foundation.dart';
@@ -147,27 +148,32 @@ abstract final class UserService {
   static Future<void> refreshFromBackendIfPossible() async {
     // Skip if no session
     if (!AuthService.hasSession) {
+      debugPrint('[UserService] refreshFromBackendIfPossible: no session');
       return;
     }
 
     // Skip if no token (cannot authenticate request)
     final token = AuthService.session.token;
     if (token == null || token.isEmpty) {
+      debugPrint('[UserService] refreshFromBackendIfPossible: no token');
       return;
     }
 
     // Skip if context is not ready (no userId)
     final currentContext = _context.value;
     if (!currentContext.isReady || currentContext.userId == null) {
+      debugPrint('[UserService] refreshFromBackendIfPossible: context not ready');
       return;
     }
 
     try {
+      debugPrint('[UserService] refreshFromBackendIfPossible: fetching profile...');
       // Fetch profile from backend
       final profile = await _api.fetchMe();
 
       // Extract role from response
       final role = _parseRoleFromProfile(profile);
+      debugPrint('[UserService] refreshFromBackendIfPossible: resolved role = $role');
 
       // Update context with resolved role (keep existing userId/email)
       _context.value = UserContext.fromAuth(
@@ -175,9 +181,10 @@ abstract final class UserService {
         email: currentContext.email,
         role: role,
       );
-    } catch (_) {
+    } catch (e) {
       // On any error, keep current context unchanged
       // Role remains as set by setFromAuth (default: worker)
+      debugPrint('[UserService] refreshFromBackendIfPossible: error (ignored): $e');
     }
   }
 

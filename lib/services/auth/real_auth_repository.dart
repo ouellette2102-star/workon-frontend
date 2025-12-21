@@ -4,12 +4,15 @@
 /// backend hosted on Railway.
 ///
 /// **PR#5:** Initial implementation with login/register/me/logout.
+/// **PR#13:** Added debugPrint logging for error tracing.
 /// **Tokens:** Stored in-memory only (no SecureStorage yet).
 /// **No interceptors:** No automatic token refresh.
 library;
 
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../api/api_client.dart';
@@ -56,6 +59,7 @@ class RealAuthRepository implements AuthRepository {
     final uri = ApiClient.buildUri('/auth/login');
 
     try {
+      debugPrint('[RealAuthRepository] POST $uri');
       final response = await ApiClient.client
           .post(
             uri,
@@ -67,11 +71,17 @@ class RealAuthRepository implements AuthRepository {
           )
           .timeout(ApiClient.connectionTimeout);
 
+      debugPrint('[RealAuthRepository] login response: ${response.statusCode}');
       return _handleAuthResponse(response, 'login');
-    } on http.ClientException {
+    } on TimeoutException {
+      debugPrint('[RealAuthRepository] login timeout');
+      throw const AuthNetworkException('Connection timeout');
+    } on http.ClientException catch (e) {
+      debugPrint('[RealAuthRepository] login network error: $e');
       throw const AuthNetworkException();
     } on Exception catch (e) {
       if (e is AuthException) rethrow;
+      debugPrint('[RealAuthRepository] login unexpected error: $e');
       throw const AuthNetworkException();
     }
   }
@@ -85,6 +95,7 @@ class RealAuthRepository implements AuthRepository {
     final uri = ApiClient.buildUri('/auth/register');
 
     try {
+      debugPrint('[RealAuthRepository] POST $uri');
       final response = await ApiClient.client
           .post(
             uri,
@@ -97,11 +108,17 @@ class RealAuthRepository implements AuthRepository {
           )
           .timeout(ApiClient.connectionTimeout);
 
+      debugPrint('[RealAuthRepository] register response: ${response.statusCode}');
       return _handleAuthResponse(response, 'register');
-    } on http.ClientException {
+    } on TimeoutException {
+      debugPrint('[RealAuthRepository] register timeout');
+      throw const AuthNetworkException('Connection timeout');
+    } on http.ClientException catch (e) {
+      debugPrint('[RealAuthRepository] register network error: $e');
       throw const AuthNetworkException();
     } on Exception catch (e) {
       if (e is AuthException) rethrow;
+      debugPrint('[RealAuthRepository] register unexpected error: $e');
       throw const AuthNetworkException();
     }
   }
@@ -111,6 +128,7 @@ class RealAuthRepository implements AuthRepository {
     final uri = ApiClient.buildUri('/auth/me');
 
     try {
+      debugPrint('[RealAuthRepository] GET $uri');
       final response = await ApiClient.client
           .get(
             uri,
@@ -121,11 +139,25 @@ class RealAuthRepository implements AuthRepository {
           )
           .timeout(ApiClient.connectionTimeout);
 
+      debugPrint('[RealAuthRepository] me response: ${response.statusCode}');
+
       if (response.statusCode == 401) {
+        debugPrint('[RealAuthRepository] me: unauthorized');
         throw const UnauthorizedException();
       }
 
+      if (response.statusCode == 403) {
+        debugPrint('[RealAuthRepository] me: forbidden');
+        throw const UnauthorizedException();
+      }
+
+      if (response.statusCode >= 500) {
+        debugPrint('[RealAuthRepository] me: server error ${response.statusCode}');
+        throw const AuthNetworkException('Server error');
+      }
+
       if (response.statusCode != 200) {
+        debugPrint('[RealAuthRepository] me: unexpected status ${response.statusCode}');
         throw const AuthNetworkException();
       }
 
@@ -134,10 +166,15 @@ class RealAuthRepository implements AuthRepository {
       // Handle both wrapped and unwrapped responses
       final userData = json['user'] ?? json['data'] ?? json;
       return AuthUser.fromJson(userData as Map<String, dynamic>);
-    } on http.ClientException {
+    } on TimeoutException {
+      debugPrint('[RealAuthRepository] me timeout');
+      throw const AuthNetworkException('Connection timeout');
+    } on http.ClientException catch (e) {
+      debugPrint('[RealAuthRepository] me network error: $e');
       throw const AuthNetworkException();
     } on Exception catch (e) {
       if (e is AuthException) rethrow;
+      debugPrint('[RealAuthRepository] me unexpected error: $e');
       throw const AuthNetworkException();
     }
   }
@@ -145,12 +182,16 @@ class RealAuthRepository implements AuthRepository {
   @override
   Future<void> logout({String? accessToken}) async {
     // If no token, nothing to invalidate on server
-    if (accessToken == null) return;
+    if (accessToken == null) {
+      debugPrint('[RealAuthRepository] logout: no token, skipping server call');
+      return;
+    }
 
     final uri = ApiClient.buildUri('/auth/logout');
 
     try {
-      await ApiClient.client
+      debugPrint('[RealAuthRepository] POST $uri');
+      final response = await ApiClient.client
           .post(
             uri,
             headers: {
@@ -160,10 +201,12 @@ class RealAuthRepository implements AuthRepository {
           )
           .timeout(ApiClient.connectionTimeout);
 
+      debugPrint('[RealAuthRepository] logout response: ${response.statusCode}');
       // Fire-and-forget: we don't care about the response
       // Local session cleanup is handled by AuthService
-    } catch (_) {
+    } catch (e) {
       // Ignore all errors - logout should always succeed locally
+      debugPrint('[RealAuthRepository] logout error (ignored): $e');
     }
   }
 
