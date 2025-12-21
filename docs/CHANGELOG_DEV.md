@@ -21,6 +21,28 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR#8] App Startup State Orchestration — 2025-12-21
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/services/auth/app_boot_state.dart` (created)
+- `lib/services/auth/app_startup_controller.dart` (created)
+- `docs/ADR_AUTH_SERVICE.md` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added app startup orchestration layer. Created `AppBootState` model with `AppBootStatus` enum (loading, authenticated, unauthenticated). Created `AppStartupController` class that coordinates boot process and listens to `AuthService.stateListenable`. Provides single source of truth for app boot status. No UI changes. MockAuthRepository remains compatible.
+
+**Rollback:**
+```bash
+git rm lib/services/auth/app_boot_state.dart lib/services/auth/app_startup_controller.dart
+git checkout HEAD~1 -- docs/ADR_AUTH_SERVICE.md docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR#8 app startup state"
+```
+
+---
+
 ## [PR#7] Auth State Exposure — 2025-12-21
 
 **Risk Level:** 🟢 Auto-safe (LOW)
