@@ -21,6 +21,29 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR#12] Role Resolution via Backend — 2025-12-21
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/services/user/user_api.dart` (created)
+- `lib/services/user/user_service.dart` (updated)
+- `lib/services/auth/auth_service.dart` (updated)
+- `docs/ADR_AUTH_SERVICE.md` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added backend role resolution. Created `UserApi` client for `GET /auth/me` endpoint. Added `refreshFromBackendIfPossible()` to `UserService` that fetches profile and extracts role. Wired into `AuthService`: after login/register, role is enriched asynchronously (fire-and-forget). Falls back to default role (worker) on any error. MockAuthRepository compatible. No UI changes. No SecureStorage.
+
+**Rollback:**
+```bash
+git rm lib/services/user/user_api.dart
+git checkout HEAD~1 -- lib/services/user/user_service.dart lib/services/auth/auth_service.dart docs/ADR_AUTH_SERVICE.md docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR#12 role resolution"
+```
+
+---
+
 ## [PR#11] Session Access Layer — 2025-12-21
 
 **Risk Level:** 🟢 Auto-safe (LOW)

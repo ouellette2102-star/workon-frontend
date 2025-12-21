@@ -711,6 +711,111 @@ AuthService.sessionListenable.addListener(() {
 
 ---
 
+## PR#12 Update: Role Resolution via Backend Profile
+
+**Date:** 2025-12-21  
+**Status:** Implemented
+
+### What Changed
+
+1. **Created `UserApi`** (`lib/services/user/user_api.dart`)
+   - Minimal API client for user profile endpoints
+   - `fetchMe()` method calls `GET /auth/me` with Bearer token
+   - Uses existing `ApiClient` infrastructure
+   - Throws `UserApiException` on errors
+
+2. **Updated `UserService`** (`lib/services/user/user_service.dart`)
+   - Added `refreshFromBackendIfPossible()` method
+   - Parses role from profile response (fields: `role`, `userRole`, `accountType`)
+   - Maps to `UserRole` enum: worker, employer, residential
+   - Falls back gracefully on any error (keeps current role)
+
+3. **Updated `AuthService`**
+   - After `login()` and `register()`, calls `UserService.refreshFromBackendIfPossible()`
+   - Fire-and-forget: does not block auth flow
+
+### Architecture (PR#12)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Login/Register                         │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │   1. Auth completes           │
+              │   2. setFromAuth(role=worker) │
+              │   3. setSession(token)        │
+              └───────────────────────────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │   refreshFromBackendIfPossible │
+              │   (async, non-blocking)        │
+              └───────────────────────────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │   GET /auth/me                │
+              │   Authorization: Bearer token  │
+              └───────────────────────────────┘
+                              │
+               ┌──────────────┴──────────────┐
+            Success                       Failure
+               │                             │
+               ▼                             ▼
+    ┌─────────────────────┐       ┌─────────────────────┐
+    │ Update role from    │       │ Keep default role   │
+    │ response            │       │ (worker)            │
+    └─────────────────────┘       └─────────────────────┘
+```
+
+### Role Mapping
+
+| Backend Value    | UserRole           |
+|------------------|-------------------|
+| `"worker"`       | `UserRole.worker` |
+| `"employer"`     | `UserRole.employer` |
+| `"residential"`  | `UserRole.residential` |
+| unknown/missing  | keep current role |
+
+### Usage
+
+```dart
+// Role is automatically enriched after login
+await AuthService.login(email: 'user@example.com', password: 'pass');
+
+// Check role (may be enriched asynchronously)
+final role = UserService.context.role;
+
+// Listen for role updates
+UserService.contextListenable.addListener(() {
+  final ctx = UserService.context;
+  print('Role: ${ctx.role}');
+});
+
+// Manual refresh (if needed)
+await UserService.refreshFromBackendIfPossible();
+```
+
+### Fallback Strategy
+
+1. **No session**: Skip fetch, keep current context
+2. **No token**: Skip fetch, role remains default (worker)
+3. **Network error**: Keep current role
+4. **Invalid response**: Keep current role
+5. **Unknown role value**: Keep current role
+
+### Guarantees
+
+- **MockAuthRepository compatible**: Falls back safely
+- **Non-blocking**: Does not slow down auth flow
+- **No SecureStorage**: Uses in-memory token only
+- **No new dependencies**: Uses existing http client
+- **No UI changes**: Pure service layer addition
+
+---
+
 ## Future Work
 
 | PR | Scope |
@@ -722,9 +827,9 @@ AuthService.sessionListenable.addListener(() {
 | ~~PR#8~~ | ~~App startup state orchestration~~ ✅ Done |
 | ~~PR#10~~ | ~~User context & role resolution~~ ✅ Done |
 | ~~PR#11~~ | ~~Session access layer~~ ✅ Done |
-| PR#12 | Add token refresh logic |
-| PR#13 | Persist session to secure storage |
-| PR#14 | Implement actual role resolution from backend |
+| ~~PR#12~~ | ~~Role resolution via backend~~ ✅ Done |
+| PR#13 | Add token refresh logic |
+| PR#14 | Persist session to secure storage |
 
 ---
 

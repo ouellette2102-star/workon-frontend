@@ -10,8 +10,9 @@
 /// - Exposes [AuthState] via [ValueNotifier] for reactive updates (PR#7)
 /// - Updates [UserService] context on auth events (PR#10)
 /// - Exposes [AppSession] for session access (PR#11)
+/// - Enriches user role from backend after auth (PR#12)
 ///
-/// **Current State (PR#11):** Wired to [RealAuthRepository] (Railway backend).
+/// **Current State (PR#12):** Wired to [RealAuthRepository] (Railway backend).
 /// **Tokens:** In-memory only (no SecureStorage yet).
 library;
 
@@ -223,6 +224,8 @@ abstract final class AuthService {
     );
     // PR#11: Update app session
     _setSession(AppSession.fromToken(session.tokens.accessToken));
+    // PR#12: Enrich user role from backend (fire-and-forget, non-blocking)
+    UserService.refreshFromBackendIfPossible();
     return session.user;
   }
 
@@ -272,6 +275,8 @@ abstract final class AuthService {
     );
     // PR#11: Update app session
     _setSession(AppSession.fromToken(session.tokens.accessToken));
+    // PR#12: Enrich user role from backend (fire-and-forget, non-blocking)
+    UserService.refreshFromBackendIfPossible();
     return session.user;
   }
 
