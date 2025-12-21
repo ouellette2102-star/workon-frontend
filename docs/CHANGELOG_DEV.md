@@ -21,6 +21,47 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR#14] Minimal Auth UI Wiring — 2025-12-21
+
+**Risk Level:** 🟡 Semi-safe (MEDIUM)
+
+**Files Changed:**
+- `lib/client_part/sign_in/sign_in_widget.dart` (updated)
+- `lib/client_part/sign_in/sign_in_model.dart` (updated)
+- `lib/client_part/sign_up/sign_up_widget.dart` (updated)
+- `lib/client_part/sign_up/sign_up_model.dart` (updated)
+- `lib/client_part/profile_pages/settings/settings_widget.dart` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Wired existing Login and Register UI screens to real AuthService methods. Added loading states, error handling with SnackBar messages (French), and graceful fallbacks. Added logout button to Settings screen. On success, AuthGate automatically redirects authenticated users to Home. App still boots if backend is unreachable (shows friendly error on submit).
+
+**UI Changes:**
+- **Login (SignIn)**: Calls `AuthService.login()`, shows loading state, displays error messages
+- **Register (SignUp)**: Calls `AuthService.register()`, shows loading state, displays error messages
+- **Settings**: Added "Déconnexion" button that calls `AuthService.logout()`
+
+**Error Messages (French):**
+- 401/Invalid credentials → "Identifiants invalides"
+- Email already in use → "Cet email est déjà utilisé"
+- Network/timeout → "Connexion impossible. Réessaie."
+- Other errors → "Erreur de connexion" / "Erreur lors de l'inscription"
+
+**Manual Test Flow:**
+1. Launch app → unauthenticated → onboarding/login screen
+2. Login with invalid creds → error SnackBar shown
+3. Login with valid creds → user lands in Home via AuthGate
+4. Navigate to Settings → tap "Déconnexion" → returns to unauthenticated flow
+5. Backend down → app launches, friendly error on submit
+
+**Rollback:**
+```bash
+git checkout HEAD~1 -- lib/client_part/sign_in/sign_in_widget.dart lib/client_part/sign_in/sign_in_model.dart lib/client_part/sign_up/sign_up_widget.dart lib/client_part/sign_up/sign_up_model.dart lib/client_part/profile_pages/settings/settings_widget.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR#14 auth UI wiring"
+```
+
+---
+
 ## [PR#13] Real Auth Integration — 2025-12-21
 
 **Risk Level:** 🟢 Auto-safe (LOW)

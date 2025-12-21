@@ -2,6 +2,7 @@ import '/client_part/components_client/back_icon_btn/back_icon_btn_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/auth/auth_service.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -636,6 +637,78 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                             Icon(
                               FFIcons.karrowRight31,
                               color: FlutterFlowTheme.of(context).primaryText,
+                              size: 20.0,
+                            ),
+                          ].divide(SizedBox(width: 10.0)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // PR#14: Logout button
+                  Divider(
+                    height: 1.0,
+                    color: FlutterFlowTheme.of(context).alternate,
+                  ),
+                  InkWell(
+                    splashColor: Colors.transparent,
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    onTap: () async {
+                      // PR#14: Call AuthService.logout()
+                      await AuthService.logout();
+                      // AuthGate will redirect to unauthenticated flow
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Container(
+                                    width: 45.0,
+                                    height: 45.0,
+                                    decoration: BoxDecoration(
+                                      color: Color(0x1AFF9500),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Align(
+                                      alignment: AlignmentDirectional(0.0, 0.0),
+                                      child: Icon(
+                                        Icons.logout_rounded,
+                                        color: Color(0xFFFF9500),
+                                        size: 24.0,
+                                      ),
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: Text(
+                                      'Déconnexion',
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .override(
+                                            fontFamily: 'General Sans',
+                                            color: Color(0xFFFF9500),
+                                            letterSpacing: 0.0,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  ),
+                                ].divide(SizedBox(width: 10.0)),
+                              ),
+                            ),
+                            Icon(
+                              FFIcons.karrowRight31,
+                              color: Color(0xFFFF9500),
                               size: 20.0,
                             ),
                           ].divide(SizedBox(width: 10.0)),
