@@ -7,14 +7,18 @@
 /// - Uses [AuthRepository] abstraction for backend operations
 /// - Manages in-memory session state
 /// - Exposes typed errors for error handling
+/// - Exposes [AuthState] via [ValueNotifier] for reactive updates (PR#7)
 ///
-/// **Current State (PR#5):** Wired to [RealAuthRepository] (Railway backend).
+/// **Current State (PR#7):** Wired to [RealAuthRepository] (Railway backend).
 /// **Tokens:** In-memory only (no SecureStorage yet).
 library;
+
+import 'package:flutter/foundation.dart';
 
 import 'auth_errors.dart';
 import 'auth_models.dart';
 import 'auth_repository.dart';
+import 'auth_state.dart';
 import 'real_auth_repository.dart';
 
 /// Authentication service handling user login, registration, and session.
@@ -77,6 +81,37 @@ abstract final class AuthService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Auth State (PR#7)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Internal notifier for auth state changes.
+  static final ValueNotifier<AuthState> _state =
+      ValueNotifier(const AuthState.unknown());
+
+  /// Exposes auth state as a listenable for reactive updates.
+  ///
+  /// Use this to listen for auth state changes without polling:
+  /// ```dart
+  /// AuthService.stateListenable.addListener(() {
+  ///   final state = AuthService.state;
+  ///   // Handle state change
+  /// });
+  /// ```
+  static ValueListenable<AuthState> get stateListenable => _state;
+
+  /// Returns the current auth state.
+  ///
+  /// Check [AuthState.status] to determine if user is authenticated.
+  static AuthState get state => _state.value;
+
+  /// Updates the auth state.
+  ///
+  /// Notifies all listeners of the change.
+  static void setAuthState(AuthState next) {
+    _state.value = next;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Session State (In-Memory)
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -136,6 +171,11 @@ abstract final class AuthService {
     );
 
     _currentSession = session;
+    // PR#7: Update auth state on successful login
+    setAuthState(AuthState.authenticated(
+      userId: session.user.id,
+      email: session.user.email,
+    ));
     return session.user;
   }
 
@@ -173,6 +213,11 @@ abstract final class AuthService {
     );
 
     _currentSession = session;
+    // PR#7: Update auth state on successful registration
+    setAuthState(AuthState.authenticated(
+      userId: session.user.id,
+      email: session.user.email,
+    ));
     return session.user;
   }
 
@@ -235,6 +280,8 @@ abstract final class AuthService {
 
     // Clear local session first (ensures logout even if network fails)
     _currentSession = null;
+    // PR#7: Update auth state on logout
+    setAuthState(const AuthState.unauthenticated());
 
     // Attempt server logout (fire-and-forget)
     try {
@@ -280,6 +327,7 @@ abstract final class AuthService {
   /// Use for testing or forced logout without server notification.
   static void reset() {
     _currentSession = null;
+    setAuthState(const AuthState.unknown());
   }
 
   /// Resets the repository to default [RealAuthRepository].
@@ -288,6 +336,7 @@ abstract final class AuthService {
   static void resetRepository() {
     _repository = RealAuthRepository();
     _currentSession = null;
+    setAuthState(const AuthState.unknown());
   }
 
   /// Switches to mock repository for testing.
@@ -296,6 +345,7 @@ abstract final class AuthService {
   static void useMockRepository() {
     _repository = MockAuthRepository();
     _currentSession = null;
+    setAuthState(const AuthState.unknown());
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -347,6 +397,48 @@ abstract final class AuthService {
     } catch (_) {
       // Any error = session invalid
       // Don't clear session here - let caller decide
+      return false;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Auth State Refresh (PR#7)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Refreshes the auth state based on current session validity.
+  ///
+  /// This method:
+  /// 1. Calls [hasValidSession] to check if session is valid
+  /// 2. Updates [state] to [AuthStatus.authenticated] or [AuthStatus.unauthenticated]
+  /// 3. Returns the result
+  ///
+  /// **Never throws** - all exceptions result in unauthenticated state.
+  ///
+  /// Returns `true` if session is valid and state is authenticated.
+  /// Returns `false` if session is invalid and state is unauthenticated.
+  ///
+  /// Example:
+  /// ```dart
+  /// final isValid = await AuthService.refreshAuthState();
+  /// // AuthService.state is now updated
+  /// ```
+  static Future<bool> refreshAuthState() async {
+    try {
+      final isValid = await hasValidSession();
+
+      if (isValid && _currentSession != null) {
+        setAuthState(AuthState.authenticated(
+          userId: _currentSession!.user.id,
+          email: _currentSession!.user.email,
+        ));
+        return true;
+      } else {
+        setAuthState(const AuthState.unauthenticated());
+        return false;
+      }
+    } catch (_) {
+      // On any error, set unauthenticated
+      setAuthState(const AuthState.unauthenticated());
       return false;
     }
   }

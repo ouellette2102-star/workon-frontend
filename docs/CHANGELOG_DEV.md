@@ -21,6 +21,30 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR#7] Auth State Exposure — 2025-12-21
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/services/auth/auth_state.dart` (created)
+- `lib/services/auth/auth_service.dart` (updated)
+- `lib/services/auth/auth_bootstrap.dart` (updated)
+- `docs/ADR_AUTH_SERVICE.md` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+- `docs/DELEGATION_RULES.md` (updated)
+
+**Summary:**  
+Added centralized auth state management. Created `AuthState` model with `AuthStatus` enum (unknown, authenticated, unauthenticated). Added `ValueNotifier<AuthState>` to `AuthService` with reactive `stateListenable`. State updates automatically on login/register/logout. Added `refreshAuthState()` method. Updated `AuthBootstrap` to sync state. No UI changes. MockAuthRepository remains compatible.
+
+**Rollback:**
+```bash
+git rm lib/services/auth/auth_state.dart
+git checkout HEAD~1 -- lib/services/auth/auth_service.dart lib/services/auth/auth_bootstrap.dart docs/ADR_AUTH_SERVICE.md docs/CHANGELOG_DEV.md docs/DELEGATION_RULES.md
+git commit -m "Rollback: PR#7 auth state exposure"
+```
+
+---
+
 ## [PR#6] Auth Bootstrap & Session Check — 2025-12-21
 
 **Risk Level:** 🟢 Auto-safe (LOW)
