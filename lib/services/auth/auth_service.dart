@@ -8,13 +8,14 @@
 /// - Manages in-memory session state
 /// - Exposes typed errors for error handling
 ///
-/// **Current State (PR#4):** Wired to [MockAuthRepository] (no network calls).
-/// **Future State (PR#5):** Swap to [RealAuthRepository] using [ApiClient].
+/// **Current State (PR#5):** Wired to [RealAuthRepository] (Railway backend).
+/// **Tokens:** In-memory only (no SecureStorage yet).
 library;
 
 import 'auth_errors.dart';
 import 'auth_models.dart';
 import 'auth_repository.dart';
+import 'real_auth_repository.dart';
 
 /// Authentication service handling user login, registration, and session.
 ///
@@ -42,10 +43,8 @@ import 'auth_repository.dart';
 /// ## Repository Pattern
 ///
 /// This service delegates to an [AuthRepository] implementation:
-/// - [MockAuthRepository]: Current default, returns mock data
-/// - RealAuthRepository: Future implementation using ApiClient
-///
-/// TODO(PR#5): Replace MockAuthRepository with RealAuthRepository.
+/// - [RealAuthRepository]: Default, connects to Railway backend
+/// - [MockAuthRepository]: For testing, returns mock data
 abstract final class AuthService {
   // ─────────────────────────────────────────────────────────────────────────
   // Repository (Dependency Injection Point)
@@ -53,15 +52,9 @@ abstract final class AuthService {
 
   /// The repository used for authentication operations.
   ///
-  /// Defaults to [MockAuthRepository]. Can be replaced via [initialize].
-  ///
-  /// TODO(PR#5): Switch default to RealAuthRepository:
-  /// ```dart
-  /// static AuthRepository _repository = RealAuthRepository(
-  ///   apiClient: ApiClient,
-  /// );
-  /// ```
-  static AuthRepository _repository = MockAuthRepository();
+  /// Defaults to [RealAuthRepository] (PR#5).
+  /// Use [initialize] to switch to [MockAuthRepository] for testing.
+  static AuthRepository _repository = RealAuthRepository();
 
   /// Initializes the AuthService with a custom repository.
   ///
@@ -289,10 +282,18 @@ abstract final class AuthService {
     _currentSession = null;
   }
 
-  /// Resets the repository to default [MockAuthRepository].
+  /// Resets the repository to default [RealAuthRepository].
   ///
-  /// Use for testing to restore default state.
+  /// Use after testing to restore production state.
   static void resetRepository() {
+    _repository = RealAuthRepository();
+    _currentSession = null;
+  }
+
+  /// Switches to mock repository for testing.
+  ///
+  /// Call this in test setup to avoid real API calls.
+  static void useMockRepository() {
     _repository = MockAuthRepository();
     _currentSession = null;
   }
