@@ -816,6 +816,80 @@ await UserService.refreshFromBackendIfPossible();
 
 ---
 
+## PR#13 Update: Real Auth Integration with Logging
+
+**Date:** 2025-12-21  
+**Status:** Implemented
+
+### What Changed
+
+1. **Enhanced `RealAuthRepository`**
+   - Added `debugPrint` logging for all HTTP operations
+   - Improved error handling with `TimeoutException` catches
+   - Better HTTP status code handling (401, 403, 500+)
+   - Logs request URLs and response status codes
+
+2. **Enhanced `UserApi`**
+   - Added `debugPrint` logging for profile fetch
+   - Improved error handling with specific status code checks
+   - Catches and logs timeout and network errors
+
+3. **Enhanced `UserService`**
+   - Added `debugPrint` logging for role resolution flow
+   - Logs when session/token is missing
+   - Logs resolved role from backend
+
+### Error Handling Strategy
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      HTTP Request                           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │   Status Code Check           │
+              └───────────────────────────────┘
+                              │
+        ┌──────────┬──────────┼──────────┬──────────┐
+        │          │          │          │          │
+        ▼          ▼          ▼          ▼          ▼
+    200/201      401        403        500+      Timeout
+        │          │          │          │          │
+        ▼          ▼          ▼          ▼          ▼
+    ┌───────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
+    │Success│ │Unauth'd │ │Forbidden│ │Server   │ │Network  │
+    │       │ │Exception│ │Exception│ │Error    │ │Exception│
+    └───────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │   debugPrint log              │
+              │   (for debugging only)        │
+              └───────────────────────────────┘
+```
+
+### Logging Format
+
+All logs use consistent prefixes for filtering:
+
+```
+[RealAuthRepository] POST /api/v1/auth/login
+[RealAuthRepository] login response: 200
+[UserApi] GET /api/v1/auth/me
+[UserApi] fetchMe response: 200
+[UserService] refreshFromBackendIfPossible: resolved role = UserRole.worker
+```
+
+### Guarantees
+
+- **No throws to UI**: All errors are caught and logged
+- **Graceful fallbacks**: App works even if backend is down
+- **MockAuthRepository compatible**: Still works for testing
+- **No new dependencies**: Uses Flutter's built-in `debugPrint`
+
+---
+
 ## Future Work
 
 | PR | Scope |
@@ -828,8 +902,9 @@ await UserService.refreshFromBackendIfPossible();
 | ~~PR#10~~ | ~~User context & role resolution~~ ✅ Done |
 | ~~PR#11~~ | ~~Session access layer~~ ✅ Done |
 | ~~PR#12~~ | ~~Role resolution via backend~~ ✅ Done |
-| PR#13 | Add token refresh logic |
-| PR#14 | Persist session to secure storage |
+| ~~PR#13~~ | ~~Real auth integration with logging~~ ✅ Done |
+| PR#14 | Add token refresh logic |
+| PR#15 | Persist session to secure storage |
 
 ---
 

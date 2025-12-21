@@ -21,6 +21,40 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR#13] Real Auth Integration — 2025-12-21
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/services/auth/real_auth_repository.dart` (updated)
+- `lib/services/user/user_api.dart` (updated)
+- `lib/services/user/user_service.dart` (updated)
+- `docs/ADR_AUTH_SERVICE.md` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Improved real authentication integration with comprehensive error handling and logging. Added `debugPrint` logging to `RealAuthRepository`, `UserApi`, and `UserService` for error tracing. Enhanced error handling with proper `TimeoutException` catches, 401/403/500 status code handling, and graceful fallbacks. App boots even if backend is unreachable. MockAuthRepository still works. No UI changes. No SecureStorage.
+
+**Endpoints Used:**
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/register`
+- `GET /api/v1/auth/me`
+- `POST /api/v1/auth/logout`
+
+**Error Handling:**
+- 401/403 → Unauthorized (do NOT throw to UI)
+- 500+ → Server error (graceful fallback)
+- Timeout → Network exception (logged, graceful fallback)
+- All errors logged via `debugPrint`
+
+**Rollback:**
+```bash
+git checkout HEAD~1 -- lib/services/auth/real_auth_repository.dart lib/services/user/user_api.dart lib/services/user/user_service.dart docs/ADR_AUTH_SERVICE.md docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR#13 real auth integration"
+```
+
+---
+
 ## [PR#12] Role Resolution via Backend — 2025-12-21
 
 **Risk Level:** 🟢 Auto-safe (LOW)
