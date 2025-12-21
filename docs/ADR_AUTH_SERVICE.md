@@ -175,12 +175,80 @@ The `RealAuthRepository` will:
 
 ---
 
+---
+
+## PR#5 Update: Real API Integration
+
+**Date:** 2025-12-21  
+**Status:** Implemented
+
+### What Changed
+
+1. **Created `RealAuthRepository`** (`real_auth_repository.dart`)
+   - Implements `AuthRepository` with real HTTP calls
+   - Connects to Railway backend via `ApiClient`
+   - Endpoints: `POST /auth/login`, `POST /auth/register`, `GET /auth/me`, `POST /auth/logout`
+
+2. **Switched Default Repository**
+   - `AuthService` now defaults to `RealAuthRepository`
+   - Added `useMockRepository()` method for testing
+   - `MockAuthRepository` preserved for offline development
+
+3. **Error Handling**
+   - HTTP 401 → `InvalidCredentialsException`
+   - HTTP 409 → `EmailAlreadyInUseException`
+   - HTTP 5xx / Network errors → `AuthNetworkException`
+
+### Architecture (PR#5)
+
+```
+┌─────────────────┐     ┌──────────────────────┐
+│   AuthService   │────▶│   AuthRepository     │ (interface)
+│   (facade)      │     └──────────────────────┘
+└─────────────────┘              ▲
+                                 │
+              ┌──────────────────┴──────────────────┐
+              │                                     │
+    ┌─────────────────────┐           ┌─────────────────────┐
+    │ MockAuthRepository  │           │ RealAuthRepository  │
+    │ (testing)           │           │ (PR#5 ✅ DEFAULT)   │
+    └─────────────────────┘           └─────────────────────┘
+              │                                     │
+              ▼                                     ▼
+        [In-memory]                          [ApiClient]
+                                                   │
+                                                   ▼
+                                        [Railway Backend]
+```
+
+### Limitations (Intentional for PR#5)
+
+- **No token refresh**: Tokens expire, user must re-login
+- **No persistence**: Tokens in-memory only (lost on app restart)
+- **No interceptors**: No automatic auth header injection
+- **No SecureStorage**: Tokens not encrypted on device
+
+### Usage
+
+```dart
+// Production (default - PR#5):
+// RealAuthRepository is used automatically
+
+// Testing:
+AuthService.useMockRepository();
+
+// Manual switch:
+AuthService.initialize(repository: MockAuthRepository());
+```
+
+---
+
 ## Future Work
 
 | PR | Scope |
 |----|-------|
 | ~~PR#4~~ | ~~Connect AuthService to ApiClient with real endpoints~~ ✅ Wiring done |
-| PR#5 | Implement RealAuthRepository with actual API calls |
+| ~~PR#5~~ | ~~Implement RealAuthRepository with actual API calls~~ ✅ Done |
 | PR#6 | Add token refresh logic |
 | PR#7 | Persist session to secure storage |
 | PR#8 | Wire auth state to UI (login screen, protected routes) |

@@ -21,6 +21,34 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR#5] Real Auth API Integration — 2025-12-21
+
+**Risk Level:** 🟡 Semi-safe (MEDIUM)
+
+**Files Changed:**
+- `lib/services/auth/real_auth_repository.dart` (created)
+- `lib/services/auth/auth_service.dart` (updated)
+- `docs/ADR_AUTH_SERVICE.md` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Implemented real authentication API calls to Railway backend. Created `RealAuthRepository` with login, register, me, and logout endpoints. Switched `AuthService` default from mock to real repository. Added `useMockRepository()` for testing. Tokens remain in-memory only (no persistence). No UI changes.
+
+**Endpoints Used:**
+- `POST /auth/login`
+- `POST /auth/register`
+- `GET /auth/me`
+- `POST /auth/logout`
+
+**Rollback:**
+```bash
+git rm lib/services/auth/real_auth_repository.dart
+git checkout HEAD~1 -- lib/services/auth/auth_service.dart docs/ADR_AUTH_SERVICE.md docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR#5 real auth API"
+```
+
+---
+
 ## [PR#4] Auth Wiring (Repository Pattern) — 2025-12-21
 
 **Risk Level:** 🟢 Auto-safe (LOW)

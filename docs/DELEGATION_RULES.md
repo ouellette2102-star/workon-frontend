@@ -100,6 +100,16 @@ ALLOWED:
   - docs/CHANGELOG_DEV.md (update)
 ```
 
+### PR#5 — Real Auth API Integration
+```
+ALLOWED:
+  - lib/services/auth/real_auth_repository.dart (create)
+  - lib/services/auth/auth_service.dart (update)
+  - docs/ADR_AUTH_SERVICE.md (update)
+  - docs/CHANGELOG_DEV.md (update)
+  - docs/DELEGATION_RULES.md (update)
+```
+
 ### Template for Future PRs
 ```
 PR#N — [Title]
