@@ -324,6 +324,105 @@ if (await AuthService.hasValidSession()) {
 
 ---
 
+## PR#7 Update: Auth State Exposure
+
+**Date:** 2025-12-21  
+**Status:** Implemented
+
+### What Changed
+
+1. **Created `AuthState` model** (`auth_state.dart`)
+   - `AuthStatus` enum: `unknown`, `authenticated`, `unauthenticated`
+   - `AuthState` class with `status`, `userId`, `email`
+   - Convenience constructors: `.unknown()`, `.authenticated()`, `.unauthenticated()`
+   - Immutable with `copyWith` support
+
+2. **Added reactive state to `AuthService`**
+   - `ValueNotifier<AuthState> _state` for reactive updates
+   - `stateListenable` getter for listening to changes
+   - `state` getter for current value
+   - `setAuthState()` method for updates
+   - `refreshAuthState()` method to validate and update state
+
+3. **Integrated state updates**
+   - `login()` → sets authenticated with user info
+   - `register()` → sets authenticated with user info
+   - `logout()` → sets unauthenticated
+   - `reset()` / `useMockRepository()` / `resetRepository()` → sets unknown
+
+4. **Updated `AuthBootstrap`**
+   - `checkSession()` now updates auth state via `refreshAuthState()`
+   - Quick path: no session → set unauthenticated immediately
+
+### State Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      App Startup                            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+                   AuthState = unknown
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │  AuthBootstrap.checkSession() │
+              └───────────────────────────────┘
+                              │
+               ┌──────────────┴──────────────┐
+              Yes                           No
+               │                             │
+               ▼                             ▼
+    ┌─────────────────────┐       ┌─────────────────────┐
+    │ refreshAuthState()  │       │  unauthenticated    │
+    └─────────────────────┘       └─────────────────────┘
+               │
+      ┌────────┴────────┐
+    Valid            Invalid
+      │                  │
+      ▼                  ▼
+┌─────────────┐   ┌─────────────────┐
+│ authenticated│   │ unauthenticated │
+└─────────────┘   └─────────────────┘
+```
+
+### Usage
+
+```dart
+// Listen to auth state changes (reactive)
+AuthService.stateListenable.addListener(() {
+  final state = AuthService.state;
+  switch (state.status) {
+    case AuthStatus.authenticated:
+      // Navigate to home
+      break;
+    case AuthStatus.unauthenticated:
+      // Navigate to login
+      break;
+    case AuthStatus.unknown:
+      // Show loading
+      break;
+  }
+});
+
+// Check current state (one-time)
+if (AuthService.state.isAuthenticated) {
+  print('Logged in as ${AuthService.state.email}');
+}
+
+// Manually refresh state
+final isValid = await AuthService.refreshAuthState();
+```
+
+### Key Design Decisions
+
+1. **ValueNotifier over StreamController**: Simpler, built-in to Flutter, no subscription management
+2. **Centralized state in AuthService**: UI must not manage auth decisions directly
+3. **Auth state is managed in AuthService**: UI routing will be wired in a future PR
+4. **Never throws from refreshAuthState**: All errors result in unauthenticated state
+
+---
+
 ## Future Work
 
 | PR | Scope |
@@ -331,9 +430,10 @@ if (await AuthService.hasValidSession()) {
 | ~~PR#4~~ | ~~Connect AuthService to ApiClient with real endpoints~~ ✅ Wiring done |
 | ~~PR#5~~ | ~~Implement RealAuthRepository with actual API calls~~ ✅ Done |
 | ~~PR#6~~ | ~~Auth bootstrap & session check~~ ✅ Done |
-| PR#7 | Add token refresh logic |
-| PR#8 | Persist session to secure storage |
-| PR#9 | Wire auth state to UI (login screen, protected routes) |
+| ~~PR#7~~ | ~~Auth state exposure~~ ✅ Done |
+| PR#8 | Add token refresh logic |
+| PR#9 | Persist session to secure storage |
+| PR#10 | Wire auth state to UI (login screen, protected routes) |
 
 ---
 

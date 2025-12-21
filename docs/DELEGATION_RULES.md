@@ -120,6 +120,21 @@ ALLOWED:
   - docs/DELEGATION_RULES.md (update)
 ```
 
+### PR#7 — Auth State Exposure
+```
+ALLOWED:
+  - lib/services/auth/auth_state.dart (create)
+  - lib/services/auth/auth_service.dart (update)
+  - lib/services/auth/auth_bootstrap.dart (update)
+  - docs/ADR_AUTH_SERVICE.md (update)
+  - docs/CHANGELOG_DEV.md (update)
+  - docs/DELEGATION_RULES.md (update)
+NOT ALLOWED:
+  - Any widget, route, or model file
+  - pubspec.yaml
+  - No UI/navigation changes
+```
+
 ### Template for Future PRs
 ```
 PR#N — [Title]
@@ -163,7 +178,19 @@ http.get(Uri.parse('...')); // ❌ Must go through service layer
 class _HomeWidgetState {
   Future fetchData() { ... } // ❌ Not allowed without explicit request
 }
+
+// Managing auth state in widgets (PR#7+)
+class _MyWidgetState {
+  bool isLoggedIn = false;  // ❌ Use AuthService.state instead
+}
 ```
+
+### 🔒 Auth State Rules (PR#7+)
+
+- **Auth state is managed centrally in `AuthService`**
+- UI must read state via `AuthService.state` or `AuthService.stateListenable`
+- UI must NOT manage auth decisions directly
+- Routing based on auth state will be implemented in a future PR for routing
 
 ---
 
