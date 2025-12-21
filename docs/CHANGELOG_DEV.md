@@ -21,6 +21,28 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR#6] Auth Bootstrap & Session Check — 2025-12-21
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/services/auth/auth_bootstrap.dart` (created)
+- `lib/services/auth/auth_service.dart` (updated)
+- `docs/ADR_AUTH_SERVICE.md` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added lightweight auth bootstrap for app startup. Created `AuthBootstrap.checkSession()` to validate sessions with backend. Added `AuthService.hasValidSession()` helper method. All errors return `false` - no exceptions bubble up. MockAuthRepository remains compatible. No UI changes.
+
+**Rollback:**
+```bash
+git rm lib/services/auth/auth_bootstrap.dart
+git checkout HEAD~1 -- lib/services/auth/auth_service.dart docs/ADR_AUTH_SERVICE.md docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR#6 auth bootstrap"
+```
+
+---
+
 ## [PR#5] Real Auth API Integration — 2025-12-21
 
 **Risk Level:** 🟡 Semi-safe (MEDIUM)

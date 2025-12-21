@@ -243,15 +243,97 @@ AuthService.initialize(repository: MockAuthRepository());
 
 ---
 
+## PR#6 Update: Auth Bootstrap & Session Check
+
+**Date:** 2025-12-21  
+**Status:** Implemented
+
+### What Changed
+
+1. **Created `AuthBootstrap`** (`auth_bootstrap.dart`)
+   - Lightweight session checking at app startup
+   - `checkSession()`: Validates current session with backend
+   - `initialize()`: Convenience method for app startup
+   - Never throws exceptions - returns `false` on any error
+
+2. **Added `hasValidSession()` to AuthService**
+   - Checks if current session is valid
+   - Validates token with `/auth/me` endpoint
+   - Returns `true`/`false` without throwing
+   - Quick local checks before network call
+
+### Bootstrap Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      App Startup                            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │  AuthBootstrap.checkSession() │
+              └───────────────────────────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │  Session exists locally?      │
+              └───────────────────────────────┘
+                     │              │
+                    No             Yes
+                     │              │
+                     ▼              ▼
+              ┌──────────┐  ┌─────────────────┐
+              │  false   │  │ Validate w/ API │
+              └──────────┘  └─────────────────┘
+                                    │
+                           ┌────────┴────────┐
+                          OK              Error
+                           │                │
+                           ▼                ▼
+                    ┌──────────┐     ┌──────────┐
+                    │   true   │     │  false   │
+                    └──────────┘     └──────────┘
+```
+
+### Usage
+
+```dart
+// In main.dart (app startup)
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  final isLoggedIn = await AuthBootstrap.checkSession();
+  
+  runApp(MyApp(isAuthenticated: isLoggedIn));
+}
+
+// Or use hasValidSession directly
+if (await AuthService.hasValidSession()) {
+  // Navigate to home
+} else {
+  // Navigate to login
+}
+```
+
+### Guarantees
+
+- **No exceptions bubble up**: All errors return `false`
+- **No logging noise**: Silent failure
+- **MockAuthRepository compatible**: Works with both real and mock
+- **Existing logic untouched**: login/register/logout unchanged
+
+---
+
 ## Future Work
 
 | PR | Scope |
 |----|-------|
 | ~~PR#4~~ | ~~Connect AuthService to ApiClient with real endpoints~~ ✅ Wiring done |
 | ~~PR#5~~ | ~~Implement RealAuthRepository with actual API calls~~ ✅ Done |
-| PR#6 | Add token refresh logic |
-| PR#7 | Persist session to secure storage |
-| PR#8 | Wire auth state to UI (login screen, protected routes) |
+| ~~PR#6~~ | ~~Auth bootstrap & session check~~ ✅ Done |
+| PR#7 | Add token refresh logic |
+| PR#8 | Persist session to secure storage |
+| PR#9 | Wire auth state to UI (login screen, protected routes) |
 
 ---
 
