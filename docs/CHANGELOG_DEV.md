@@ -21,6 +21,33 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR#9] UI Auth Gate — 2025-12-21
+
+**Risk Level:** 🟡 Semi-safe (MEDIUM)
+
+**Files Changed:**
+- `lib/app/auth_gate.dart` (created)
+- `lib/flutter_flow/nav/nav.dart` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Wired UI to AppBootState for startup routing. Created `AuthGate` widget that listens to `AppStartupController` and conditionally renders: loading screen (spinner), `OnboardingWidget` (leads to login) when unauthenticated, or `HomeWidget` when authenticated. Modified initial route "/" to use `AuthGate` after splash. No auth logic changes. MockAuthRepository still works.
+
+**Behavior:**
+- App shows splash screen (1s)
+- Then AuthGate shows loading while checking session
+- If authenticated → Home
+- If not → Onboarding (login flow)
+
+**Rollback:**
+```bash
+git rm lib/app/auth_gate.dart
+git checkout HEAD~1 -- lib/flutter_flow/nav/nav.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR#9 UI auth gate"
+```
+
+---
+
 ## [PR#8] App Startup State Orchestration — 2025-12-21
 
 **Risk Level:** 🟢 Auto-safe (LOW)
