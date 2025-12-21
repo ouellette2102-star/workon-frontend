@@ -1,0 +1,72 @@
+/// Centralized application configuration for WorkOn.
+///
+/// This file contains all environment-specific settings including
+/// backend API URLs for Railway deployment.
+library;
+
+/// Application configuration class providing centralized access
+/// to all environment-specific settings.
+abstract final class AppConfig {
+  // ─────────────────────────────────────────────────────────────────────────
+  // Backend API Configuration (Railway)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Production backend API base URL hosted on Railway.
+  static const String apiBaseUrl =
+      'https://workon-backend-production.up.railway.app';
+
+  /// Development/staging backend API base URL.
+  static const String apiBaseUrlDev =
+      'https://workon-backend-dev.up.railway.app';
+
+  /// Current active API URL based on environment.
+  static const String activeApiUrl = _isProduction ? apiBaseUrl : apiBaseUrlDev;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Environment Configuration
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Flag indicating whether the app is running in production mode.
+  /// Set to `true` for release builds.
+  static const bool _isProduction = bool.fromEnvironment(
+    'dart.vm.product',
+    defaultValue: false,
+  );
+
+  /// Returns `true` if running in production environment.
+  static bool get isProduction => _isProduction;
+
+  /// Returns `true` if running in development environment.
+  static bool get isDevelopment => !_isProduction;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // API Endpoints
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// API version prefix for all endpoints.
+  static const String apiVersion = '/api/v1';
+
+  /// Full API URL with version prefix.
+  static String get apiUrl => '$activeApiUrl$apiVersion';
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Timeout Configuration
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Connection timeout duration for API requests.
+  static const Duration connectionTimeout = Duration(seconds: 30);
+
+  /// Receive timeout duration for API responses.
+  static const Duration receiveTimeout = Duration(seconds: 30);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // App Metadata
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Application name.
+  static const String appName = 'WorkOn';
+
+  /// Application version.
+  static const String appVersion = '1.0.0';
+}
+
