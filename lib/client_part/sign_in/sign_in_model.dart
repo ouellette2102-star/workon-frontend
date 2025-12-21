@@ -27,6 +27,8 @@ class SignInModel extends FlutterFlowModel<SignInWidget> {
   String? Function(BuildContext, String?)? passwordTextControllerValidator;
   // State field(s) for Checkbox widget.
   bool? checkboxValue;
+  // PR#14: Loading state for auth request
+  bool isLoading = false;
 
   @override
   void initState(BuildContext context) {
