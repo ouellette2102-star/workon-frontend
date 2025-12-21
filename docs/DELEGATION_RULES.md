@@ -110,6 +110,16 @@ ALLOWED:
   - docs/DELEGATION_RULES.md (update)
 ```
 
+### PR#6 — Auth Bootstrap & Session Check
+```
+ALLOWED:
+  - lib/services/auth/auth_bootstrap.dart (create)
+  - lib/services/auth/auth_service.dart (update)
+  - docs/ADR_AUTH_SERVICE.md (update)
+  - docs/CHANGELOG_DEV.md (update)
+  - docs/DELEGATION_RULES.md (update)
+```
+
 ### Template for Future PRs
 ```
 PR#N — [Title]

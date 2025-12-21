@@ -297,4 +297,57 @@ abstract final class AuthService {
     _repository = MockAuthRepository();
     _currentSession = null;
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Session Validation (PR#6)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Checks if the current session is valid by calling the backend.
+  ///
+  /// This method:
+  /// 1. Checks if a session exists locally
+  /// 2. Validates the token with /auth/me
+  /// 3. Returns result without throwing
+  ///
+  /// Returns `true` if session is valid and backend confirms.
+  /// Returns `false` on any error (no session, expired, network, etc.).
+  ///
+  /// **Never throws** - all exceptions are caught and return `false`.
+  ///
+  /// Example:
+  /// ```dart
+  /// if (await AuthService.hasValidSession()) {
+  ///   // User is authenticated
+  /// } else {
+  ///   // Redirect to login
+  /// }
+  /// ```
+  static Future<bool> hasValidSession() async {
+    // No session = not valid
+    if (_currentSession == null) {
+      return false;
+    }
+
+    // No token = not valid
+    final token = _currentSession?.tokens.accessToken;
+    if (token == null || token.isEmpty) {
+      return false;
+    }
+
+    // Check if token is expired locally (quick check)
+    if (_currentSession!.tokens.isExpired) {
+      _currentSession = null;
+      return false;
+    }
+
+    // Validate with backend
+    try {
+      await _repository.me(accessToken: token);
+      return true;
+    } catch (_) {
+      // Any error = session invalid
+      // Don't clear session here - let caller decide
+      return false;
+    }
+  }
 }
