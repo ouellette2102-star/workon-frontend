@@ -21,6 +21,52 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F08] Polish + Branding + UX Consistency — 2024-12-28
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/config/ui_tokens.dart` (created)
+- `lib/client_part/home/home_widget.dart` (updated)
+- `lib/client_part/mission_detail/mission_detail_widget.dart` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Introduced centralized UI tokens for consistent branding and UX across the app. Created `ui_tokens.dart` with spacing, radius, colors, gradients, icon sizes, and French microcopy constants. Updated missions surfaces (Home feed, MissionDetail) to use these tokens. Harmonized loading/error/empty state messages in French. Added animated toggle button for List/Cards view.
+
+**Key Changes:**
+- **WkSpacing**: Standardized spacing values (xs/sm/md/lg/xl/xxl/xxxl)
+- **WkRadius**: Standardized border radius values (card, button, badge)
+- **WkCopy**: Centralized French microcopy (loading, errors, empty states, labels)
+- **WkStatusColors**: Consistent status colors (open/assigned/inProgress/completed/cancelled)
+- **WkGradients**: Reusable card gradient presets
+- **WkIconSize**: Standardized icon sizes
+- **WkDuration**: Animation duration constants
+
+**French Microcopy Harmonized:**
+- Loading: "Chargement…"
+- Empty missions: "Aucune mission disponible près de toi."
+- Error: "Impossible de charger les missions." + "Réessayer"
+- Mission not found: "Mission introuvable."
+- Back: "Retour"
+
+**Manual Test Flow:**
+1. Login → Home loads
+2. Missions section visible; loading/empty/error texts in French
+3. Toggle List/Cards/Map works; UI consistent with animated transitions
+4. Tap mission → MissionDetail displays correctly
+5. Retry button works on error state
+6. No crashes; `dart analyze` = 0
+
+**Rollback:**
+```bash
+git rm lib/config/ui_tokens.dart
+git checkout HEAD~1 -- lib/client_part/home/home_widget.dart lib/client_part/mission_detail/mission_detail_widget.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F08 polish + branding"
+```
+
+---
+
 ## [PR-F07] Missions Map Pins — 2024-12-28
 
 **Risk Level:** 🟡 Semi-safe (NEW DEPENDENCY)
