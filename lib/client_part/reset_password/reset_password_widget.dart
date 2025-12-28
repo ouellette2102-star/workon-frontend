@@ -5,6 +5,8 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/auth/auth_errors.dart';
+import '/services/auth/auth_service.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
@@ -311,35 +313,109 @@ class _ResetPasswordWidgetState extends State<ResetPasswordWidget> {
                                 ),
                               ].divide(SizedBox(height: 10.0)),
                             ),
-                            FFButtonWidget(
-                              onPressed: () async {
-                                await _model.pageViewController?.nextPage(
-                                  duration: Duration(milliseconds: 300),
-                                  curve: Curves.ease,
-                                );
-                              },
-                              text: FFLocalizations.of(context).getText(
-                                '95koj0as' /* Next */,
-                              ),
-                              options: FFButtonOptions(
-                                width: double.infinity,
-                                height: 50.0,
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    16.0, 0.0, 16.0, 0.0),
-                                iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                color: FlutterFlowTheme.of(context).primary,
-                                textStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .override(
-                                      fontFamily: 'General Sans',
-                                      color: Colors.white,
-                                      letterSpacing: 0.0,
+                            // PR-F14: Submit email button
+                            _model.isLoading
+                                ? Center(
+                                    child: CircularProgressIndicator(
+                                      color: FlutterFlowTheme.of(context).primary,
                                     ),
-                                elevation: 0.0,
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                            ),
+                                  )
+                                : FFButtonWidget(
+                                    onPressed: () async {
+                                      final email = _model.emailTextController?.text.trim() ?? '';
+                                      
+                                      // Basic validation
+                                      if (email.isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Veuillez entrer votre adresse email'),
+                                            backgroundColor: FlutterFlowTheme.of(context).error,
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      
+                                      if (!email.contains('@') || !email.contains('.')) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Adresse email invalide'),
+                                            backgroundColor: FlutterFlowTheme.of(context).error,
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      
+                                      // Call API
+                                      safeSetState(() {
+                                        _model.isLoading = true;
+                                        _model.errorMessage = null;
+                                      });
+                                      
+                                      try {
+                                        await AuthService.forgotPassword(email: email);
+                                        
+                                        // Success - go to code input page
+                                        safeSetState(() {
+                                          _model.isLoading = false;
+                                        });
+                                        
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Code envoyé à $email'),
+                                            backgroundColor: FlutterFlowTheme.of(context).success,
+                                          ),
+                                        );
+                                        
+                                        await _model.pageViewController?.nextPage(
+                                          duration: Duration(milliseconds: 300),
+                                          curve: Curves.ease,
+                                        );
+                                      } on AuthException catch (e) {
+                                        safeSetState(() {
+                                          _model.isLoading = false;
+                                          _model.errorMessage = e.message;
+                                        });
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(e.message),
+                                            backgroundColor: FlutterFlowTheme.of(context).error,
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        safeSetState(() {
+                                          _model.isLoading = false;
+                                          _model.errorMessage = 'Erreur de connexion';
+                                        });
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Erreur de connexion. Réessaie.'),
+                                            backgroundColor: FlutterFlowTheme.of(context).error,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    text: FFLocalizations.of(context).getText(
+                                      '95koj0as' /* Next */,
+                                    ),
+                                    options: FFButtonOptions(
+                                      width: double.infinity,
+                                      height: 50.0,
+                                      padding: EdgeInsetsDirectional.fromSTEB(
+                                          16.0, 0.0, 16.0, 0.0),
+                                      iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                          0.0, 0.0, 0.0, 0.0),
+                                      color: FlutterFlowTheme.of(context).primary,
+                                      textStyle: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .override(
+                                            fontFamily: 'General Sans',
+                                            color: Colors.white,
+                                            letterSpacing: 0.0,
+                                          ),
+                                      elevation: 0.0,
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    ),
+                                  ),
                           ].divide(SizedBox(height: 20.0)),
                         ),
                       ]
@@ -539,11 +615,26 @@ class _ResetPasswordWidgetState extends State<ResetPasswordWidget> {
                     Column(
                       mainAxisSize: MainAxisSize.max,
                       children: [
+                        // PR-F14: Continue with code button
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               20.0, 0.0, 20.0, 0.0),
                           child: FFButtonWidget(
                             onPressed: () async {
+                              final code = _model.pinCodeController?.text.trim() ?? '';
+                              
+                              // Validate code length
+                              if (code.length < 4) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Veuillez entrer le code à 4 chiffres'),
+                                    backgroundColor: FlutterFlowTheme.of(context).error,
+                                  ),
+                                );
+                                return;
+                              }
+                              
+                              // Move to password page (code will be validated with reset call)
                               await _model.pageViewController?.nextPage(
                                 duration: Duration(milliseconds: 300),
                                 curve: Curves.ease,
@@ -1601,35 +1692,122 @@ class _ResetPasswordWidgetState extends State<ResetPasswordWidget> {
                                 ),
                               ].divide(SizedBox(height: 10.0)),
                             ),
-                            FFButtonWidget(
-                              onPressed: () async {
-                                await _model.pageViewController?.nextPage(
-                                  duration: Duration(milliseconds: 300),
-                                  curve: Curves.ease,
-                                );
-                              },
-                              text: FFLocalizations.of(context).getText(
-                                '67gogv9x' /* Save New Password */,
-                              ),
-                              options: FFButtonOptions(
-                                width: double.infinity,
-                                height: 50.0,
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    16.0, 0.0, 16.0, 0.0),
-                                iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                color: FlutterFlowTheme.of(context).primary,
-                                textStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .override(
-                                      fontFamily: 'General Sans',
-                                      color: Colors.white,
-                                      letterSpacing: 0.0,
+                            // PR-F14: Save new password button
+                            _model.isLoading
+                                ? Center(
+                                    child: CircularProgressIndicator(
+                                      color: FlutterFlowTheme.of(context).primary,
                                     ),
-                                elevation: 0.0,
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                            ),
+                                  )
+                                : FFButtonWidget(
+                                    onPressed: () async {
+                                      final email = _model.emailTextController?.text.trim() ?? '';
+                                      final code = _model.pinCodeController?.text.trim() ?? '';
+                                      final newPassword = _model.newPasswordTextController?.text ?? '';
+                                      final confirmPassword = _model.confirmPasswordTextController?.text ?? '';
+                                      
+                                      // Validate passwords match
+                                      if (newPassword != confirmPassword) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Les mots de passe ne correspondent pas'),
+                                            backgroundColor: FlutterFlowTheme.of(context).error,
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      
+                                      // Validate password length
+                                      if (newPassword.length < 8) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Le mot de passe doit contenir au moins 8 caractères'),
+                                            backgroundColor: FlutterFlowTheme.of(context).error,
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      
+                                      // Call API
+                                      safeSetState(() {
+                                        _model.isLoading = true;
+                                        _model.errorMessage = null;
+                                      });
+                                      
+                                      try {
+                                        await AuthService.resetPassword(
+                                          email: email,
+                                          code: code,
+                                          newPassword: newPassword,
+                                        );
+                                        
+                                        // Success - go to success page
+                                        safeSetState(() {
+                                          _model.isLoading = false;
+                                        });
+                                        
+                                        await _model.pageViewController?.nextPage(
+                                          duration: Duration(milliseconds: 300),
+                                          curve: Curves.ease,
+                                        );
+                                      } on AuthException catch (e) {
+                                        safeSetState(() {
+                                          _model.isLoading = false;
+                                          _model.errorMessage = e.message;
+                                        });
+                                        
+                                        // Go to failed page or show error
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(e.message),
+                                            backgroundColor: FlutterFlowTheme.of(context).error,
+                                          ),
+                                        );
+                                        
+                                        // If code is invalid, go back to code page
+                                        if (e.message.toLowerCase().contains('code')) {
+                                          await _model.pageViewController?.animateToPage(
+                                            1,
+                                            duration: Duration(milliseconds: 300),
+                                            curve: Curves.ease,
+                                          );
+                                        }
+                                      } catch (e) {
+                                        safeSetState(() {
+                                          _model.isLoading = false;
+                                          _model.errorMessage = 'Erreur de connexion';
+                                        });
+                                        
+                                        // Go to failed page
+                                        await _model.pageViewController?.animateToPage(
+                                          4, // Failed widget page
+                                          duration: Duration(milliseconds: 300),
+                                          curve: Curves.ease,
+                                        );
+                                      }
+                                    },
+                                    text: FFLocalizations.of(context).getText(
+                                      '67gogv9x' /* Save New Password */,
+                                    ),
+                                    options: FFButtonOptions(
+                                      width: double.infinity,
+                                      height: 50.0,
+                                      padding: EdgeInsetsDirectional.fromSTEB(
+                                          16.0, 0.0, 16.0, 0.0),
+                                      iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                          0.0, 0.0, 0.0, 0.0),
+                                      color: FlutterFlowTheme.of(context).primary,
+                                      textStyle: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .override(
+                                            fontFamily: 'General Sans',
+                                            color: Colors.white,
+                                            letterSpacing: 0.0,
+                                          ),
+                                      elevation: 0.0,
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    ),
+                                  ),
                           ].divide(SizedBox(height: 20.0)),
                         ),
                       ]
@@ -1639,38 +1817,33 @@ class _ResetPasswordWidgetState extends State<ResetPasswordWidget> {
                     ),
                   ),
                 ),
+                // PR-F14: Success widget - redirect to SignIn
                 wrapWithModel(
                   model: _model.successWidgetModel,
                   updateCallback: () => safeSetState(() {}),
                   child: SuccessWidgetWidget(
-                    title: FFLocalizations.of(context).getText(
-                      'nmxflf7v' /* Password Reset Successful! */,
-                    ),
-                    description: FFLocalizations.of(context).getText(
-                      'wp53722v' /* Your password was reset succes... */,
-                    ),
-                    btnText: FFLocalizations.of(context).getText(
-                      'h3hldhnm' /* OK */,
-                    ),
+                    title: 'Mot de passe réinitialisé !',
+                    description: 'Tu peux maintenant te connecter avec ton nouveau mot de passe.',
+                    btnText: 'Se connecter',
                     btnAction: () async {
-                      context.pushNamed(HomeWidget.routeName);
+                      context.pushNamed(SignInWidget.routeName);
                     },
                   ),
                 ),
+                // PR-F14: Failed widget with French messages
                 wrapWithModel(
                   model: _model.failedWidgetModel,
                   updateCallback: () => safeSetState(() {}),
                   child: FailedWidgetWidget(
-                    title: FFLocalizations.of(context).getText(
-                      'z9vce0u5' /* Failed to reset password! */,
-                    ),
-                    description: FFLocalizations.of(context).getText(
-                      '5qq5anpt' /* Sorry! Something went wrong wh... */,
-                    ),
-                    btnText: FFLocalizations.of(context).getText(
-                      '38o4366k' /* Try again */,
-                    ),
+                    title: 'Échec de la réinitialisation',
+                    description: _model.errorMessage ?? 'Une erreur est survenue. Vérifie ta connexion et réessaie.',
+                    btnText: 'Réessayer',
                     btnAction: () async {
+                      // Clear error and go back to email page
+                      safeSetState(() {
+                        _model.errorMessage = null;
+                        _model.pinCodeController?.clear();
+                      });
                       await _model.pageViewController?.animateToPage(
                         0,
                         duration: Duration(milliseconds: 500),

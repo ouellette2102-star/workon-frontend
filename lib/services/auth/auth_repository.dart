@@ -59,6 +59,28 @@ abstract class AuthRepository {
   /// This should invalidate the session on the server if applicable.
   /// Local session cleanup is handled by AuthService.
   Future<void> logout({String? accessToken});
+
+  /// PR-F14: Requests a password reset email/code.
+  ///
+  /// Sends a verification code to the user's email address.
+  ///
+  /// Throws:
+  /// - [AuthException] if email is not found or invalid.
+  /// - [AuthNetworkException] if connection fails.
+  Future<void> forgotPassword({required String email});
+
+  /// PR-F14: Resets the user's password using a verification code.
+  ///
+  /// Verifies the code and sets a new password.
+  ///
+  /// Throws:
+  /// - [AuthException] if code is invalid or expired.
+  /// - [AuthNetworkException] if connection fails.
+  Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -178,6 +200,50 @@ class MockAuthRepository implements AuthRepository {
 
     // Mock: always succeeds (fire-and-forget pattern)
     // No-op since we don't have a real server session to invalidate
+  }
+
+  @override
+  Future<void> forgotPassword({required String email}) async {
+    // Simulate network latency
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    // Mock validation
+    if (email.isEmpty) {
+      throw const AuthException('Email is required');
+    }
+
+    // Mock: reject specific test email
+    if (email == 'notfound@test.com') {
+      throw const AuthException('Email not found');
+    }
+
+    // Mock: always succeeds (code "sent")
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    // Simulate network latency
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    // Mock validation
+    if (code.isEmpty || code.length != 4) {
+      throw const AuthException('Invalid verification code');
+    }
+
+    if (newPassword.length < 8) {
+      throw const AuthException('Password must be at least 8 characters');
+    }
+
+    // Mock: reject specific test code
+    if (code == '0000') {
+      throw const AuthException('Invalid or expired code');
+    }
+
+    // Mock: always succeeds
   }
 
   /// Extracts a display name from an email address.

@@ -211,6 +211,120 @@ class RealAuthRepository implements AuthRepository {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // PR-F14: Password Reset Endpoints
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @override
+  Future<void> forgotPassword({required String email}) async {
+    final uri = ApiClient.buildUri('/auth/forgot-password');
+
+    try {
+      debugPrint('[RealAuthRepository] POST $uri');
+      final response = await ApiClient.client
+          .post(
+            uri,
+            headers: ApiClient.defaultHeaders,
+            body: jsonEncode({'email': email.trim()}),
+          )
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[RealAuthRepository] forgotPassword response: ${response.statusCode}');
+
+      switch (response.statusCode) {
+        case 200:
+        case 201:
+        case 204:
+          // Success - email sent
+          return;
+
+        case 400:
+          final message = _extractErrorMessage(response.body);
+          throw AuthException(message ?? 'Adresse email invalide');
+
+        case 404:
+          throw const AuthException('Aucun compte associé à cet email');
+
+        case 429:
+          throw const AuthException('Trop de tentatives. Réessaie plus tard.');
+
+        default:
+          throw const AuthNetworkException();
+      }
+    } on TimeoutException {
+      debugPrint('[RealAuthRepository] forgotPassword timeout');
+      throw const AuthNetworkException('Délai de connexion dépassé');
+    } on http.ClientException catch (e) {
+      debugPrint('[RealAuthRepository] forgotPassword network error: $e');
+      throw const AuthNetworkException();
+    } on Exception catch (e) {
+      if (e is AuthException) rethrow;
+      debugPrint('[RealAuthRepository] forgotPassword unexpected error: $e');
+      throw const AuthNetworkException();
+    }
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    final uri = ApiClient.buildUri('/auth/reset-password');
+
+    try {
+      debugPrint('[RealAuthRepository] POST $uri');
+      final response = await ApiClient.client
+          .post(
+            uri,
+            headers: ApiClient.defaultHeaders,
+            body: jsonEncode({
+              'email': email.trim(),
+              'code': code.trim(),
+              'newPassword': newPassword,
+            }),
+          )
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[RealAuthRepository] resetPassword response: ${response.statusCode}');
+
+      switch (response.statusCode) {
+        case 200:
+        case 201:
+        case 204:
+          // Success - password reset
+          return;
+
+        case 400:
+          final message = _extractErrorMessage(response.body);
+          throw AuthException(message ?? 'Code invalide ou expiré');
+
+        case 401:
+          throw const AuthException('Code invalide ou expiré');
+
+        case 422:
+          final message = _extractErrorMessage(response.body);
+          throw AuthException(message ?? 'Mot de passe invalide');
+
+        case 429:
+          throw const AuthException('Trop de tentatives. Réessaie plus tard.');
+
+        default:
+          throw const AuthNetworkException();
+      }
+    } on TimeoutException {
+      debugPrint('[RealAuthRepository] resetPassword timeout');
+      throw const AuthNetworkException('Délai de connexion dépassé');
+    } on http.ClientException catch (e) {
+      debugPrint('[RealAuthRepository] resetPassword network error: $e');
+      throw const AuthNetworkException();
+    } on Exception catch (e) {
+      if (e is AuthException) rethrow;
+      debugPrint('[RealAuthRepository] resetPassword unexpected error: $e');
+      throw const AuthNetworkException();
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Response Handling
   // ─────────────────────────────────────────────────────────────────────────
 
