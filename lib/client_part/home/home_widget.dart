@@ -1,6 +1,7 @@
 import '/client_part/components_client/banner/banner_widget.dart';
 import '/client_part/components_client/filter_options/filter_options_widget.dart';
 import '/client_part/components_client/mig_nav_bar/mig_nav_bar_widget.dart';
+import '/client_part/components_client/missions_map/missions_map_widget.dart';
 import '/client_part/components_client/service_item/service_item_widget.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -1257,7 +1258,28 @@ class _HomeWidgetState extends State<HomeWidget> {
       return SizedBox.shrink();
     }
 
-    // PR-F05b: List or Cards view based on mode
+    // PR-F07: Map view
+    if (_model.missionsViewMode == 'map') {
+      return SizedBox(
+        height: 300,
+        child: MissionsMapWidget(
+          missions: state.missions,
+          onMissionTap: (mission) {
+            context.pushNamed(
+              MissionDetailWidget.routeName,
+              queryParameters: {
+                'missionId': mission.id,
+              }.withoutNulls,
+              extra: <String, dynamic>{
+                'mission': mission,
+              },
+            );
+          },
+        ),
+      );
+    }
+
+    // PR-F05b: Cards view
     if (_model.missionsViewMode == 'cards') {
       return _buildHorizontalCards(context, state.missions);
     }
@@ -1270,7 +1292,7 @@ class _HomeWidgetState extends State<HomeWidget> {
     );
   }
 
-  /// PR-F05b: Builds view toggle buttons.
+  /// PR-F05b + PR-F07: Builds view toggle buttons (list/cards/map).
   Widget _buildViewToggle(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(4),
@@ -1281,6 +1303,7 @@ class _HomeWidgetState extends State<HomeWidget> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // List view
           InkWell(
             onTap: () {
               safeSetState(() {
@@ -1305,6 +1328,7 @@ class _HomeWidgetState extends State<HomeWidget> {
             ),
           ),
           SizedBox(width: 4),
+          // Cards view
           InkWell(
             onTap: () {
               safeSetState(() {
@@ -1323,6 +1347,31 @@ class _HomeWidgetState extends State<HomeWidget> {
                 Icons.view_carousel,
                 size: 16,
                 color: _model.missionsViewMode == 'cards'
+                    ? Colors.white
+                    : FlutterFlowTheme.of(context).secondaryText,
+              ),
+            ),
+          ),
+          SizedBox(width: 4),
+          // PR-F07: Map view
+          InkWell(
+            onTap: () {
+              safeSetState(() {
+                _model.missionsViewMode = 'map';
+              });
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: _model.missionsViewMode == 'map'
+                    ? FlutterFlowTheme.of(context).primary
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(
+                Icons.map_outlined,
+                size: 16,
+                color: _model.missionsViewMode == 'map'
                     ? Colors.white
                     : FlutterFlowTheme.of(context).secondaryText,
               ),
