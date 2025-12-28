@@ -5,6 +5,7 @@
 ///
 /// **PR#6:** Initial implementation with in-memory session check.
 /// **PR#7:** Updated to use refreshAuthState() for state synchronization.
+/// **PR-F04:** Now restores session from persistent storage.
 library;
 
 import 'auth_service.dart';
@@ -30,6 +31,7 @@ import 'auth_state.dart';
 ///
 /// ## Behavior
 ///
+/// - Attempts to restore session from persistent storage (PR-F04)
 /// - Validates the current session with backend
 /// - Updates [AuthService.state] accordingly (PR#7)
 /// - Returns `true` if session is valid
@@ -40,13 +42,14 @@ abstract final class AuthBootstrap {
   /// Checks if a valid authentication session exists.
   ///
   /// This method:
-  /// 1. Checks if there's a stored session in AuthService
-  /// 2. Validates the session by calling /auth/me
-  /// 3. Updates [AuthService.state] via [AuthService.refreshAuthState] (PR#7)
-  /// 4. Returns the result without throwing
+  /// 1. Attempts to restore session from storage (PR-F04)
+  /// 2. Checks if there's a stored session in AuthService
+  /// 3. Validates the session by calling /auth/me
+  /// 4. Updates [AuthService.state] via [AuthService.refreshAuthState] (PR#7)
+  /// 5. Returns the result without throwing
   ///
   /// Returns `true` if:
-  /// - A valid session exists
+  /// - A valid session exists (in-memory or restored from storage)
   /// - The backend confirms the token is valid
   ///
   /// Returns `false` if:
@@ -65,6 +68,14 @@ abstract final class AuthBootstrap {
   /// }
   /// ```
   static Future<bool> checkSession() async {
+    // PR-F04: First try to restore session from persistent storage
+    if (!AuthService.isAuthenticated) {
+      final restored = await AuthService.tryRestoreSession();
+      if (restored) {
+        return true;
+      }
+    }
+
     // Quick check: if no session exists, set unauthenticated and return
     if (!AuthService.isAuthenticated) {
       AuthService.setAuthState(const AuthState.unauthenticated());
@@ -79,6 +90,7 @@ abstract final class AuthBootstrap {
   ///
   /// Convenience method that combines initialization and session check.
   /// Also updates [AuthService.state] (PR#7).
+  /// Now also restores session from persistent storage (PR-F04).
   ///
   /// Example:
   /// ```dart

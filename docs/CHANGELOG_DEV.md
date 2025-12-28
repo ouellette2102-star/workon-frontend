@@ -21,6 +21,57 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F04] Token Persistence (SecureStorage) — 2024-12-26
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/services/auth/token_storage.dart` (created)
+- `lib/services/auth/auth_service.dart` (updated)
+- `lib/services/auth/auth_bootstrap.dart` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added token persistence using SharedPreferences. Tokens now survive app restarts. Created `TokenStorage` service with `getToken()`, `setToken()`, `clearToken()`, `saveTokens()` methods. Added `tryRestoreSession()` to `AuthService` for automatic session restore at startup. Updated `AuthBootstrap` to call `tryRestoreSession()`. Updated login/register to persist tokens. Updated logout/reset to clear tokens.
+
+**Key Features:**
+- **Token persistence**: AccessToken, RefreshToken, and Expiry stored in SharedPreferences
+- **In-memory cache**: Fast sync access to tokens after initialization
+- **Auto-restore**: `AuthBootstrap.initialize()` now restores session from storage
+- **Backend validation**: Restored tokens are validated with `/auth/me` before use
+- **Graceful fallback**: Invalid/expired stored tokens are cleared automatically
+
+**API:**
+```dart
+// Initialize at startup (done by AuthBootstrap)
+await TokenStorage.initialize();
+
+// Save tokens (done automatically by AuthService.login/register)
+await TokenStorage.saveTokens(accessToken: 'jwt', refreshToken: '...', expiresAt: DateTime);
+
+// Get token (sync, uses cache)
+final token = TokenStorage.getToken();
+
+// Clear tokens (done automatically by AuthService.logout)
+await TokenStorage.clearToken();
+```
+
+**Manual Test Flow:**
+1. Login with valid credentials → tokens persisted
+2. Close app completely (kill process)
+3. Reopen app → session restored, user lands in Home
+4. Logout → tokens cleared
+5. Reopen app → user lands in Login (no session)
+
+**Rollback:**
+```bash
+git rm lib/services/auth/token_storage.dart
+git checkout HEAD~1 -- lib/services/auth/auth_service.dart lib/services/auth/auth_bootstrap.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F04 token persistence"
+```
+
+---
+
 ## [PR#14] Minimal Auth UI Wiring — 2025-12-21
 
 **Risk Level:** 🟡 Semi-safe (MEDIUM)
