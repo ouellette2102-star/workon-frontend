@@ -9,6 +9,7 @@ import '/services/missions/missions_service.dart';
 import '/services/saved/saved_missions_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'mission_detail_model.dart';
 export 'mission_detail_model.dart';
 
@@ -20,6 +21,7 @@ export 'mission_detail_model.dart';
 /// **PR-F06:** Real data fetch + retry on error + improved logging.
 /// **PR-F09:** Added Actions section (UI only, no API calls).
 /// **PR-F11:** Made "Sauvegarder" functional with local persistence.
+/// **PR-F12:** Made "Partager" functional with OS share sheet.
 class MissionDetailWidget extends StatefulWidget {
   const MissionDetailWidget({
     super.key,
@@ -691,12 +693,13 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
           // Secondary actions row: Share + Save
           Row(
             children: [
+              // PR-F12: Functional share button
               Expanded(
                 child: _buildSecondaryAction(
                   context,
                   icon: Icons.share_outlined,
                   label: WkCopy.share,
-                  onTap: () => _showSnackbar(WkCopy.comingSoon),
+                  onTap: () => _shareMission(mission),
                 ),
               ),
               SizedBox(width: WkSpacing.md),
@@ -845,6 +848,45 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
         ),
       ),
     );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F12: Share Mission
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F12: Shares the mission using the OS share sheet.
+  Future<void> _shareMission(Mission mission) async {
+    try {
+      // Build share message with graceful degradation
+      final title = mission.title.isNotEmpty ? mission.title : 'Mission WorkOn';
+      final city = mission.city.isNotEmpty ? mission.city : '';
+      final price = mission.formattedPrice;
+      final link = 'workon://mission/${mission.id}';
+
+      // Compose message
+      final buffer = StringBuffer();
+      buffer.write('🔧 $title');
+      if (city.isNotEmpty) {
+        buffer.write('\n📍 $city');
+      }
+      buffer.write('\n💰 $price');
+      buffer.write('\n\n$link');
+
+      final message = buffer.toString();
+
+      debugPrint('[MissionDetail] Sharing: $message');
+
+      // Show share sheet
+      await Share.share(
+        message,
+        subject: 'Mission WorkOn: $title',
+      );
+
+      debugPrint('[MissionDetail] Share completed');
+    } catch (e) {
+      debugPrint('[MissionDetail] Share error: $e');
+      _showSnackbar(WkCopy.shareError);
+    }
   }
 }
 
