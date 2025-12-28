@@ -32,6 +32,11 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   String selectedSort = 'proximity'; // 'proximity', 'price_asc', 'price_desc', 'newest'
   String? selectedCategory; // null = all categories
 
+  // PR-F13: User location
+  double? userLatitude;
+  double? userLongitude;
+  bool locationPermissionDenied = false;
+
   // State field(s) for PageView widget.
   PageController? pageViewController;
 

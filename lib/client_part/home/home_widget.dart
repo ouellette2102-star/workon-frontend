@@ -10,6 +10,7 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/location/location_service.dart';
 import '/services/missions/mission_models.dart';
 import '/services/missions/missions_service.dart';
 import '/services/saved/saved_missions_store.dart';
@@ -58,19 +59,75 @@ class _HomeWidgetState extends State<HomeWidget> {
     // Subscribe to state changes
     MissionsService.stateListenable.addListener(_onMissionsStateChanged);
 
+    // PR-F13: Request location permission and get position
+    await _initLocation();
+
     // Load missions with current filters
     await _reloadWithFilters();
   }
 
+  /// PR-F13: Initialize location with permission request.
+  Future<void> _initLocation() async {
+    final status = await LocationService.instance.checkAndRequestPermission();
+    
+    if (status == LocationPermissionStatus.granted) {
+      final position = await LocationService.instance.getCurrentPosition();
+      _model.userLatitude = position.latitude;
+      _model.userLongitude = position.longitude;
+      _model.locationPermissionDenied = false;
+    } else {
+      // Use default location (Montreal).
+      _model.userLatitude = UserPosition.defaultPosition.latitude;
+      _model.userLongitude = UserPosition.defaultPosition.longitude;
+      _model.locationPermissionDenied = true;
+      
+      // Show a non-blocking message.
+      if (mounted) {
+        _showLocationDeniedMessage(status);
+      }
+    }
+  }
+
+  /// PR-F13: Show non-blocking message when location is denied.
+  void _showLocationDeniedMessage(LocationPermissionStatus status) {
+    final message = switch (status) {
+      LocationPermissionStatus.denied => 
+        'Position non disponible. Affichage des missions près de Montréal.',
+      LocationPermissionStatus.deniedForever => 
+        'Accès à la position refusé. Activez-la dans les paramètres.',
+      LocationPermissionStatus.serviceDisabled => 
+        'Localisation désactivée. Activez-la pour voir les missions près de vous.',
+      _ => 'Position par défaut utilisée.',
+    };
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 4),
+        action: status == LocationPermissionStatus.deniedForever
+            ? SnackBarAction(
+                label: 'Paramètres',
+                onPressed: () => LocationService.instance.openSettings(),
+              )
+            : status == LocationPermissionStatus.serviceDisabled
+                ? SnackBarAction(
+                    label: 'Activer',
+                    onPressed: () => LocationService.instance.openLocationSettings(),
+                  )
+                : null,
+      ),
+    );
+  }
+
   /// PR-F10: Reload missions with current filter settings.
   Future<void> _reloadWithFilters() async {
-    // Default location: Montreal (could be replaced with user's location)
-    const defaultLat = 45.5017;
-    const defaultLng = -73.5673;
+    // PR-F13: Use user's real location if available, otherwise default.
+    final lat = _model.userLatitude ?? UserPosition.defaultPosition.latitude;
+    final lng = _model.userLongitude ?? UserPosition.defaultPosition.longitude;
 
     await MissionsService.loadNearby(
-      latitude: defaultLat,
-      longitude: defaultLng,
+      latitude: lat,
+      longitude: lng,
       radiusKm: _model.selectedRadius,
       sort: _model.selectedSort,
       category: _model.selectedCategory,
