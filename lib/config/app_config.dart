@@ -68,5 +68,25 @@ abstract final class AppConfig {
 
   /// Application version.
   static const String appVersion = '1.0.0';
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Google Maps Configuration (PR-F07)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Google Maps API key from environment variable.
+  /// Set via: --dart-define=GOOGLE_MAPS_API_KEY=your_key
+  /// Fallback for development only.
+  static const String googleMapsApiKey = String.fromEnvironment(
+    'GOOGLE_MAPS_API_KEY',
+    defaultValue: '', // Must be set via build args in production
+  );
+
+  /// Check if Google Maps is configured.
+  static bool get hasGoogleMapsKey => googleMapsApiKey.isNotEmpty;
+
+  /// Default map center (Montreal).
+  static const double defaultMapLat = 45.5017;
+  static const double defaultMapLng = -73.5673;
+  static const double defaultMapZoom = 12.0;
 }
 

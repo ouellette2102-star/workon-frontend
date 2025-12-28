@@ -21,6 +21,60 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F07] Missions Map Pins — 2024-12-28
+
+**Risk Level:** 🟡 Semi-safe (NEW DEPENDENCY)
+
+**Files Changed:**
+- `pubspec.yaml` (updated - added google_maps_flutter)
+- `lib/config/app_config.dart` (updated - Google Maps config)
+- `lib/client_part/components_client/missions_map/missions_map_widget.dart` (created)
+- `lib/client_part/home/home_widget.dart` (updated - map toggle)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added Google Map view displaying mission locations as colored pins. Users can toggle between List, Cards, and Map views. Pins are color-coded by status. Tap pin info → navigates to MissionDetail.
+
+**Key Features:**
+- **MissionsMapWidget**: Google Map with mission markers
+- **Pin colors by status**: Green (open), Blue (assigned), Orange (in progress)
+- **Toggle 3 views**: List / Cards / Map icons
+- **Tap pin**: Shows InfoWindow → tap → MissionDetail
+- **Fit bounds**: Button to fit all markers in view
+- **Legend**: Shows status color meanings
+- **Graceful fallback**: No API key → "Carte non disponible" message
+
+**Configuration Required:**
+```bash
+# Android: android/app/src/main/AndroidManifest.xml
+<meta-data android:name="com.google.android.geo.API_KEY"
+           android:value="YOUR_API_KEY"/>
+
+# iOS: ios/Runner/AppDelegate.swift
+GMSServices.provideAPIKey("YOUR_API_KEY")
+
+# Build with:
+flutter run --dart-define=GOOGLE_MAPS_API_KEY=YOUR_KEY
+```
+
+**Manual Test Flow:**
+1. Login → Home → missions section
+2. Toggle to Map (🗺️ icon)
+3. Pins visible on map
+4. Tap pin → InfoWindow shows title/price
+5. Tap InfoWindow → MissionDetail opens
+6. Backend down → app doesn't crash
+
+**Rollback:**
+```bash
+git rm lib/client_part/components_client/missions_map/missions_map_widget.dart
+git checkout HEAD~1 -- pubspec.yaml lib/config/app_config.dart lib/client_part/home/home_widget.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F07"
+flutter pub get
+```
+
+---
+
 ## [PR-F06] Real Mission Detail + Fallback Fetch — 2024-12-28
 
 **Risk Level:** 🟢 Auto-safe (LOW)
