@@ -114,6 +114,15 @@ abstract final class WkCopy {
   static const String saved = 'Sauvegardé !';
   static const String shared = 'Lien copié !';
   static const String legalDisclaimer = 'WorkOn est une plateforme de mise en relation. Aucun lien d\'emploi. Prestataires autonomes.';
+
+  // ─── PR-F10: Missions filters ───
+  static const String filters = 'Filtres';
+  static const String sortBy = 'Trier par';
+  static const String sortProximity = 'Proximité';
+  static const String sortPriceAsc = 'Prix ↑';
+  static const String sortPriceDesc = 'Prix ↓';
+  static const String sortNewest = 'Nouveau';
+  static const String allCategories = 'Toutes';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

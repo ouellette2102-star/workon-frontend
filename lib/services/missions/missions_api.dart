@@ -49,18 +49,24 @@ class MissionsApi {
   /// - [latitude]: User's latitude
   /// - [longitude]: User's longitude
   /// - [radiusKm]: Search radius in kilometers (default: 10)
+  /// - [sort]: Sort order (optional): 'proximity', 'price_asc', 'price_desc', 'newest'
+  /// - [category]: Filter by category (optional)
   ///
-  /// Returns a list of [Mission] sorted by distance.
+  /// Returns a list of [Mission] sorted by distance (or specified sort).
   ///
   /// Throws:
   /// - [UnauthorizedException] if not authenticated
   /// - [MissionsApiException] on other errors
+  ///
+  /// **PR-F10:** Added sort and category parameters.
   Future<List<Mission>> fetchNearby({
     required double latitude,
     required double longitude,
     double radiusKm = 10,
+    String? sort,
+    String? category,
   }) async {
-    debugPrint('[MissionsApi] Fetching nearby missions...');
+    debugPrint('[MissionsApi] Fetching nearby missions (radius: $radiusKm, sort: $sort, category: $category)...');
 
     // Check auth
     if (!AuthService.hasSession) {
@@ -74,13 +80,25 @@ class MissionsApi {
       throw const UnauthorizedException();
     }
 
-    // Build URI with query params
-    final uri = Uri.parse('${ApiClient.baseUrl}/api/v1/missions-local/nearby')
-        .replace(queryParameters: {
+    // Build query params
+    final queryParams = <String, String>{
       'latitude': latitude.toString(),
       'longitude': longitude.toString(),
       'radiusKm': radiusKm.toString(),
-    });
+    };
+
+    // PR-F10: Add optional params if supported by backend
+    // These are passed but may be ignored by backend if not implemented
+    if (sort != null && sort.isNotEmpty) {
+      queryParams['sort'] = sort;
+    }
+    if (category != null && category.isNotEmpty) {
+      queryParams['category'] = category;
+    }
+
+    // Build URI with query params
+    final uri = Uri.parse('${ApiClient.baseUrl}/api/v1/missions-local/nearby')
+        .replace(queryParameters: queryParams);
 
     final headers = {
       ...ApiClient.defaultHeaders,
@@ -95,7 +113,11 @@ class MissionsApi {
 
       debugPrint('[MissionsApi] Response status: ${response.statusCode}');
 
-      return _handleListResponse(response);
+      // PR-F10: Get missions and apply client-side sort if backend doesn't support it
+      var missions = _handleListResponse(response);
+      missions = _applySortIfNeeded(missions, sort);
+      
+      return missions;
     } on TimeoutException {
       debugPrint('[MissionsApi] Request timeout');
       throw const MissionsApiException('Connexion timeout');
@@ -107,6 +129,28 @@ class MissionsApi {
       debugPrint('[MissionsApi] Unexpected error: $e');
       throw const MissionsApiException();
     }
+  }
+
+  /// PR-F10: Apply client-side sorting as fallback.
+  List<Mission> _applySortIfNeeded(List<Mission> missions, String? sort) {
+    if (sort == null || sort == 'proximity') {
+      // Default: sort by distance (already sorted by backend)
+      return missions;
+    }
+
+    final sorted = List<Mission>.from(missions);
+    switch (sort) {
+      case 'price_asc':
+        sorted.sort((a, b) => a.price.compareTo(b.price));
+        break;
+      case 'price_desc':
+        sorted.sort((a, b) => b.price.compareTo(a.price));
+        break;
+      case 'newest':
+        sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+    }
+    return sorted;
   }
 
   /// Fetches mission details by ID.

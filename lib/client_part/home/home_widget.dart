@@ -53,19 +53,25 @@ class _HomeWidgetState extends State<HomeWidget> {
     if (_model.missionsInitialized) return;
     _model.missionsInitialized = true;
 
-    // Default location: Montreal (could be replaced with user's location)
-    const defaultLat = 45.5017;
-    const defaultLng = -73.5673;
-    const defaultRadius = 25.0;
-
     // Subscribe to state changes
     MissionsService.stateListenable.addListener(_onMissionsStateChanged);
 
-    // Load missions
+    // Load missions with current filters
+    await _reloadWithFilters();
+  }
+
+  /// PR-F10: Reload missions with current filter settings.
+  Future<void> _reloadWithFilters() async {
+    // Default location: Montreal (could be replaced with user's location)
+    const defaultLat = 45.5017;
+    const defaultLng = -73.5673;
+
     await MissionsService.loadNearby(
       latitude: defaultLat,
       longitude: defaultLng,
-      radiusKm: defaultRadius,
+      radiusKm: _model.selectedRadius,
+      sort: _model.selectedSort,
+      category: _model.selectedCategory,
     );
   }
 
@@ -1137,7 +1143,10 @@ class _HomeWidgetState extends State<HomeWidget> {
               ),
             ],
           ),
-          SizedBox(height: 15.0),
+          SizedBox(height: WkSpacing.md),
+          // PR-F10: Filters row
+          _buildFiltersRow(context),
+          SizedBox(height: WkSpacing.md),
           // Content based on state and view mode
           _buildMissionsContent(context, state),
         ],
@@ -1676,5 +1685,138 @@ class _HomeWidgetState extends State<HomeWidget> {
       case MissionStatus.unknown:
         return WkStatusColors.unknown;
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F10: Filters
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F10: Builds the filters row (distance chips + sort dropdown).
+  Widget _buildFiltersRow(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          // Distance chips
+          _buildDistanceChips(context),
+          SizedBox(width: WkSpacing.md),
+          // Sort dropdown
+          _buildSortDropdown(context),
+        ],
+      ),
+    );
+  }
+
+  /// PR-F10: Builds distance filter chips.
+  Widget _buildDistanceChips(BuildContext context) {
+    final distances = [5.0, 10.0, 25.0];
+    
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: distances.map((distance) {
+        final isSelected = _model.selectedRadius == distance;
+        return Padding(
+          padding: EdgeInsets.only(right: WkSpacing.xs),
+          child: InkWell(
+            onTap: () {
+              if (_model.selectedRadius != distance) {
+                safeSetState(() {
+                  _model.selectedRadius = distance;
+                });
+                _reloadWithFilters();
+              }
+            },
+            borderRadius: BorderRadius.circular(WkRadius.xxl),
+            child: AnimatedContainer(
+              duration: WkDuration.fast,
+              padding: EdgeInsets.symmetric(
+                horizontal: WkSpacing.md,
+                vertical: WkSpacing.sm,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? FlutterFlowTheme.of(context).primary
+                    : FlutterFlowTheme.of(context).secondaryBackground,
+                borderRadius: BorderRadius.circular(WkRadius.xxl),
+                border: Border.all(
+                  color: isSelected
+                      ? FlutterFlowTheme.of(context).primary
+                      : FlutterFlowTheme.of(context).alternate,
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                '${distance.toInt()} km',
+                style: FlutterFlowTheme.of(context).bodySmall.override(
+                      fontFamily: 'General Sans',
+                      color: isSelected
+                          ? Colors.white
+                          : FlutterFlowTheme.of(context).primaryText,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  /// PR-F10: Builds sort dropdown.
+  Widget _buildSortDropdown(BuildContext context) {
+    final sortOptions = {
+      'proximity': WkCopy.sortProximity,
+      'price_asc': WkCopy.sortPriceAsc,
+      'price_desc': WkCopy.sortPriceDesc,
+      'newest': WkCopy.sortNewest,
+    };
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: WkSpacing.md,
+        vertical: WkSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(WkRadius.xxl),
+        border: Border.all(
+          color: FlutterFlowTheme.of(context).alternate,
+          width: 1,
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _model.selectedSort,
+          isDense: true,
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            size: WkIconSize.sm,
+            color: FlutterFlowTheme.of(context).secondaryText,
+          ),
+          style: FlutterFlowTheme.of(context).bodySmall.override(
+                fontFamily: 'General Sans',
+                color: FlutterFlowTheme.of(context).primaryText,
+                letterSpacing: 0.0,
+              ),
+          dropdownColor: FlutterFlowTheme.of(context).secondaryBackground,
+          borderRadius: BorderRadius.circular(WkRadius.lg),
+          items: sortOptions.entries.map((entry) {
+            return DropdownMenuItem<String>(
+              value: entry.key,
+              child: Text(entry.value),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null && _model.selectedSort != value) {
+              safeSetState(() {
+                _model.selectedSort = value;
+              });
+              _reloadWithFilters();
+            }
+          },
+        ),
+      ),
+    );
   }
 }
