@@ -1,4 +1,5 @@
 import '/client_part/components_client/back_icon_btn/back_icon_btn_widget.dart';
+import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -116,7 +117,7 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
               SizedBox(width: 15),
               Expanded(
                 child: Text(
-                  'Détails mission',
+                  WkCopy.missionDetail,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily: 'General Sans',
                         fontSize: 20.0,
@@ -149,9 +150,9 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
             CircularProgressIndicator(
               color: FlutterFlowTheme.of(context).primary,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: WkSpacing.lg),
             Text(
-              'Chargement...',
+              WkCopy.loading,
               style: FlutterFlowTheme.of(context).bodyMedium.override(
                     fontFamily: 'General Sans',
                     color: FlutterFlowTheme.of(context).secondaryText,
@@ -167,18 +168,18 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
     if (_errorMessage != null || _mission == null) {
       return Center(
         child: Padding(
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(WkSpacing.xl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.error_outline,
                 color: FlutterFlowTheme.of(context).error,
-                size: 48,
+                size: WkIconSize.xxxl,
               ),
-              SizedBox(height: 16),
+              SizedBox(height: WkSpacing.lg),
               Text(
-                _errorMessage ?? 'Mission introuvable',
+                _errorMessage ?? WkCopy.errorMissionNotFound,
                 textAlign: TextAlign.center,
                 style: FlutterFlowTheme.of(context).bodyMedium.override(
                       fontFamily: 'General Sans',
@@ -186,19 +187,39 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                       letterSpacing: 0.0,
                     ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: WkSpacing.xl),
+              if (widget.missionId.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.only(bottom: WkSpacing.sm),
+                  child: FFButtonWidget(
+                    onPressed: _loadMission,
+                    text: WkCopy.retry,
+                    options: FFButtonOptions(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: WkSpacing.xxl, vertical: WkSpacing.md),
+                      color: FlutterFlowTheme.of(context).primary,
+                      textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                            fontFamily: 'General Sans',
+                            color: FlutterFlowTheme.of(context).info,
+                            letterSpacing: 0.0,
+                          ),
+                      borderRadius: BorderRadius.circular(WkRadius.lg),
+                    ),
+                  ),
+                ),
               FFButtonWidget(
                 onPressed: () => context.pop(),
-                text: 'Retour',
+                text: WkCopy.back,
                 options: FFButtonOptions(
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  color: FlutterFlowTheme.of(context).primary,
+                  padding: EdgeInsets.symmetric(
+                      horizontal: WkSpacing.xxl, vertical: WkSpacing.md),
+                  color: FlutterFlowTheme.of(context).alternate,
                   textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily: 'General Sans',
-                        color: FlutterFlowTheme.of(context).info,
+                        color: FlutterFlowTheme.of(context).primaryText,
                         letterSpacing: 0.0,
                       ),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(WkRadius.lg),
                 ),
               ),
             ],
@@ -212,22 +233,22 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
 
     return SingleChildScrollView(
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(WkSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header card
             _buildHeaderCard(context, mission),
-            SizedBox(height: 20),
+            SizedBox(height: WkSpacing.sectionGap),
 
             // Description section
             _buildSection(
               context,
-              title: 'Description',
+              title: WkCopy.description,
               child: Text(
                 mission.description.isNotEmpty
                     ? mission.description
-                    : 'Aucune description fournie.',
+                    : WkCopy.noDescription,
                 style: FlutterFlowTheme.of(context).bodyMedium.override(
                       fontFamily: 'General Sans',
                       letterSpacing: 0.0,
@@ -235,32 +256,32 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                     ),
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: WkSpacing.sectionGap),
 
             // Location section
             _buildSection(
               context,
-              title: 'Localisation',
+              title: WkCopy.location,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildInfoRow(
                     context,
                     icon: Icons.location_city,
-                    label: 'Ville',
+                    label: WkCopy.city,
                     value: mission.city,
                   ),
                   if (mission.address != null && mission.address!.isNotEmpty)
                     _buildInfoRow(
                       context,
                       icon: Icons.location_on,
-                      label: 'Adresse',
+                      label: WkCopy.address,
                       value: mission.address!,
                     ),
                   _buildInfoRow(
                     context,
                     icon: Icons.my_location,
-                    label: 'Coordonnées',
+                    label: WkCopy.coordinates,
                     value:
                         '${mission.latitude.toStringAsFixed(4)}, ${mission.longitude.toStringAsFixed(4)}',
                   ),
@@ -268,31 +289,31 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                     _buildInfoRow(
                       context,
                       icon: Icons.straighten,
-                      label: 'Distance',
+                      label: WkCopy.distance,
                       value: mission.formattedDistance ?? '',
                     ),
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: WkSpacing.sectionGap),
 
             // Details section
             _buildSection(
               context,
-              title: 'Informations',
+              title: WkCopy.information,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildInfoRow(
                     context,
                     icon: Icons.category,
-                    label: 'Catégorie',
+                    label: WkCopy.category,
                     value: _formatCategory(mission.category),
                   ),
                   _buildInfoRow(
                     context,
                     icon: Icons.access_time,
-                    label: 'Publiée le',
+                    label: WkCopy.publishedOn,
                     value: _formatDate(mission.createdAt),
                   ),
                 ],
@@ -308,7 +329,7 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
   Widget _buildHeaderCard(BuildContext context, Mission mission) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(WkSpacing.xl),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -318,17 +339,17 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(WkRadius.xxl),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Status badge
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: EdgeInsets.symmetric(horizontal: WkSpacing.md, vertical: WkSpacing.xs + 2),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(WkRadius.xxl),
             ),
             child: Text(
               mission.status.displayName,
@@ -340,7 +361,7 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                   ),
             ),
           ),
-          SizedBox(height: 12),
+          SizedBox(height: WkSpacing.md),
 
           // Title
           Text(
@@ -352,13 +373,13 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                   letterSpacing: 0.0,
                 ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: WkSpacing.sm),
 
           // Location
           Row(
             children: [
-              Icon(Icons.location_on_outlined, color: Colors.white70, size: 18),
-              SizedBox(width: 6),
+              Icon(Icons.location_on_outlined, color: Colors.white70, size: WkIconSize.md - 2),
+              SizedBox(width: WkSpacing.xs + 2),
               Expanded(
                 child: Text(
                   mission.city,
@@ -371,14 +392,14 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
               ),
             ],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: WkSpacing.lg),
 
           // Price
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Budget',
+                WkCopy.budget,
                 style: FlutterFlowTheme.of(context).bodyMedium.override(
                       fontFamily: 'General Sans',
                       color: Colors.white70,
@@ -408,10 +429,10 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
   }) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(WkSpacing.cardPadding),
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(WkRadius.card),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,7 +446,7 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                   letterSpacing: 0.0,
                 ),
           ),
-          SizedBox(height: 12),
+          SizedBox(height: WkSpacing.md),
           child,
         ],
       ),
@@ -439,7 +460,7 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
     required String value,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: WkSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -448,15 +469,15 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
             height: 36,
             decoration: BoxDecoration(
               color: FlutterFlowTheme.of(context).primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(WkRadius.button),
             ),
             child: Icon(
               icon,
               color: FlutterFlowTheme.of(context).primary,
-              size: 18,
+              size: WkIconSize.md - 2,
             ),
           ),
-          SizedBox(width: 12),
+          SizedBox(width: WkSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -3,6 +3,7 @@ import '/client_part/components_client/filter_options/filter_options_widget.dart
 import '/client_part/components_client/mig_nav_bar/mig_nav_bar_widget.dart';
 import '/client_part/components_client/service_item/service_item_widget.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
+import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -1103,7 +1104,7 @@ class _HomeWidgetState extends State<HomeWidget> {
             children: [
               Flexible(
                 child: Text(
-                  'Missions à proximité 📍',
+                  WkCopy.missionsNearby,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily: 'General Sans',
                         fontSize: 16.0,
@@ -1156,9 +1157,9 @@ class _HomeWidgetState extends State<HomeWidget> {
               CircularProgressIndicator(
                 color: FlutterFlowTheme.of(context).primary,
               ),
-              SizedBox(height: 10),
+              SizedBox(height: WkSpacing.sm),
               Text(
-                'Chargement des missions...',
+                WkCopy.loading,
                 style: FlutterFlowTheme.of(context).bodySmall.override(
                       fontFamily: 'General Sans',
                       color: FlutterFlowTheme.of(context).secondaryText,
@@ -1174,21 +1175,21 @@ class _HomeWidgetState extends State<HomeWidget> {
     // Error state
     if (state.hasError) {
       return Container(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(WkSpacing.xl),
         decoration: BoxDecoration(
           color: FlutterFlowTheme.of(context).secondaryBackground,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(WkRadius.card),
         ),
         child: Column(
           children: [
             Icon(
               Icons.error_outline,
               color: FlutterFlowTheme.of(context).error,
-              size: 40,
+              size: WkIconSize.xxl,
             ),
-            SizedBox(height: 10),
+            SizedBox(height: WkSpacing.sm),
             Text(
-              state.errorMessage ?? 'Erreur de chargement',
+              WkCopy.errorMissions,
               textAlign: TextAlign.center,
               style: FlutterFlowTheme.of(context).bodyMedium.override(
                     fontFamily: 'General Sans',
@@ -1196,7 +1197,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                     letterSpacing: 0.0,
                   ),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: WkSpacing.lg),
             FFButtonWidget(
               onPressed: () async {
                 await MissionsService.loadNearby(
@@ -1205,16 +1206,17 @@ class _HomeWidgetState extends State<HomeWidget> {
                   radiusKm: 25,
                 );
               },
-              text: 'Réessayer',
+              text: WkCopy.retry,
               options: FFButtonOptions(
-                padding: EdgeInsetsDirectional.fromSTEB(20, 10, 20, 10),
+                padding: EdgeInsetsDirectional.fromSTEB(
+                    WkSpacing.xl, WkSpacing.sm, WkSpacing.xl, WkSpacing.sm),
                 color: FlutterFlowTheme.of(context).primary,
                 textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                       fontFamily: 'General Sans',
                       color: FlutterFlowTheme.of(context).info,
                       letterSpacing: 0.0,
                     ),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(WkRadius.button),
               ),
             ),
           ],
@@ -1225,21 +1227,21 @@ class _HomeWidgetState extends State<HomeWidget> {
     // Empty state
     if (state.isEmpty) {
       return Container(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(WkSpacing.xl),
         decoration: BoxDecoration(
           color: FlutterFlowTheme.of(context).secondaryBackground,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(WkRadius.card),
         ),
         child: Column(
           children: [
             Icon(
               Icons.search_off,
               color: FlutterFlowTheme.of(context).secondaryText,
-              size: 40,
+              size: WkIconSize.xxl,
             ),
-            SizedBox(height: 10),
+            SizedBox(height: WkSpacing.sm),
             Text(
-              'Aucune mission disponible à proximité',
+              WkCopy.emptyMissions,
               textAlign: TextAlign.center,
               style: FlutterFlowTheme.of(context).bodyMedium.override(
                     fontFamily: 'General Sans',
@@ -1270,65 +1272,61 @@ class _HomeWidgetState extends State<HomeWidget> {
     );
   }
 
-  /// PR-F05b: Builds view toggle buttons.
+  /// PR-F05b + PR-F08: Builds view toggle buttons (List/Cards).
   Widget _buildViewToggle(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(4),
+      padding: EdgeInsets.all(WkSpacing.xs),
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(WkRadius.button),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          InkWell(
-            onTap: () {
-              safeSetState(() {
-                _model.missionsViewMode = 'list';
-              });
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: _model.missionsViewMode == 'list'
-                    ? FlutterFlowTheme.of(context).primary
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Icon(
-                Icons.list,
-                size: 16,
-                color: _model.missionsViewMode == 'list'
-                    ? Colors.white
-                    : FlutterFlowTheme.of(context).secondaryText,
-              ),
-            ),
+          _buildToggleButton(
+            context,
+            icon: Icons.list,
+            isActive: _model.missionsViewMode == 'list',
+            onTap: () => safeSetState(() => _model.missionsViewMode = 'list'),
           ),
-          SizedBox(width: 4),
-          InkWell(
-            onTap: () {
-              safeSetState(() {
-                _model.missionsViewMode = 'cards';
-              });
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: _model.missionsViewMode == 'cards'
-                    ? FlutterFlowTheme.of(context).primary
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Icon(
-                Icons.view_carousel,
-                size: 16,
-                color: _model.missionsViewMode == 'cards'
-                    ? Colors.white
-                    : FlutterFlowTheme.of(context).secondaryText,
-              ),
-            ),
+          SizedBox(width: WkSpacing.xs),
+          _buildToggleButton(
+            context,
+            icon: Icons.view_carousel,
+            isActive: _model.missionsViewMode == 'cards',
+            onTap: () => safeSetState(() => _model.missionsViewMode = 'cards'),
           ),
         ],
+      ),
+    );
+  }
+
+  /// PR-F08: Single toggle button widget for consistent styling.
+  Widget _buildToggleButton(
+    BuildContext context, {
+    required IconData icon,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(WkRadius.xs),
+      child: AnimatedContainer(
+        duration: WkDuration.fast,
+        padding: EdgeInsets.symmetric(horizontal: WkSpacing.sm, vertical: WkSpacing.xs),
+        decoration: BoxDecoration(
+          color: isActive
+              ? FlutterFlowTheme.of(context).primary
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(WkRadius.xs),
+        ),
+        child: Icon(
+          icon,
+          size: WkIconSize.sm,
+          color: isActive
+              ? Colors.white
+              : FlutterFlowTheme.of(context).secondaryText,
+        ),
       ),
     );
   }
@@ -1465,16 +1463,9 @@ class _HomeWidgetState extends State<HomeWidget> {
     );
   }
 
-  /// PR-F05b: Returns gradient colors for card at given index.
+  /// PR-F05b + PR-F08: Returns gradient colors for card at given index.
   List<Color> _getCardGradient(int index) {
-    final gradients = [
-      [Color(0xFF6366F1), Color(0xFF8B5CF6)], // Indigo-violet
-      [Color(0xFF10B981), Color(0xFF059669)], // Emerald
-      [Color(0xFFF59E0B), Color(0xFFD97706)], // Amber
-      [Color(0xFFEC4899), Color(0xFFDB2777)], // Pink
-      [Color(0xFF3B82F6), Color(0xFF1D4ED8)], // Blue
-    ];
-    return gradients[index % gradients.length];
+    return WkGradients.getCardGradient(index);
   }
 
   /// Builds a single mission card.
@@ -1639,19 +1630,21 @@ class _HomeWidgetState extends State<HomeWidget> {
     }
   }
 
-  /// Returns color for mission status.
+  /// PR-F08: Returns color for mission status using centralized tokens.
   Color _getStatusColor(MissionStatus status) {
     switch (status) {
       case MissionStatus.open:
-        return Color(0xFF4CAF50); // Green
+        return WkStatusColors.open;
       case MissionStatus.assigned:
-        return Color(0xFF2196F3); // Blue
+        return WkStatusColors.assigned;
       case MissionStatus.inProgress:
-        return Color(0xFFFF9800); // Orange
+        return WkStatusColors.inProgress;
       case MissionStatus.completed:
-        return Color(0xFF9E9E9E); // Grey
+        return WkStatusColors.completed;
       case MissionStatus.cancelled:
-        return Color(0xFFF44336); // Red
+        return WkStatusColors.cancelled;
+      case MissionStatus.unknown:
+        return WkStatusColors.unknown;
     }
   }
 }
