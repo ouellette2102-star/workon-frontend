@@ -21,6 +21,56 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F10] Missions Filters (Read-Only) — 2024-12-28
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/client_part/home/home_widget.dart` (updated)
+- `lib/client_part/home/home_model.dart` (updated)
+- `lib/services/missions/missions_service.dart` (updated)
+- `lib/services/missions/missions_api.dart` (updated)
+- `lib/config/ui_tokens.dart` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added read-only filters for missions discovery. Users can filter by distance radius (5km/10km/25km), and sort by proximity, price ascending/descending, or newest. Filters trigger a re-fetch with current parameters. Sort is applied client-side as fallback if backend doesn't support it.
+
+**Key Features:**
+- **Distance chips**: 5km, 10km, 25km (default: 10km)
+- **Sort dropdown**: Proximité, Prix ↑, Prix ↓, Nouveau (default: Proximité)
+- **Client-side fallback**: Sort is applied locally if backend ignores param
+- **Refresh preserves filters**: Refresh button uses current filter values
+- **No new dependencies**: All UI built with existing widgets
+
+**New Microcopy (WkCopy):**
+- `filters`: "Filtres"
+- `sortBy`: "Trier par"
+- `sortProximity`: "Proximité"
+- `sortPriceAsc`: "Prix ↑"
+- `sortPriceDesc`: "Prix ↓"
+- `sortNewest`: "Nouveau"
+- `allCategories`: "Toutes"
+
+**Manual Test Flow:**
+1. Login → Home → missions section
+2. See filter row with distance chips + sort dropdown
+3. Tap "5 km" → missions refetch with new radius
+4. Tap "25 km" → missions refetch with larger radius
+5. Select "Prix ↑" in dropdown → missions sorted by price ascending
+6. Select "Nouveau" → missions sorted by newest first
+7. Toggle List/Cards/Map → same filtered dataset
+8. Tap refresh → keeps current filters
+9. Backend down → existing error + retry works
+
+**Rollback:**
+```bash
+git checkout HEAD~1 -- lib/client_part/home/home_widget.dart lib/client_part/home/home_model.dart lib/services/missions/missions_service.dart lib/services/missions/missions_api.dart lib/config/ui_tokens.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F10 missions filters"
+```
+
+---
+
 ## [PR-F09] MissionDetail Actions (UI Only) — 2024-12-28
 
 **Risk Level:** 🟢 Auto-safe (LOW)

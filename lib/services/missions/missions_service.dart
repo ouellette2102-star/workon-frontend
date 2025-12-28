@@ -172,13 +172,21 @@ abstract final class MissionsService {
   /// - Sets [MissionsStatus.loaded] with missions on success
   /// - Sets [MissionsStatus.error] with message on failure
   ///
+  /// **PR-F10:** Added sort and category parameters.
+  ///
   /// Returns the list of missions (or empty list on error).
   static Future<List<Mission>> loadNearby({
     required double latitude,
     required double longitude,
     double radiusKm = 10,
+    String? sort,
+    String? category,
   }) async {
-    debugPrint('[MissionsService] Loading nearby missions...');
+    debugPrint('[MissionsService] Loading nearby missions (radius: $radiusKm, sort: $sort, category: $category)...');
+
+    // PR-F10: Store current filter params for refresh
+    _lastSort = sort;
+    _lastCategory = category;
 
     // Set loading state
     _state.value = MissionsState.loading(
@@ -192,6 +200,8 @@ abstract final class MissionsService {
         latitude: latitude,
         longitude: longitude,
         radiusKm: radiusKm,
+        sort: sort,
+        category: category,
       );
 
       _state.value = MissionsState.loaded(
@@ -209,6 +219,10 @@ abstract final class MissionsService {
       return [];
     }
   }
+
+  // PR-F10: Store last filter params for refresh
+  static String? _lastSort;
+  static String? _lastCategory;
 
   /// Loads user's created missions.
   static Future<List<Mission>> loadMyMissions() async {
@@ -267,6 +281,8 @@ abstract final class MissionsService {
   /// Refreshes current data.
   ///
   /// Re-fetches using the same parameters as the last load.
+  ///
+  /// **PR-F10:** Also restores sort and category filters.
   static Future<void> refresh() async {
     final currentState = _state.value;
 
@@ -275,6 +291,8 @@ abstract final class MissionsService {
         latitude: currentState.latitude!,
         longitude: currentState.longitude!,
         radiusKm: currentState.radiusKm ?? 10,
+        sort: _lastSort,
+        category: _lastCategory,
       );
     }
   }

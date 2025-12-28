@@ -25,7 +25,12 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   bool missionsInitialized = false;
 
   // PR-F05b: Missions view mode (list or cards)
-  String missionsViewMode = 'list'; // 'list' or 'cards'
+  String missionsViewMode = 'list'; // 'list' or 'cards' or 'map'
+
+  // PR-F10: Missions filters
+  double selectedRadius = 10.0; // 5, 10, or 25 km
+  String selectedSort = 'proximity'; // 'proximity', 'price_asc', 'price_desc', 'newest'
+  String? selectedCategory; // null = all categories
 
   // State field(s) for PageView widget.
   PageController? pageViewController;
