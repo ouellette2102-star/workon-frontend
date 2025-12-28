@@ -21,6 +21,76 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F14] Reset Password (Real API) — 2024-12-28
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/services/auth/auth_repository.dart` (updated) — added forgotPassword/resetPassword interface
+- `lib/services/auth/real_auth_repository.dart` (updated) — implemented HTTP calls
+- `lib/services/auth/auth_service.dart` (updated) — added wrapper methods
+- `lib/client_part/reset_password/reset_password_model.dart` (updated) — added loading state
+- `lib/client_part/reset_password/reset_password_widget.dart` (updated) — wired API calls
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Wired the Reset Password flow to real backend API. Users can now request a password reset email, enter the verification code, and set a new password. Full end-to-end flow with loading states, error handling, and French messages. Success redirects to Sign In page.
+
+**Endpoints Used:**
+- `POST /api/v1/auth/forgot-password` — body: `{ email }` — sends reset code
+- `POST /api/v1/auth/reset-password` — body: `{ email, code, newPassword }` — resets password
+
+**Flow:**
+1. User enters email → API sends code
+2. User enters 4-digit code
+3. User sets new password (min 8 chars) + confirmation
+4. Success → redirects to Sign In
+
+**Error Handling (French):**
+- Empty email: "Veuillez entrer votre adresse email"
+- Invalid email: "Adresse email invalide"
+- Email not found: "Aucun compte associé à cet email"
+- Invalid code: "Code invalide ou expiré"
+- Passwords don't match: "Les mots de passe ne correspondent pas"
+- Password too short: "Le mot de passe doit contenir au moins 8 caractères"
+- Network error: "Erreur de connexion. Réessaie."
+
+**Validation:**
+- Email: required, contains @ and .
+- Code: 4 digits
+- Password: min 8 characters, must match confirmation
+- All inputs trimmed
+
+**Security:**
+- No tokens/codes logged (debugPrint only logs status, not values)
+- Inputs trimmed before submission
+
+**Manual Test Flow:**
+1. Go to Sign In → tap "Mot de passe oublié"
+2. Enter valid email → tap "Next" → see "Code envoyé" SnackBar
+3. Enter 4-digit code → tap "Continue"
+4. Enter new password + confirmation → tap "Save New Password"
+5. See success screen → tap "Se connecter" → redirects to Sign In
+6. Login with new password → should work
+7. Test error cases:
+   - Invalid email → SnackBar error
+   - Wrong code → SnackBar error, stays on page
+   - Passwords don't match → SnackBar error
+   - Password too short → SnackBar error
+   - Network down → Failed widget with retry option
+
+**MockAuthRepository Behavior:**
+- `forgotPassword`: succeeds unless email is "notfound@test.com"
+- `resetPassword`: succeeds unless code is "0000"
+
+**Rollback:**
+```bash
+git checkout HEAD~1 -- lib/services/auth/auth_repository.dart lib/services/auth/real_auth_repository.dart lib/services/auth/auth_service.dart lib/client_part/reset_password/reset_password_model.dart lib/client_part/reset_password/reset_password_widget.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F14 reset password"
+```
+
+---
+
 ## [PR-F13] Location Permissions — 2024-12-28
 
 **Risk Level:** 🟡 Semi-safe (NEW DEPENDENCY)

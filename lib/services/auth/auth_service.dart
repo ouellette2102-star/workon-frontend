@@ -370,6 +370,91 @@ abstract final class AuthService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // PR-F14: Password Reset
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Requests a password reset email/code.
+  ///
+  /// Sends a verification code to the user's email address.
+  ///
+  /// Throws [AuthException] on failure (network, invalid email, etc.).
+  ///
+  /// Example:
+  /// ```dart
+  /// try {
+  ///   await AuthService.forgotPassword(email: 'user@example.com');
+  ///   print('Code sent!');
+  /// } on AuthException catch (e) {
+  ///   print('Error: ${e.message}');
+  /// }
+  /// ```
+  static Future<void> forgotPassword({required String email}) async {
+    final trimmedEmail = email.trim();
+    
+    if (trimmedEmail.isEmpty) {
+      throw const AuthException('Adresse email requise');
+    }
+    
+    // Basic email validation
+    if (!trimmedEmail.contains('@') || !trimmedEmail.contains('.')) {
+      throw const AuthException('Adresse email invalide');
+    }
+    
+    debugPrint('[AuthService] Requesting password reset for $trimmedEmail');
+    await _repository.forgotPassword(email: trimmedEmail);
+    debugPrint('[AuthService] Password reset code sent');
+  }
+
+  /// Resets the user's password using a verification code.
+  ///
+  /// Verifies the code and sets a new password.
+  /// Does NOT auto-login after reset (user must login manually).
+  ///
+  /// Throws [AuthException] on failure (invalid code, weak password, etc.).
+  ///
+  /// Example:
+  /// ```dart
+  /// try {
+  ///   await AuthService.resetPassword(
+  ///     email: 'user@example.com',
+  ///     code: '1234',
+  ///     newPassword: 'newSecurePassword123',
+  ///   );
+  ///   print('Password reset successful!');
+  /// } on AuthException catch (e) {
+  ///   print('Error: ${e.message}');
+  /// }
+  /// ```
+  static Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    final trimmedEmail = email.trim();
+    final trimmedCode = code.trim();
+    
+    if (trimmedEmail.isEmpty) {
+      throw const AuthException('Adresse email requise');
+    }
+    
+    if (trimmedCode.isEmpty) {
+      throw const AuthException('Code de vérification requis');
+    }
+    
+    if (newPassword.length < 8) {
+      throw const AuthException('Le mot de passe doit contenir au moins 8 caractères');
+    }
+    
+    debugPrint('[AuthService] Resetting password for $trimmedEmail');
+    await _repository.resetPassword(
+      email: trimmedEmail,
+      code: trimmedCode,
+      newPassword: newPassword,
+    );
+    debugPrint('[AuthService] Password reset successful');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Session Management
   // ─────────────────────────────────────────────────────────────────────────
 

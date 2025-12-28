@@ -18,6 +18,10 @@ import 'package:provider/provider.dart';
 class ResetPasswordModel extends FlutterFlowModel<ResetPasswordWidget> {
   ///  State fields for stateful widgets in this page.
 
+  // PR-F14: Loading and error states
+  bool isLoading = false;
+  String? errorMessage;
+
   // Model for BackIconBtn component.
   late BackIconBtnModel backIconBtnModel;
   // State field(s) for PageView widget.
