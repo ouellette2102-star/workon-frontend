@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/services/missions/mission_models.dart';
 import '/services/missions/missions_api.dart';
 import '/services/missions/missions_service.dart';
+import '/services/saved/saved_missions_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'mission_detail_model.dart';
@@ -18,6 +19,7 @@ export 'mission_detail_model.dart';
 /// **PR-F05b:** Initial implementation.
 /// **PR-F06:** Real data fetch + retry on error + improved logging.
 /// **PR-F09:** Added Actions section (UI only, no API calls).
+/// **PR-F11:** Made "Sauvegarder" functional with local persistence.
 class MissionDetailWidget extends StatefulWidget {
   const MissionDetailWidget({
     super.key,
@@ -50,10 +52,16 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  // PR-F11: Saved state
+  bool _isSaved = false;
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => MissionDetailModel());
+
+    // PR-F11: Check saved state
+    _isSaved = SavedMissionsStore.isSaved(widget.missionId);
 
     // PR-F06: Use provided mission or load from service
     if (widget.mission != null) {
@@ -692,13 +700,9 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                 ),
               ),
               SizedBox(width: WkSpacing.md),
+              // PR-F11: Functional save button
               Expanded(
-                child: _buildSecondaryAction(
-                  context,
-                  icon: Icons.bookmark_outline,
-                  label: WkCopy.save,
-                  onTap: () => _showSnackbar(WkCopy.comingSoon),
-                ),
+                child: _buildSaveAction(context, mission),
               ),
             ],
           ),
@@ -778,6 +782,67 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F11: Save Button
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F11: Builds the save action button with toggle functionality.
+  Widget _buildSaveAction(BuildContext context, Mission mission) {
+    return InkWell(
+      onTap: () async {
+        final isNowSaved = await SavedMissionsStore.toggleSaved(mission.id);
+        setState(() {
+          _isSaved = isNowSaved;
+        });
+        _showSnackbar(isNowSaved ? WkCopy.savedSuccess : WkCopy.unsavedSuccess);
+      },
+      borderRadius: BorderRadius.circular(WkRadius.button),
+      child: AnimatedContainer(
+        duration: WkDuration.fast,
+        padding: EdgeInsets.symmetric(
+          horizontal: WkSpacing.lg,
+          vertical: WkSpacing.md,
+        ),
+        decoration: BoxDecoration(
+          color: _isSaved
+              ? FlutterFlowTheme.of(context).primary.withOpacity(0.1)
+              : Colors.transparent,
+          border: Border.all(
+            color: _isSaved
+                ? FlutterFlowTheme.of(context).primary
+                : FlutterFlowTheme.of(context).alternate,
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(WkRadius.button),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _isSaved ? Icons.bookmark : Icons.bookmark_outline,
+              size: WkIconSize.md,
+              color: _isSaved
+                  ? FlutterFlowTheme.of(context).primary
+                  : FlutterFlowTheme.of(context).primaryText,
+            ),
+            SizedBox(width: WkSpacing.sm),
+            Text(
+              _isSaved ? WkCopy.saved : WkCopy.save,
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'General Sans',
+                    fontWeight: FontWeight.w500,
+                    color: _isSaved
+                        ? FlutterFlowTheme.of(context).primary
+                        : FlutterFlowTheme.of(context).primaryText,
+                    letterSpacing: 0.0,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
