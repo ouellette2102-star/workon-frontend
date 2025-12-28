@@ -53,7 +53,7 @@ Introduced centralized UI tokens for consistent branding and UX across the app. 
 **Manual Test Flow:**
 1. Login → Home loads
 2. Missions section visible; loading/empty/error texts in French
-3. Toggle List/Cards works; UI consistent with animated transitions
+3. Toggle List/Cards/Map works; UI consistent with animated transitions
 4. Tap mission → MissionDetail displays correctly
 5. Retry button works on error state
 6. No crashes; `dart analyze` = 0
@@ -63,6 +63,94 @@ Introduced centralized UI tokens for consistent branding and UX across the app. 
 git rm lib/config/ui_tokens.dart
 git checkout HEAD~1 -- lib/client_part/home/home_widget.dart lib/client_part/mission_detail/mission_detail_widget.dart docs/CHANGELOG_DEV.md
 git commit -m "Rollback: PR-F08 polish + branding"
+```
+
+---
+
+## [PR-F07] Missions Map Pins — 2024-12-28
+
+**Risk Level:** 🟡 Semi-safe (NEW DEPENDENCY)
+
+**Files Changed:**
+- `pubspec.yaml` (updated - added google_maps_flutter)
+- `lib/config/app_config.dart` (updated - Google Maps config)
+- `lib/client_part/components_client/missions_map/missions_map_widget.dart` (created)
+- `lib/client_part/home/home_widget.dart` (updated - map toggle)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added Google Map view displaying mission locations as colored pins. Users can toggle between List, Cards, and Map views. Pins are color-coded by status. Tap pin info → navigates to MissionDetail.
+
+**Key Features:**
+- **MissionsMapWidget**: Google Map with mission markers
+- **Pin colors by status**: Green (open), Blue (assigned), Orange (in progress)
+- **Toggle 3 views**: List / Cards / Map icons
+- **Tap pin**: Shows InfoWindow → tap → MissionDetail
+- **Fit bounds**: Button to fit all markers in view
+- **Legend**: Shows status color meanings
+- **Graceful fallback**: No API key → "Carte non disponible" message
+
+**Configuration Required:**
+```bash
+# Android: android/app/src/main/AndroidManifest.xml
+<meta-data android:name="com.google.android.geo.API_KEY"
+           android:value="YOUR_API_KEY"/>
+
+# iOS: ios/Runner/AppDelegate.swift
+GMSServices.provideAPIKey("YOUR_API_KEY")
+
+# Build with:
+flutter run --dart-define=GOOGLE_MAPS_API_KEY=YOUR_KEY
+```
+
+**Manual Test Flow:**
+1. Login → Home → missions section
+2. Toggle to Map (🗺️ icon)
+3. Pins visible on map
+4. Tap pin → InfoWindow shows title/price
+5. Tap InfoWindow → MissionDetail opens
+6. Backend down → app doesn't crash
+
+**Rollback:**
+```bash
+git rm lib/client_part/components_client/missions_map/missions_map_widget.dart
+git checkout HEAD~1 -- pubspec.yaml lib/config/app_config.dart lib/client_part/home/home_widget.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F07"
+flutter pub get
+```
+
+---
+
+## [PR-F06] Real Mission Detail + Fallback Fetch — 2024-12-28
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/client_part/mission_detail/mission_detail_widget.dart` (updated)
+- `lib/services/missions/missions_api.dart` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Enhanced MissionDetail to be fully resilient with real backend data. Added Retry button on error, improved logging throughout, and better error messages for network/timeout/server errors.
+
+**Key Features:**
+- **Instant render**: If mission object is passed, displays immediately (no fetch)
+- **Fallback fetch**: If only missionId provided, fetches from backend
+- **Retry button**: On error, user can retry without navigating back
+- **Improved logging**: Debug prints for all fetch states
+- **Better error messages**: Specific messages for timeout, network, 404, 500+
+
+**Manual Test Flow:**
+1. Login → Home → tap mission (from list or cards)
+2. Expected: instant render (mission passed from Home)
+3. Navigate with missionId only → spinner → loads → renders
+4. Backend down → error message + Retry button
+5. Tap Retry → attempts fetch again
+
+**Rollback:**
+```bash
+git checkout HEAD~1 -- lib/client_part/mission_detail/mission_detail_widget.dart lib/services/missions/missions_api.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F06"
 ```
 
 ---

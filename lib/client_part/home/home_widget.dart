@@ -1,6 +1,7 @@
 import '/client_part/components_client/banner/banner_widget.dart';
 import '/client_part/components_client/filter_options/filter_options_widget.dart';
 import '/client_part/components_client/mig_nav_bar/mig_nav_bar_widget.dart';
+import '/client_part/components_client/missions_map/missions_map_widget.dart';
 import '/client_part/components_client/service_item/service_item_widget.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
 import '/config/ui_tokens.dart';
@@ -1259,7 +1260,28 @@ class _HomeWidgetState extends State<HomeWidget> {
       return SizedBox.shrink();
     }
 
-    // PR-F05b: List or Cards view based on mode
+    // PR-F07: Map view
+    if (_model.missionsViewMode == 'map') {
+      return SizedBox(
+        height: 300,
+        child: MissionsMapWidget(
+          missions: state.missions,
+          onMissionTap: (mission) {
+            context.pushNamed(
+              MissionDetailWidget.routeName,
+              queryParameters: {
+                'missionId': mission.id,
+              }.withoutNulls,
+              extra: <String, dynamic>{
+                'mission': mission,
+              },
+            );
+          },
+        ),
+      );
+    }
+
+    // PR-F05b: Cards view
     if (_model.missionsViewMode == 'cards') {
       return _buildHorizontalCards(context, state.missions);
     }
@@ -1272,7 +1294,7 @@ class _HomeWidgetState extends State<HomeWidget> {
     );
   }
 
-  /// PR-F05b + PR-F08: Builds view toggle buttons (List/Cards).
+  /// PR-F05b + PR-F07 + PR-F08: Builds view toggle buttons (list/cards/map).
   Widget _buildViewToggle(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(WkSpacing.xs),
@@ -1295,6 +1317,14 @@ class _HomeWidgetState extends State<HomeWidget> {
             icon: Icons.view_carousel,
             isActive: _model.missionsViewMode == 'cards',
             onTap: () => safeSetState(() => _model.missionsViewMode = 'cards'),
+          ),
+          SizedBox(width: WkSpacing.xs),
+          // PR-F07: Map view
+          _buildToggleButton(
+            context,
+            icon: Icons.map_outlined,
+            isActive: _model.missionsViewMode == 'map',
+            onTap: () => safeSetState(() => _model.missionsViewMode = 'map'),
           ),
         ],
       ),

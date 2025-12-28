@@ -4,7 +4,9 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/services/missions/mission_models.dart';
+import '/services/missions/missions_api.dart';
 import '/services/missions/missions_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'mission_detail_model.dart';
 export 'mission_detail_model.dart';
@@ -14,6 +16,7 @@ export 'mission_detail_model.dart';
 /// Displays mission information without any write actions.
 ///
 /// **PR-F05b:** Initial implementation.
+/// **PR-F06:** Real data fetch + retry on error + improved logging.
 class MissionDetailWidget extends StatefulWidget {
   const MissionDetailWidget({
     super.key,
@@ -51,37 +54,64 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
     super.initState();
     _model = createModel(context, () => MissionDetailModel());
 
-    // Use provided mission or load from service
+    // PR-F06: Use provided mission or load from service
     if (widget.mission != null) {
+      debugPrint('[MissionDetail] Using provided mission: ${widget.mission!.id}');
       _mission = widget.mission;
       _isLoading = false;
-    } else {
+    } else if (widget.missionId.isNotEmpty) {
+      debugPrint('[MissionDetail] Fetching mission by ID: ${widget.missionId}');
       _loadMission();
+    } else {
+      debugPrint('[MissionDetail] No mission data or ID provided');
+      _isLoading = false;
+      _errorMessage = 'ID de mission manquant';
     }
   }
 
+  /// PR-F06: Load mission from backend with improved error handling.
   Future<void> _loadMission() async {
+    if (!mounted) return;
+    
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
+    debugPrint('[MissionDetail] Loading mission ${widget.missionId}...');
+
     try {
       final mission = await MissionsService.getById(widget.missionId);
-      if (mounted) {
+      
+      if (!mounted) return;
+      
+      if (mission != null) {
+        debugPrint('[MissionDetail] Mission loaded: ${mission.title}');
         setState(() {
           _mission = mission;
           _isLoading = false;
-          if (mission == null) {
-            _errorMessage = 'Mission introuvable';
-          }
+        });
+      } else {
+        debugPrint('[MissionDetail] Mission not found');
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Mission introuvable';
         });
       }
-    } catch (e) {
+    } on MissionsApiException catch (e) {
+      debugPrint('[MissionDetail] API error: ${e.message}');
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Erreur de chargement';
+          _errorMessage = e.message;
+        });
+      }
+    } catch (e) {
+      debugPrint('[MissionDetail] Unexpected error: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Erreur de chargement. Vérifiez votre connexion.';
         });
       }
     }
@@ -164,7 +194,7 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
       );
     }
 
-    // Error state
+    // Error state - PR-F06: Added Retry button
     if (_errorMessage != null || _mission == null) {
       return Center(
         child: Padding(
@@ -188,6 +218,7 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                     ),
               ),
               SizedBox(height: WkSpacing.xl),
+              // PR-F06: Retry button (only if we have an ID to retry with)
               if (widget.missionId.isNotEmpty)
                 Padding(
                   padding: EdgeInsets.only(bottom: WkSpacing.sm),
