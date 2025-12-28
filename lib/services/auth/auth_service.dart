@@ -11,9 +11,9 @@
 /// - Updates [UserService] context on auth events (PR#10)
 /// - Exposes [AppSession] for session access (PR#11)
 /// - Enriches user role from backend after auth (PR#12)
+/// - Persists tokens with [TokenStorage] (PR-F04)
 ///
-/// **Current State (PR#12):** Wired to [RealAuthRepository] (Railway backend).
-/// **Tokens:** In-memory only (no SecureStorage yet).
+/// **Current State (PR-F04):** Tokens persist across app restarts.
 library;
 
 import 'package:flutter/foundation.dart';
@@ -25,6 +25,7 @@ import 'auth_models.dart';
 import 'auth_repository.dart';
 import 'auth_state.dart';
 import 'real_auth_repository.dart';
+import 'token_storage.dart';
 
 /// Authentication service handling user login, registration, and session.
 ///
@@ -224,6 +225,12 @@ abstract final class AuthService {
     );
     // PR#11: Update app session
     _setSession(AppSession.fromToken(session.tokens.accessToken));
+    // PR-F04: Persist tokens
+    await TokenStorage.saveTokens(
+      accessToken: session.tokens.accessToken,
+      refreshToken: session.tokens.refreshToken,
+      expiresAt: session.tokens.expiresAt,
+    );
     // PR#12: Enrich user role from backend (fire-and-forget, non-blocking)
     UserService.refreshFromBackendIfPossible();
     return session.user;
@@ -275,6 +282,12 @@ abstract final class AuthService {
     );
     // PR#11: Update app session
     _setSession(AppSession.fromToken(session.tokens.accessToken));
+    // PR-F04: Persist tokens
+    await TokenStorage.saveTokens(
+      accessToken: session.tokens.accessToken,
+      refreshToken: session.tokens.refreshToken,
+      expiresAt: session.tokens.expiresAt,
+    );
     // PR#12: Enrich user role from backend (fire-and-forget, non-blocking)
     UserService.refreshFromBackendIfPossible();
     return session.user;
@@ -345,6 +358,8 @@ abstract final class AuthService {
     UserService.reset();
     // PR#11: Clear app session
     _setSession(const AppSession.none());
+    // PR-F04: Clear persisted tokens
+    await TokenStorage.clearToken();
 
     // Attempt server logout (fire-and-forget)
     try {
@@ -365,15 +380,6 @@ abstract final class AuthService {
   ///
   /// Returns `true` if session was restored successfully.
   /// Returns `false` if token is invalid or expired.
-  ///
-  /// TODO(PR#6): Integrate with secure storage:
-  /// ```dart
-  /// static Future<bool> restoreSession() async {
-  ///   final storedTokens = await SecureStorage.getTokens();
-  ///   if (storedTokens == null) return false;
-  ///   // ... validate and restore
-  /// }
-  /// ```
   static Future<bool> restoreSession(AuthTokens tokens) async {
     try {
       final user = await _repository.me(accessToken: tokens.accessToken);
@@ -385,36 +391,111 @@ abstract final class AuthService {
     }
   }
 
+  /// Attempts to restore session from persisted storage.
+  ///
+  /// Call this at app startup to automatically log in returning users.
+  /// Initializes [TokenStorage], checks for stored token, validates with backend.
+  ///
+  /// Returns `true` if session was restored successfully.
+  /// Returns `false` if no token stored, token invalid, or network error.
+  ///
+  /// **Never throws** - all errors result in `false`.
+  ///
+  /// Example (in main.dart):
+  /// ```dart
+  /// void main() async {
+  ///   WidgetsFlutterBinding.ensureInitialized();
+  ///   await AuthService.tryRestoreSession();
+  ///   runApp(MyApp());
+  /// }
+  /// ```
+  static Future<bool> tryRestoreSession() async {
+    try {
+      // Initialize token storage
+      final hasToken = await TokenStorage.initialize();
+      if (!hasToken) {
+        debugPrint('[AuthService] No stored token found');
+        return false;
+      }
+
+      // Get stored token
+      final accessToken = TokenStorage.getToken();
+      if (accessToken == null || accessToken.isEmpty) {
+        debugPrint('[AuthService] Stored token is empty');
+        return false;
+      }
+
+      // Check if expired locally
+      if (TokenStorage.isExpired) {
+        debugPrint('[AuthService] Stored token is expired');
+        await TokenStorage.clearToken();
+        return false;
+      }
+
+      // Validate with backend
+      debugPrint('[AuthService] Validating stored token with backend...');
+      final user = await _repository.me(accessToken: accessToken);
+
+      // Restore session
+      final tokens = AuthTokens(
+        accessToken: accessToken,
+        refreshToken: TokenStorage.getRefreshToken() ?? '',
+        expiresAt: TokenStorage.getExpiry(),
+      );
+      _currentSession = AuthSession(user: user, tokens: tokens);
+
+      // Update state
+      setAuthState(AuthState.authenticated(
+        userId: user.id,
+        email: user.email,
+      ));
+      _setSession(AppSession.fromToken(accessToken));
+      await UserService.setFromAuth(userId: user.id, email: user.email);
+      UserService.refreshFromBackendIfPossible();
+
+      debugPrint('[AuthService] Session restored for ${user.email}');
+      return true;
+    } catch (e) {
+      debugPrint('[AuthService] Failed to restore session: $e');
+      // Clear invalid stored token
+      await TokenStorage.clearToken();
+      return false;
+    }
+  }
+
   /// Clears all session state.
   ///
   /// Use for testing or forced logout without server notification.
-  static void reset() {
+  static Future<void> reset() async {
     _currentSession = null;
     setAuthState(const AuthState.unknown());
     UserService.reset(); // PR#10
     _setSession(const AppSession.none()); // PR#11
+    await TokenStorage.clearToken(); // PR-F04
   }
 
   /// Resets the repository to default [RealAuthRepository].
   ///
   /// Use after testing to restore production state.
-  static void resetRepository() {
+  static Future<void> resetRepository() async {
     _repository = RealAuthRepository();
     _currentSession = null;
     setAuthState(const AuthState.unknown());
     UserService.reset(); // PR#10
     _setSession(const AppSession.none()); // PR#11
+    await TokenStorage.clearToken(); // PR-F04
   }
 
   /// Switches to mock repository for testing.
   ///
   /// Call this in test setup to avoid real API calls.
-  static void useMockRepository() {
+  static Future<void> useMockRepository() async {
     _repository = MockAuthRepository();
     _currentSession = null;
     setAuthState(const AuthState.unknown());
     UserService.reset(); // PR#10
     _setSession(const AppSession.none()); // PR#11
+    await TokenStorage.clearToken(); // PR-F04
   }
 
   // ─────────────────────────────────────────────────────────────────────────
