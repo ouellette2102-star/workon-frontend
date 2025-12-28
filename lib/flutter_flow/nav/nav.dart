@@ -16,6 +16,7 @@ import 'serialization_util.dart';
 
 import '/index.dart';
 import '/app/auth_gate.dart';
+import '/services/missions/mission_models.dart';
 
 export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
@@ -464,7 +465,24 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: ChoosePaymentMethodWidget.routeName,
           path: ChoosePaymentMethodWidget.routePath,
           builder: (context, params) => ChoosePaymentMethodWidget(),
-        )
+        ),
+        // PR-F05b: Mission detail route
+        FFRoute(
+          name: MissionDetailWidget.routeName,
+          path: MissionDetailWidget.routePath,
+          builder: (context, params) {
+            // Try to get mission from extra, fallback to fetching by ID
+            final extra = params.state.extra as Map<String, dynamic>?;
+            final mission = extra?['mission'];
+            return MissionDetailWidget(
+              missionId: params.getParam(
+                'missionId',
+                ParamType.String,
+              ) ?? '',
+              mission: mission,
+            );
+          },
+        ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
 

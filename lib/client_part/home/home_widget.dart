@@ -2,6 +2,7 @@ import '/client_part/components_client/banner/banner_widget.dart';
 import '/client_part/components_client/filter_options/filter_options_widget.dart';
 import '/client_part/components_client/mig_nav_bar/mig_nav_bar_widget.dart';
 import '/client_part/components_client/service_item/service_item_widget.dart';
+import '/client_part/mission_detail/mission_detail_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -1111,30 +1112,31 @@ class _HomeWidgetState extends State<HomeWidget> {
                       ),
                 ),
               ),
-              if (state.hasMissions)
-                FFButtonWidget(
-                  onPressed: () async {
-                    await MissionsService.refresh();
-                  },
-                  text: 'Actualiser',
-                  options: FFButtonOptions(
-                    padding: EdgeInsetsDirectional.fromSTEB(5.0, 0.0, 5.0, 0.0),
-                    iconPadding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: Colors.transparent,
-                    textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                          fontFamily: 'General Sans',
-                          color: FlutterFlowTheme.of(context).secondaryText,
-                          fontSize: 13.0,
-                          letterSpacing: 0.0,
-                        ),
-                    elevation: 0.0,
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
+              // PR-F05b: View mode toggle + refresh
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (state.hasMissions)
+                    _buildViewToggle(context),
+                  if (state.hasMissions)
+                    SizedBox(width: 8),
+                  if (state.hasMissions)
+                    InkWell(
+                      onTap: () async {
+                        await MissionsService.refresh();
+                      },
+                      child: Icon(
+                        Icons.refresh,
+                        color: FlutterFlowTheme.of(context).secondaryText,
+                        size: 20,
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
           SizedBox(height: 15.0),
-          // Content based on state
+          // Content based on state and view mode
           _buildMissionsContent(context, state),
         ],
       ),
@@ -1255,12 +1257,224 @@ class _HomeWidgetState extends State<HomeWidget> {
       return SizedBox.shrink();
     }
 
-    // List of missions
+    // PR-F05b: List or Cards view based on mode
+    if (_model.missionsViewMode == 'cards') {
+      return _buildHorizontalCards(context, state.missions);
+    }
+
+    // List of missions (default)
     return Column(
       children: state.missions.take(5).map((mission) {
         return _buildMissionCard(context, mission);
       }).toList(),
     );
+  }
+
+  /// PR-F05b: Builds view toggle buttons.
+  Widget _buildViewToggle(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: () {
+              safeSetState(() {
+                _model.missionsViewMode = 'list';
+              });
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: _model.missionsViewMode == 'list'
+                    ? FlutterFlowTheme.of(context).primary
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(
+                Icons.list,
+                size: 16,
+                color: _model.missionsViewMode == 'list'
+                    ? Colors.white
+                    : FlutterFlowTheme.of(context).secondaryText,
+              ),
+            ),
+          ),
+          SizedBox(width: 4),
+          InkWell(
+            onTap: () {
+              safeSetState(() {
+                _model.missionsViewMode = 'cards';
+              });
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: _model.missionsViewMode == 'cards'
+                    ? FlutterFlowTheme.of(context).primary
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(
+                Icons.view_carousel,
+                size: 16,
+                color: _model.missionsViewMode == 'cards'
+                    ? Colors.white
+                    : FlutterFlowTheme.of(context).secondaryText,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// PR-F05b: Builds horizontal scrollable cards.
+  Widget _buildHorizontalCards(BuildContext context, List<Mission> missions) {
+    return SizedBox(
+      height: 200,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: missions.length,
+        padding: EdgeInsets.zero,
+        itemBuilder: (context, index) {
+          final mission = missions[index];
+          return _buildHorizontalMissionCard(context, mission, index);
+        },
+      ),
+    );
+  }
+
+  /// PR-F05b: Builds a horizontal mission card.
+  Widget _buildHorizontalMissionCard(
+      BuildContext context, Mission mission, int index) {
+    return Padding(
+      padding: EdgeInsets.only(right: 12),
+      child: InkWell(
+        onTap: () {
+          context.pushNamed(
+            MissionDetailWidget.routeName,
+            queryParameters: {
+              'missionId': mission.id,
+            }.withoutNulls,
+            extra: <String, dynamic>{
+              'mission': mission,
+            },
+          );
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: 280,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: _getCardGradient(index),
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Status badge
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  mission.status.displayName,
+                  style: FlutterFlowTheme.of(context).bodySmall.override(
+                        fontFamily: 'General Sans',
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.0,
+                      ),
+                ),
+              ),
+              SizedBox(height: 12),
+
+              // Title
+              Text(
+                mission.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: FlutterFlowTheme.of(context).bodyLarge.override(
+                      fontFamily: 'General Sans',
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+              Spacer(),
+
+              // Location and distance
+              Row(
+                children: [
+                  Icon(Icons.location_on_outlined, color: Colors.white70, size: 14),
+                  SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      mission.city,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: FlutterFlowTheme.of(context).bodySmall.override(
+                            fontFamily: 'General Sans',
+                            color: Colors.white70,
+                            letterSpacing: 0.0,
+                          ),
+                    ),
+                  ),
+                  if (mission.distanceKm != null) ...[
+                    SizedBox(width: 8),
+                    Text(
+                      mission.formattedDistance ?? '',
+                      style: FlutterFlowTheme.of(context).bodySmall.override(
+                            fontFamily: 'General Sans',
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.0,
+                          ),
+                    ),
+                  ],
+                ],
+              ),
+              SizedBox(height: 8),
+
+              // Price
+              Text(
+                mission.formattedPrice,
+                style: FlutterFlowTheme.of(context).headlineSmall.override(
+                      fontFamily: 'General Sans',
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// PR-F05b: Returns gradient colors for card at given index.
+  List<Color> _getCardGradient(int index) {
+    final gradients = [
+      [Color(0xFF6366F1), Color(0xFF8B5CF6)], // Indigo-violet
+      [Color(0xFF10B981), Color(0xFF059669)], // Emerald
+      [Color(0xFFF59E0B), Color(0xFFD97706)], // Amber
+      [Color(0xFFEC4899), Color(0xFFDB2777)], // Pink
+      [Color(0xFF3B82F6), Color(0xFF1D4ED8)], // Blue
+    ];
+    return gradients[index % gradients.length];
   }
 
   /// Builds a single mission card.
@@ -1269,13 +1483,15 @@ class _HomeWidgetState extends State<HomeWidget> {
       padding: EdgeInsets.only(bottom: 10),
       child: InkWell(
         onTap: () {
-          // TODO(PR-F05b): Navigate to mission detail
-          // For now, show a snackbar with mission info
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Mission: ${mission.title}'),
-              duration: Duration(seconds: 2),
-            ),
+          // PR-F05b: Navigate to mission detail
+          context.pushNamed(
+            MissionDetailWidget.routeName,
+            queryParameters: {
+              'missionId': mission.id,
+            }.withoutNulls,
+            extra: <String, dynamic>{
+              'mission': mission,
+            },
           );
         },
         borderRadius: BorderRadius.circular(16),

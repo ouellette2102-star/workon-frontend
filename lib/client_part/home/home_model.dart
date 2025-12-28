@@ -24,6 +24,9 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   MissionsState missionsState = const MissionsState.initial();
   bool missionsInitialized = false;
 
+  // PR-F05b: Missions view mode (list or cards)
+  String missionsViewMode = 'list'; // 'list' or 'cards'
+
   // State field(s) for PageView widget.
   PageController? pageViewController;
 

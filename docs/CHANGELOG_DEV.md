@@ -21,6 +21,44 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F05b] Map + Cards + Mission Detail — 2024-12-28
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/client_part/mission_detail/mission_detail_model.dart` (created)
+- `lib/client_part/mission_detail/mission_detail_widget.dart` (created)
+- `lib/client_part/home/home_model.dart` (updated)
+- `lib/client_part/home/home_widget.dart` (updated)
+- `lib/flutter_flow/nav/nav.dart` (updated)
+- `lib/index.dart` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added read-only MissionDetail page and horizontal cards view for missions. Users can now toggle between List and Cards view in the missions feed section. Tapping a mission navigates to a detailed view showing title, description, location, price, and status.
+
+**Key Features:**
+- **MissionDetailWidget**: Read-only detail page with header card, description, location info
+- **List/Cards Toggle**: Switch between vertical list and horizontal swipable cards
+- **Navigation**: `context.pushNamed(MissionDetailWidget.routeName, ...)` with mission data
+- **Colorful Cards**: Gradient backgrounds cycling through indigo/emerald/amber/pink/blue
+
+**Manual Test Flow:**
+1. Login → Home → see "Missions à proximité" section
+2. Toggle between List (📋) and Cards (🃏) views
+3. Tap any mission → opens MissionDetail page
+4. Verify mission info displays correctly
+5. Press back → returns to Home
+
+**Rollback:**
+```bash
+git rm -r lib/client_part/mission_detail/
+git checkout HEAD~1 -- lib/client_part/home/home_model.dart lib/client_part/home/home_widget.dart lib/flutter_flow/nav/nav.dart lib/index.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F05b"
+```
+
+---
+
 ## [PR-F04] Token Persistence (SecureStorage) — 2024-12-26
 
 **Risk Level:** 🟢 Auto-safe (LOW)

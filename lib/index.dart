@@ -136,3 +136,5 @@ export '/client_part/booking_pages/set_date_and_address/set_date_and_address_wid
     show SetDateAndAddressWidget;
 export '/client_part/booking_pages/choose_payment_method/choose_payment_method_widget.dart'
     show ChoosePaymentMethodWidget;
+export '/client_part/mission_detail/mission_detail_widget.dart'
+    show MissionDetailWidget;
