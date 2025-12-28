@@ -21,6 +21,63 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F13] Location Permissions — 2024-12-28
+
+**Risk Level:** 🟡 Semi-safe (NEW DEPENDENCY)
+
+**Files Changed:**
+- `android/app/src/main/AndroidManifest.xml` (updated) — added location permissions
+- `ios/Runner/Info.plist` (updated) — added NSLocationWhenInUseUsageDescription
+- `pubspec.yaml` (updated) — added geolocator dependency
+- `lib/services/location/location_service.dart` (created) — location permission + position service
+- `lib/client_part/home/home_widget.dart` (updated) — request location on init
+- `lib/client_part/home/home_model.dart` (updated) — user position fields
+- `lib/client_part/components_client/missions_map/missions_map_widget.dart` (updated) — enable myLocation
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added Android + iOS location permission support. Created `LocationService` for requesting permission and getting user position. Home now requests location permission on init and uses real coordinates for nearby missions if granted. Map shows user location indicator when permission granted. Falls back to default Montreal coordinates if denied. Non-blocking SnackBar messages when permission denied.
+
+**Key Features:**
+- **Android permissions**: ACCESS_FINE_LOCATION + ACCESS_COARSE_LOCATION
+- **iOS permission**: NSLocationWhenInUseUsageDescription (French message)
+- **LocationService**: Singleton with permission check, request, and getCurrentPosition
+- **Graceful fallback**: Uses Montreal (45.5017, -73.5673) if permission denied
+- **Non-blocking UI**: SnackBar messages for denied/disabled states with action buttons
+- **Map enhancement**: Shows user location dot + button when permission granted
+- **Web-safe**: Guards for kIsWeb to prevent crashes on web platform
+
+**New Dependency:**
+- `geolocator: ^13.0.2`
+
+**SnackBar Messages (French):**
+- Denied: "Position non disponible. Affichage des missions près de Montréal."
+- Denied Forever: "Accès à la position refusé. Activez-la dans les paramètres." + [Paramètres]
+- Service Disabled: "Localisation désactivée. Activez-la pour voir les missions près de vous." + [Activer]
+
+**Manual Test Flow:**
+1. Fresh install Android: open app → permission prompt appears
+2. Allow → map loads, centers on user, nearby missions for user location
+3. Deny → SnackBar shown, map loads with Montreal default
+4. iOS build: same flow with iOS permission prompt
+5. Toggle Map view → user location dot visible (if granted)
+6. Backend down → app doesn't crash, shows error state
+
+**Configuration Notes:**
+- No background location requested (not needed for MVP)
+- Accuracy set to "medium" for battery efficiency
+- Timeout set to 10 seconds for position request
+
+**Rollback:**
+```bash
+git rm -r lib/services/location
+git checkout HEAD~1 -- android/app/src/main/AndroidManifest.xml ios/Runner/Info.plist pubspec.yaml lib/client_part/home/home_widget.dart lib/client_part/home/home_model.dart lib/client_part/components_client/missions_map/missions_map_widget.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F13 location permissions"
+flutter pub get
+```
+
+---
+
 ## [PR-F12] Share Mission — 2024-12-28
 
 **Risk Level:** 🟢 Auto-safe (LOW)

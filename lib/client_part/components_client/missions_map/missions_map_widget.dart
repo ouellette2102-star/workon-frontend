@@ -17,6 +17,7 @@ import '/config/app_config.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/location/location_service.dart';
 import '/services/missions/mission_models.dart';
 
 /// Widget displaying missions on a Google Map.
@@ -212,8 +213,9 @@ class _MissionsMapWidgetState extends State<MissionsMapWidget> {
               zoom: AppConfig.defaultMapZoom,
             ),
             markers: _markers,
-            myLocationEnabled: false,
-            myLocationButtonEnabled: false,
+            // PR-F13: Enable user location indicator if permission granted.
+            myLocationEnabled: LocationService.instance.hasPermission,
+            myLocationButtonEnabled: LocationService.instance.hasPermission,
             zoomControlsEnabled: true,
             mapToolbarEnabled: false,
             compassEnabled: false,
