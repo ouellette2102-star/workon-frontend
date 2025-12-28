@@ -29,6 +29,8 @@ class SignUpModel extends FlutterFlowModel<SignUpWidget> {
   bool? checkboxValue;
   // State field(s) for MouseRegion widget.
   bool mouseRegionHovered = false;
+  // PR#14: Loading state for auth request
+  bool isLoading = false;
 
   @override
   void initState(BuildContext context) {

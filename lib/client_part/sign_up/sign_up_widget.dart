@@ -2,6 +2,8 @@ import '/client_part/components_client/back_icon_btn/back_icon_btn_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/auth/auth_errors.dart';
+import '/services/auth/auth_service.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:flutter/gestures.dart';
@@ -378,12 +380,87 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                       ].divide(SizedBox(width: 20.0)),
                     ),
                     FFButtonWidget(
-                      onPressed: () async {
-                        context.pushNamed(InterviewUserWidget.routeName);
-                      },
-                      text: FFLocalizations.of(context).getText(
-                        '01ddy8pr' /* Sign Up */,
-                      ),
+                      onPressed: _model.isLoading
+                          ? null
+                          : () async {
+                              // PR#14: Call AuthService.register()
+                              final email =
+                                  _model.emailTextController?.text.trim() ?? '';
+                              final password =
+                                  _model.passwordTextController?.text ?? '';
+
+                              if (email.isEmpty || password.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Veuillez remplir tous les champs'),
+                                    backgroundColor:
+                                        FlutterFlowTheme.of(context).error,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              safeSetState(() => _model.isLoading = true);
+
+                              try {
+                                await AuthService.register(
+                                  email: email,
+                                  password: password,
+                                );
+                                // Success: AuthGate will redirect to Home
+                                // No manual navigation needed
+                              } on EmailAlreadyInUseException {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Cet email est déjà utilisé'),
+                                      backgroundColor:
+                                          FlutterFlowTheme.of(context).error,
+                                    ),
+                                  );
+                                }
+                              } on AuthNetworkException {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content:
+                                          Text('Connexion impossible. Réessaie.'),
+                                      backgroundColor:
+                                          FlutterFlowTheme.of(context).error,
+                                    ),
+                                  );
+                                }
+                              } on AuthException catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Erreur lors de l\'inscription'),
+                                      backgroundColor:
+                                          FlutterFlowTheme.of(context).error,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Erreur lors de l\'inscription'),
+                                      backgroundColor:
+                                          FlutterFlowTheme.of(context).error,
+                                    ),
+                                  );
+                                }
+                              } finally {
+                                if (mounted) {
+                                  safeSetState(() => _model.isLoading = false);
+                                }
+                              }
+                            },
+                      text: _model.isLoading
+                          ? 'Inscription...'
+                          : FFLocalizations.of(context).getText(
+                              '01ddy8pr' /* Sign Up */,
+                            ),
                       options: FFButtonOptions(
                         width: double.infinity,
                         height: 50.0,
@@ -391,7 +468,9 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                             16.0, 0.0, 16.0, 0.0),
                         iconPadding:
                             EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                        color: FlutterFlowTheme.of(context).primary,
+                        color: _model.isLoading
+                            ? FlutterFlowTheme.of(context).primary.withOpacity(0.6)
+                            : FlutterFlowTheme.of(context).primary,
                         textStyle:
                             FlutterFlowTheme.of(context).titleSmall.override(
                                   fontFamily: 'General Sans',

@@ -113,7 +113,6 @@ git commit -m "Rollback: PR#14 auth UI wiring"
 
 ---
 
->>>>>>> Stashed changes
 ## [PR#13] Real Auth Integration — 2025-12-21
 
 **Risk Level:** 🟢 Auto-safe (LOW)
