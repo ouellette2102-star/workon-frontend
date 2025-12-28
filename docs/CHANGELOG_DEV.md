@@ -21,6 +21,56 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F12] Share Mission — 2024-12-28
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `pubspec.yaml` (updated) — added share_plus dependency
+- `lib/client_part/mission_detail/mission_detail_widget.dart` (updated)
+- `lib/config/ui_tokens.dart` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Made "Partager" button functional using OS native share sheet (share_plus package). Users can share mission details including title, city, price, and a deep link placeholder.
+
+**Key Features:**
+- **Native share sheet**: Uses OS share functionality (iOS/Android/Web)
+- **Clean message format**: 🔧 Title, 📍 City, 💰 Price, workon:// link
+- **Graceful degradation**: Missing fields are omitted without crash
+- **Error handling**: Shows snackbar on share failure
+
+**Share Message Format:**
+```
+🔧 {title}
+📍 {city}
+💰 {price}
+
+workon://mission/{id}
+```
+
+**New Dependency:**
+- `share_plus: ^10.1.4`
+
+**New Microcopy (WkCopy):**
+- `shareError`: "Impossible de partager"
+
+**Manual Test Flow:**
+1. Login → Home → tap any mission → open detail
+2. Tap "Partager" → native share sheet opens
+3. See formatted message with title/city/price/link
+4. Share via any app (Messages, Email, etc.)
+5. Cancel share → no crash
+
+**Rollback:**
+```bash
+git checkout HEAD~1 -- pubspec.yaml lib/client_part/mission_detail/mission_detail_widget.dart lib/config/ui_tokens.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F12 share mission"
+flutter pub get
+```
+
+---
+
 ## [PR-F11] Saved Missions (Local) — 2024-12-28
 
 **Risk Level:** 🟢 Auto-safe (LOW)

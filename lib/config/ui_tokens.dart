@@ -130,6 +130,9 @@ abstract final class WkCopy {
   static const String unsavedSuccess = 'Retirée des sauvegardées';
   static const String emptySavedMissions = 'Aucune mission sauvegardée.';
   static const String tapToSaveHint = 'Appuie sur 🔖 pour sauvegarder une mission';
+
+  // ─── PR-F12: Share mission ───
+  static const String shareError = 'Impossible de partager';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
