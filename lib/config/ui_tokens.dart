@@ -123,6 +123,13 @@ abstract final class WkCopy {
   static const String sortPriceDesc = 'Prix ↓';
   static const String sortNewest = 'Nouveau';
   static const String allCategories = 'Toutes';
+
+  // ─── PR-F11: Saved missions ───
+  static const String savedMissions = 'Sauvegardées';
+  static const String savedSuccess = 'Mission sauvegardée';
+  static const String unsavedSuccess = 'Retirée des sauvegardées';
+  static const String emptySavedMissions = 'Aucune mission sauvegardée.';
+  static const String tapToSaveHint = 'Appuie sur 🔖 pour sauvegarder une mission';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -21,6 +21,59 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F11] Saved Missions (Local) — 2024-12-28
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/services/saved/saved_missions_store.dart` (created)
+- `lib/client_part/saved/saved_missions_page.dart` (created)
+- `lib/client_part/mission_detail/mission_detail_widget.dart` (updated)
+- `lib/client_part/home/home_widget.dart` (updated)
+- `lib/flutter_flow/nav/nav.dart` (updated)
+- `lib/main.dart` (updated)
+- `lib/config/ui_tokens.dart` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Made "Sauvegarder" button functional using local persistence (SharedPreferences). Users can save/unsave missions, view saved missions list, and saved state persists across app restarts. Works offline - no backend required.
+
+**Key Features:**
+- **SavedMissionsStore**: Service for local persistence of saved mission IDs
+- **Functional save button**: Toggle saved state with visual feedback + snackbar
+- **Saved missions page**: List view of saved missions with tap-to-remove
+- **Saved indicator**: Bookmark icon with count in missions header
+- **Offline support**: Works without backend, persists across restarts
+
+**New Files:**
+- `lib/services/saved/saved_missions_store.dart` - Local storage service
+- `lib/client_part/saved/saved_missions_page.dart` - Saved missions list page
+
+**New Microcopy (WkCopy):**
+- `savedMissions`: "Sauvegardées"
+- `savedSuccess`: "Mission sauvegardée"
+- `unsavedSuccess`: "Retirée des sauvegardées"
+- `emptySavedMissions`: "Aucune mission sauvegardée."
+- `tapToSaveHint`: "Appuie sur 🔖 pour sauvegarder une mission"
+
+**Manual Test Flow:**
+1. Login → Home → tap any mission → open detail
+2. Tap "Sauvegarder" → button changes to filled bookmark + snackbar
+3. Go back → tap saved button (bookmark icon with count) → opens saved page
+4. See mission in list → tap to open detail
+5. Tap filled bookmark → mission removed from saved list
+6. Kill app → reopen → saved missions persist
+7. Empty saved list → shows empty state with hint
+
+**Rollback:**
+```bash
+git rm -r lib/services/saved lib/client_part/saved
+git checkout HEAD~1 -- lib/client_part/mission_detail/mission_detail_widget.dart lib/client_part/home/home_widget.dart lib/flutter_flow/nav/nav.dart lib/main.dart lib/config/ui_tokens.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F11 saved missions"
+```
+
+---
+
 ## [PR-F10] Missions Filters (Read-Only) — 2024-12-28
 
 **Risk Level:** 🟢 Auto-safe (LOW)

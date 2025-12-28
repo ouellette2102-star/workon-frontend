@@ -4,6 +4,7 @@ import '/client_part/components_client/mig_nav_bar/mig_nav_bar_widget.dart';
 import '/client_part/components_client/missions_map/missions_map_widget.dart';
 import '/client_part/components_client/service_item/service_item_widget.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
+import '/client_part/saved/saved_missions_page.dart';
 import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -11,6 +12,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/services/missions/mission_models.dart';
 import '/services/missions/missions_service.dart';
+import '/services/saved/saved_missions_store.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart'
@@ -1120,10 +1122,13 @@ class _HomeWidgetState extends State<HomeWidget> {
                       ),
                 ),
               ),
-              // PR-F05b: View mode toggle + refresh
+              // PR-F05b: View mode toggle + refresh + PR-F11: Saved button
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // PR-F11: Saved missions button
+                  _buildSavedButton(context),
+                  SizedBox(width: WkSpacing.sm),
                   if (state.hasMissions)
                     _buildViewToggle(context),
                   if (state.hasMissions)
@@ -1817,6 +1822,68 @@ class _HomeWidgetState extends State<HomeWidget> {
           },
         ),
       ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F11: Saved Missions Button
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F11: Builds the saved missions button.
+  Widget _buildSavedButton(BuildContext context) {
+    return ValueListenableBuilder<Set<String>>(
+      valueListenable: SavedMissionsStore.savedIdsListenable,
+      builder: (context, savedIds, _) {
+        final count = savedIds.length;
+        return InkWell(
+          onTap: () {
+            context.pushNamed(SavedMissionsPage.routeName);
+          },
+          borderRadius: BorderRadius.circular(WkRadius.xxl),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: WkSpacing.md,
+              vertical: WkSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: count > 0
+                  ? FlutterFlowTheme.of(context).primary.withOpacity(0.1)
+                  : FlutterFlowTheme.of(context).secondaryBackground,
+              borderRadius: BorderRadius.circular(WkRadius.xxl),
+              border: Border.all(
+                color: count > 0
+                    ? FlutterFlowTheme.of(context).primary
+                    : FlutterFlowTheme.of(context).alternate,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  count > 0 ? Icons.bookmark : Icons.bookmark_outline,
+                  size: WkIconSize.sm,
+                  color: count > 0
+                      ? FlutterFlowTheme.of(context).primary
+                      : FlutterFlowTheme.of(context).secondaryText,
+                ),
+                if (count > 0) ...[
+                  SizedBox(width: WkSpacing.xs),
+                  Text(
+                    '$count',
+                    style: FlutterFlowTheme.of(context).bodySmall.override(
+                          fontFamily: 'General Sans',
+                          color: FlutterFlowTheme.of(context).primary,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
