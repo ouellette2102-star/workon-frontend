@@ -21,6 +21,40 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F06] Real Mission Detail + Fallback Fetch — 2024-12-28
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/client_part/mission_detail/mission_detail_widget.dart` (updated)
+- `lib/services/missions/missions_api.dart` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Enhanced MissionDetail to be fully resilient with real backend data. Added Retry button on error, improved logging throughout, and better error messages for network/timeout/server errors.
+
+**Key Features:**
+- **Instant render**: If mission object is passed, displays immediately (no fetch)
+- **Fallback fetch**: If only missionId provided, fetches from backend
+- **Retry button**: On error, user can retry without navigating back
+- **Improved logging**: Debug prints for all fetch states
+- **Better error messages**: Specific messages for timeout, network, 404, 500+
+
+**Manual Test Flow:**
+1. Login → Home → tap mission (from list or cards)
+2. Expected: instant render (mission passed from Home)
+3. Navigate with missionId only → spinner → loads → renders
+4. Backend down → error message + Retry button
+5. Tap Retry → attempts fetch again
+
+**Rollback:**
+```bash
+git checkout HEAD~1 -- lib/client_part/mission_detail/mission_detail_widget.dart lib/services/missions/missions_api.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F06"
+```
+
+---
+
 ## [PR-F05b] Map + Cards + Mission Detail — 2024-12-28
 
 **Risk Level:** 🟢 Auto-safe (LOW)

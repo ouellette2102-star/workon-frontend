@@ -113,18 +113,29 @@ class MissionsApi {
   ///
   /// Calls `GET /api/v1/missions-local/:id`.
   ///
+  /// **PR-F06:** Enhanced logging and error handling.
+  ///
   /// Throws:
   /// - [UnauthorizedException] if not authenticated
   /// - [MissionsApiException] if mission not found or other error
   Future<Mission> fetchById(String id) async {
-    debugPrint('[MissionsApi] Fetching mission $id...');
+    debugPrint('[MissionsApi] fetchById: $id');
 
+    // Validate ID
+    if (id.isEmpty) {
+      debugPrint('[MissionsApi] fetchById: empty ID provided');
+      throw const MissionsApiException('ID de mission invalide');
+    }
+
+    // Check auth
     if (!AuthService.hasSession) {
+      debugPrint('[MissionsApi] fetchById: no active session');
       throw const UnauthorizedException();
     }
 
     final token = AuthService.session.token;
     if (token == null || token.isEmpty) {
+      debugPrint('[MissionsApi] fetchById: no token available');
       throw const UnauthorizedException();
     }
 
@@ -135,26 +146,31 @@ class MissionsApi {
     };
 
     try {
+      debugPrint('[MissionsApi] GET $uri');
       final response = await ApiClient.client
           .get(uri, headers: headers)
           .timeout(ApiClient.connectionTimeout);
 
-      debugPrint('[MissionsApi] Response status: ${response.statusCode}');
+      debugPrint('[MissionsApi] fetchById response: ${response.statusCode}');
 
       if (response.statusCode == 401 || response.statusCode == 403) {
+        debugPrint('[MissionsApi] fetchById: unauthorized');
         throw const UnauthorizedException();
       }
 
       if (response.statusCode == 404) {
+        debugPrint('[MissionsApi] fetchById: mission not found');
         throw const MissionsApiException('Mission non trouvée');
       }
 
       if (response.statusCode >= 500) {
-        throw const MissionsApiException('Erreur serveur');
+        debugPrint('[MissionsApi] fetchById: server error');
+        throw const MissionsApiException('Erreur serveur. Réessayez plus tard.');
       }
 
       if (response.statusCode != 200) {
-        throw MissionsApiException('Erreur ${response.statusCode}');
+        debugPrint('[MissionsApi] fetchById: unexpected status ${response.statusCode}');
+        throw MissionsApiException('Erreur inattendue (${response.statusCode})');
       }
 
       final json = jsonDecode(response.body);
@@ -162,14 +178,22 @@ class MissionsApi {
           ? (json['data'] ?? json)
           : json;
 
-      return Mission.fromJson(data as Map<String, dynamic>);
+      final mission = Mission.fromJson(data as Map<String, dynamic>);
+      debugPrint('[MissionsApi] fetchById: success - ${mission.title}');
+      return mission;
     } on TimeoutException {
-      throw const MissionsApiException('Connexion timeout');
-    } on http.ClientException {
-      throw const MissionsApiException('Erreur réseau');
+      debugPrint('[MissionsApi] fetchById: timeout');
+      throw const MissionsApiException('Délai de connexion dépassé');
+    } on http.ClientException catch (e) {
+      debugPrint('[MissionsApi] fetchById: network error - $e');
+      throw const MissionsApiException('Erreur réseau. Vérifiez votre connexion.');
+    } on FormatException catch (e) {
+      debugPrint('[MissionsApi] fetchById: JSON parse error - $e');
+      throw const MissionsApiException('Réponse invalide du serveur');
     } on Exception catch (e) {
       if (e is MissionsApiException || e is AuthException) rethrow;
-      throw const MissionsApiException();
+      debugPrint('[MissionsApi] fetchById: unexpected error - $e');
+      throw const MissionsApiException('Erreur inattendue');
     }
   }
 
