@@ -17,6 +17,7 @@ export 'mission_detail_model.dart';
 ///
 /// **PR-F05b:** Initial implementation.
 /// **PR-F06:** Real data fetch + retry on error + improved logging.
+/// **PR-F09:** Added Actions section (UI only, no API calls).
 class MissionDetailWidget extends StatefulWidget {
   const MissionDetailWidget({
     super.key,
@@ -350,6 +351,14 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                 ],
               ),
             ),
+            SizedBox(height: WkSpacing.sectionGap),
+
+            // PR-F09: Actions section
+            _buildActionsSection(context, mission),
+            SizedBox(height: WkSpacing.md),
+
+            // PR-F09: Legal disclaimer
+            _buildLegalDisclaimer(context),
             SizedBox(height: 100), // Bottom padding for scroll
           ],
         ),
@@ -582,6 +591,195 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
       'décembre'
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F09: Actions Section
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Check if mission is available for application.
+  bool _isMissionAvailable(Mission mission) {
+    return mission.status == MissionStatus.open;
+  }
+
+  /// Show a snackbar with the given message.
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                fontFamily: 'General Sans',
+                color: Colors.white,
+                letterSpacing: 0.0,
+              ),
+        ),
+        backgroundColor: FlutterFlowTheme.of(context).primaryText,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(WkRadius.button),
+        ),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  /// PR-F09: Builds the actions section with CTA buttons.
+  Widget _buildActionsSection(BuildContext context, Mission mission) {
+    final isAvailable = _isMissionAvailable(mission);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(WkSpacing.cardPadding),
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(WkRadius.card),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            WkCopy.actions,
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  fontFamily: 'General Sans',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.0,
+                ),
+          ),
+          SizedBox(height: WkSpacing.lg),
+
+          // Primary CTA: Postuler
+          SizedBox(
+            width: double.infinity,
+            child: FFButtonWidget(
+              onPressed: isAvailable
+                  ? () => _showSnackbar(WkCopy.comingSoon)
+                  : null,
+              text: isAvailable ? WkCopy.apply : WkCopy.applyDisabled,
+              options: FFButtonOptions(
+                padding: EdgeInsets.symmetric(vertical: WkSpacing.lg),
+                color: isAvailable
+                    ? FlutterFlowTheme.of(context).primary
+                    : FlutterFlowTheme.of(context).alternate,
+                textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'General Sans',
+                      color: isAvailable
+                          ? Colors.white
+                          : FlutterFlowTheme.of(context).secondaryText,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.0,
+                    ),
+                borderRadius: BorderRadius.circular(WkRadius.lg),
+                disabledColor: FlutterFlowTheme.of(context).alternate,
+                disabledTextColor: FlutterFlowTheme.of(context).secondaryText,
+              ),
+            ),
+          ),
+          SizedBox(height: WkSpacing.md),
+
+          // Secondary actions row: Share + Save
+          Row(
+            children: [
+              Expanded(
+                child: _buildSecondaryAction(
+                  context,
+                  icon: Icons.share_outlined,
+                  label: WkCopy.share,
+                  onTap: () => _showSnackbar(WkCopy.comingSoon),
+                ),
+              ),
+              SizedBox(width: WkSpacing.md),
+              Expanded(
+                child: _buildSecondaryAction(
+                  context,
+                  icon: Icons.bookmark_outline,
+                  label: WkCopy.save,
+                  onTap: () => _showSnackbar(WkCopy.comingSoon),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// PR-F09: Builds a secondary action button.
+  Widget _buildSecondaryAction(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(WkRadius.button),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: WkSpacing.lg,
+          vertical: WkSpacing.md,
+        ),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: FlutterFlowTheme.of(context).alternate,
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(WkRadius.button),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: WkIconSize.md,
+              color: FlutterFlowTheme.of(context).primaryText,
+            ),
+            SizedBox(width: WkSpacing.sm),
+            Text(
+              label,
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'General Sans',
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.0,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// PR-F09: Builds the legal disclaimer text.
+  Widget _buildLegalDisclaimer(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: WkSpacing.sm),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: WkIconSize.sm,
+            color: FlutterFlowTheme.of(context).secondaryText,
+          ),
+          SizedBox(width: WkSpacing.sm),
+          Expanded(
+            child: Text(
+              WkCopy.legalDisclaimer,
+              style: FlutterFlowTheme.of(context).bodySmall.override(
+                    fontFamily: 'General Sans',
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                    fontSize: 11,
+                    letterSpacing: 0.0,
+                    height: 1.4,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

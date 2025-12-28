@@ -21,6 +21,51 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F09] MissionDetail Actions (UI Only) — 2024-12-28
+
+**Risk Level:** 🟢 Auto-safe (LOW)
+
+**Files Changed:**
+- `lib/client_part/mission_detail/mission_detail_widget.dart` (updated)
+- `lib/config/ui_tokens.dart` (updated)
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Added "Actions" section to MissionDetailWidget with UI-only CTA buttons. Primary CTA "Postuler" shows snackbar "Bientôt disponible". Secondary actions "Partager" and "Sauvegarder" also show snackbar. CTA is disabled when mission status is not "open". Added legal disclaimer text about WorkOn being a platform.
+
+**Key Features:**
+- **Primary CTA**: "Postuler" button (enabled only for open missions)
+- **Secondary actions**: "Partager" and "Sauvegarder" buttons
+- **Snackbar feedback**: All buttons show "Bientôt disponible" snackbar
+- **Disabled state**: Clear "Mission non disponible" label when not open
+- **Legal disclaimer**: Platform info text at bottom
+
+**New Microcopy (WkCopy):**
+- `actions`: "Actions"
+- `apply`: "Postuler"
+- `applyDisabled`: "Mission non disponible"
+- `share`: "Partager"
+- `save`: "Sauvegarder"
+- `comingSoon`: "Bientôt disponible"
+- `legalDisclaimer`: WorkOn platform disclaimer
+
+**Manual Test Flow:**
+1. Login → Home → tap mission (open status)
+2. See Actions section with enabled "Postuler" button
+3. Tap "Postuler" → snackbar "Bientôt disponible"
+4. Tap "Partager" → snackbar "Bientôt disponible"
+5. Tap "Sauvegarder" → snackbar "Bientôt disponible"
+6. See legal disclaimer text at bottom
+7. For assigned/completed mission → CTA shows "Mission non disponible" (disabled)
+
+**Rollback:**
+```bash
+git checkout HEAD~1 -- lib/client_part/mission_detail/mission_detail_widget.dart lib/config/ui_tokens.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F09 mission detail actions"
+```
+
+---
+
 ## [PR-F08] Polish + Branding + UX Consistency — 2024-12-28
 
 **Risk Level:** 🟢 Auto-safe (LOW)
