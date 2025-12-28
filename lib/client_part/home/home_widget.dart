@@ -6,6 +6,8 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/missions/mission_models.dart';
+import '/services/missions/missions_service.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart'
@@ -38,10 +40,45 @@ class _HomeWidgetState extends State<HomeWidget> {
 
     _model.searchTextController ??= TextEditingController();
     _model.searchFocusNode ??= FocusNode();
+
+    // PR-F05: Load missions on init
+    _loadMissions();
+  }
+
+  /// PR-F05: Load nearby missions from backend.
+  Future<void> _loadMissions() async {
+    if (_model.missionsInitialized) return;
+    _model.missionsInitialized = true;
+
+    // Default location: Montreal (could be replaced with user's location)
+    const defaultLat = 45.5017;
+    const defaultLng = -73.5673;
+    const defaultRadius = 25.0;
+
+    // Subscribe to state changes
+    MissionsService.stateListenable.addListener(_onMissionsStateChanged);
+
+    // Load missions
+    await MissionsService.loadNearby(
+      latitude: defaultLat,
+      longitude: defaultLng,
+      radiusKm: defaultRadius,
+    );
+  }
+
+  /// PR-F05: Handle missions state changes.
+  void _onMissionsStateChanged() {
+    if (mounted) {
+      safeSetState(() {
+        _model.missionsState = MissionsService.state;
+      });
+    }
   }
 
   @override
   void dispose() {
+    // PR-F05: Remove listener
+    MissionsService.stateListenable.removeListener(_onMissionsStateChanged);
     _model.dispose();
 
     super.dispose();
@@ -957,6 +994,8 @@ class _HomeWidgetState extends State<HomeWidget> {
                         ),
                       ].divide(SizedBox(height: 20.0)),
                     ),
+                    // PR-F05: Missions Feed Section
+                    _buildMissionsSection(context),
                     Padding(
                       padding:
                           EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 0.0),
@@ -1040,5 +1079,363 @@ class _HomeWidgetState extends State<HomeWidget> {
         ),
       ),
     );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F05: Missions Feed Section
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Builds the missions feed section with loading/error/empty/list states.
+  Widget _buildMissionsSection(BuildContext context) {
+    final state = _model.missionsState;
+
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 0.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  'Missions à proximité 📍',
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily: 'General Sans',
+                        fontSize: 16.0,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+              if (state.hasMissions)
+                FFButtonWidget(
+                  onPressed: () async {
+                    await MissionsService.refresh();
+                  },
+                  text: 'Actualiser',
+                  options: FFButtonOptions(
+                    padding: EdgeInsetsDirectional.fromSTEB(5.0, 0.0, 5.0, 0.0),
+                    iconPadding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                    color: Colors.transparent,
+                    textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                          fontFamily: 'General Sans',
+                          color: FlutterFlowTheme.of(context).secondaryText,
+                          fontSize: 13.0,
+                          letterSpacing: 0.0,
+                        ),
+                    elevation: 0.0,
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 15.0),
+          // Content based on state
+          _buildMissionsContent(context, state),
+        ],
+      ),
+    );
+  }
+
+  /// Builds missions content based on current state.
+  Widget _buildMissionsContent(BuildContext context, MissionsState state) {
+    // Loading state
+    if (state.isLoading) {
+      return Container(
+        height: 120,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                color: FlutterFlowTheme.of(context).primary,
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Chargement des missions...',
+                style: FlutterFlowTheme.of(context).bodySmall.override(
+                      fontFamily: 'General Sans',
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Error state
+    if (state.hasError) {
+      return Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: FlutterFlowTheme.of(context).secondaryBackground,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.error_outline,
+              color: FlutterFlowTheme.of(context).error,
+              size: 40,
+            ),
+            SizedBox(height: 10),
+            Text(
+              state.errorMessage ?? 'Erreur de chargement',
+              textAlign: TextAlign.center,
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'General Sans',
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                    letterSpacing: 0.0,
+                  ),
+            ),
+            SizedBox(height: 10),
+            FFButtonWidget(
+              onPressed: () async {
+                await MissionsService.loadNearby(
+                  latitude: 45.5017,
+                  longitude: -73.5673,
+                  radiusKm: 25,
+                );
+              },
+              text: 'Réessayer',
+              options: FFButtonOptions(
+                padding: EdgeInsetsDirectional.fromSTEB(20, 10, 20, 10),
+                color: FlutterFlowTheme.of(context).primary,
+                textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'General Sans',
+                      color: FlutterFlowTheme.of(context).info,
+                      letterSpacing: 0.0,
+                    ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Empty state
+    if (state.isEmpty) {
+      return Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: FlutterFlowTheme.of(context).secondaryBackground,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.search_off,
+              color: FlutterFlowTheme.of(context).secondaryText,
+              size: 40,
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Aucune mission disponible à proximité',
+              textAlign: TextAlign.center,
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'General Sans',
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                    letterSpacing: 0.0,
+                  ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Initial state (before first load)
+    if (state.status == MissionsStatus.initial) {
+      return SizedBox.shrink();
+    }
+
+    // List of missions
+    return Column(
+      children: state.missions.take(5).map((mission) {
+        return _buildMissionCard(context, mission);
+      }).toList(),
+    );
+  }
+
+  /// Builds a single mission card.
+  Widget _buildMissionCard(BuildContext context, Mission mission) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        onTap: () {
+          // TODO(PR-F05b): Navigate to mission detail
+          // For now, show a snackbar with mission info
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Mission: ${mission.title}'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: FlutterFlowTheme.of(context).secondaryBackground,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              // Category icon
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Icon(
+                    _getCategoryIcon(mission.category),
+                    color: FlutterFlowTheme.of(context).primary,
+                    size: 24,
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              // Mission info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      mission.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            fontFamily: 'General Sans',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.0,
+                          ),
+                    ),
+                    SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
+                          color: FlutterFlowTheme.of(context).secondaryText,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          mission.city,
+                          style: FlutterFlowTheme.of(context).bodySmall.override(
+                                fontFamily: 'General Sans',
+                                color: FlutterFlowTheme.of(context).secondaryText,
+                                letterSpacing: 0.0,
+                              ),
+                        ),
+                        if (mission.distanceKm != null) ...[
+                          SizedBox(width: 8),
+                          Text(
+                            mission.formattedDistance ?? '',
+                            style: FlutterFlowTheme.of(context).bodySmall.override(
+                                  fontFamily: 'General Sans',
+                                  color: FlutterFlowTheme.of(context).primary,
+                                  letterSpacing: 0.0,
+                                ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Price
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    mission.formattedPrice,
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily: 'General Sans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: FlutterFlowTheme.of(context).primary,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                  SizedBox(height: 4),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(mission.status).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      mission.status.displayName,
+                      style: FlutterFlowTheme.of(context).bodySmall.override(
+                            fontFamily: 'General Sans',
+                            color: _getStatusColor(mission.status),
+                            fontSize: 11,
+                            letterSpacing: 0.0,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Returns icon for mission category.
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'snow_removal':
+      case 'deneigement':
+        return Icons.ac_unit;
+      case 'cleaning':
+      case 'menage':
+        return Icons.cleaning_services;
+      case 'plumbing':
+      case 'plomberie':
+        return Icons.plumbing;
+      case 'painting':
+      case 'peinture':
+        return Icons.format_paint;
+      case 'gardening':
+      case 'jardinage':
+        return Icons.grass;
+      case 'moving':
+      case 'demenagement':
+        return Icons.local_shipping;
+      case 'handyman':
+      case 'bricolage':
+        return Icons.build;
+      default:
+        return Icons.work_outline;
+    }
+  }
+
+  /// Returns color for mission status.
+  Color _getStatusColor(MissionStatus status) {
+    switch (status) {
+      case MissionStatus.open:
+        return Color(0xFF4CAF50); // Green
+      case MissionStatus.assigned:
+        return Color(0xFF2196F3); // Blue
+      case MissionStatus.inProgress:
+        return Color(0xFFFF9800); // Orange
+      case MissionStatus.completed:
+        return Color(0xFF9E9E9E); // Grey
+      case MissionStatus.cancelled:
+        return Color(0xFFF44336); // Red
+    }
   }
 }
