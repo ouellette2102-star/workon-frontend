@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/services/missions/mission_models.dart';
 import '/services/missions/missions_api.dart';
 import '/services/missions/missions_service.dart';
+import '/services/offers/offers_service.dart';
 import '/services/saved/saved_missions_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,15 +14,16 @@ import 'package:share_plus/share_plus.dart';
 import 'mission_detail_model.dart';
 export 'mission_detail_model.dart';
 
-/// Read-only mission detail page.
+/// Mission detail page with actions.
 ///
-/// Displays mission information without any write actions.
+/// Displays mission information and allows user to apply.
 ///
 /// **PR-F05b:** Initial implementation.
 /// **PR-F06:** Real data fetch + retry on error + improved logging.
 /// **PR-F09:** Added Actions section (UI only, no API calls).
 /// **PR-F11:** Made "Sauvegarder" functional with local persistence.
 /// **PR-F12:** Made "Partager" functional with OS share sheet.
+/// **PR-F15:** Made "Postuler" functional with real API integration.
 class MissionDetailWidget extends StatefulWidget {
   const MissionDetailWidget({
     super.key,
@@ -57,6 +59,10 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
   // PR-F11: Saved state
   bool _isSaved = false;
 
+  // PR-F15: Apply state
+  bool _hasApplied = false;
+  bool _isApplying = false;
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +70,9 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
 
     // PR-F11: Check saved state
     _isSaved = SavedMissionsStore.isSaved(widget.missionId);
+
+    // PR-F15: Check applied state
+    _hasApplied = OffersService.hasApplied(widget.missionId);
 
     // PR-F06: Use provided mission or load from service
     if (widget.mission != null) {
@@ -613,7 +622,19 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
   }
 
   /// Show a snackbar with the given message.
-  void _showSnackbar(String message) {
+  ///
+  /// [isSuccess] shows green background.
+  /// [isError] shows red background.
+  void _showSnackbar(String message, {bool isSuccess = false, bool isError = false}) {
+    Color bgColor;
+    if (isSuccess) {
+      bgColor = WkStatusColors.open;
+    } else if (isError) {
+      bgColor = WkStatusColors.cancelled;
+    } else {
+      bgColor = FlutterFlowTheme.of(context).primaryText;
+    }
+
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -625,7 +646,7 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                 letterSpacing: 0.0,
               ),
         ),
-        backgroundColor: FlutterFlowTheme.of(context).primaryText,
+        backgroundColor: bgColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(WkRadius.button),
@@ -660,34 +681,8 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
           ),
           SizedBox(height: WkSpacing.lg),
 
-          // Primary CTA: Postuler
-          SizedBox(
-            width: double.infinity,
-            child: FFButtonWidget(
-              onPressed: isAvailable
-                  ? () => _showSnackbar(WkCopy.comingSoon)
-                  : null,
-              text: isAvailable ? WkCopy.apply : WkCopy.applyDisabled,
-              options: FFButtonOptions(
-                padding: EdgeInsets.symmetric(vertical: WkSpacing.lg),
-                color: isAvailable
-                    ? FlutterFlowTheme.of(context).primary
-                    : FlutterFlowTheme.of(context).alternate,
-                textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                      fontFamily: 'General Sans',
-                      color: isAvailable
-                          ? Colors.white
-                          : FlutterFlowTheme.of(context).secondaryText,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.0,
-                    ),
-                borderRadius: BorderRadius.circular(WkRadius.lg),
-                disabledColor: FlutterFlowTheme.of(context).alternate,
-                disabledTextColor: FlutterFlowTheme.of(context).secondaryText,
-              ),
-            ),
-          ),
+          // Primary CTA: Postuler (PR-F15: real API integration)
+          _buildApplyButton(context, mission, isAvailable),
           SizedBox(height: WkSpacing.md),
 
           // Secondary actions row: Share + Save
@@ -712,6 +707,120 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
         ],
       ),
     );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F15: Apply Button
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F15: Builds the apply button with real API integration.
+  Widget _buildApplyButton(
+    BuildContext context,
+    Mission mission,
+    bool isAvailable,
+  ) {
+    // Determine button state
+    final bool canApply = isAvailable && !_hasApplied && !_isApplying;
+
+    // Determine button text
+    String buttonText;
+    if (_isApplying) {
+      buttonText = WkCopy.applying;
+    } else if (_hasApplied) {
+      buttonText = WkCopy.applied;
+    } else if (isAvailable) {
+      buttonText = WkCopy.apply;
+    } else {
+      buttonText = WkCopy.applyDisabled;
+    }
+
+    // Determine button color
+    Color buttonColor;
+    Color textColor;
+    if (_hasApplied) {
+      // Already applied - show success state
+      buttonColor = WkStatusColors.open.withOpacity(0.2);
+      textColor = WkStatusColors.open;
+    } else if (canApply) {
+      buttonColor = FlutterFlowTheme.of(context).primary;
+      textColor = Colors.white;
+    } else {
+      buttonColor = FlutterFlowTheme.of(context).alternate;
+      textColor = FlutterFlowTheme.of(context).secondaryText;
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      child: FFButtonWidget(
+        onPressed: canApply ? () => _handleApply(mission) : null,
+        text: buttonText,
+        options: FFButtonOptions(
+          padding: EdgeInsets.symmetric(vertical: WkSpacing.lg),
+          color: buttonColor,
+          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                fontFamily: 'General Sans',
+                color: textColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.0,
+              ),
+          borderRadius: BorderRadius.circular(WkRadius.lg),
+          disabledColor: _hasApplied
+              ? WkStatusColors.open.withOpacity(0.2)
+              : FlutterFlowTheme.of(context).alternate,
+          disabledTextColor: _hasApplied
+              ? WkStatusColors.open
+              : FlutterFlowTheme.of(context).secondaryText,
+        ),
+      ),
+    );
+  }
+
+  /// PR-F15: Handles apply to mission action.
+  Future<void> _handleApply(Mission mission) async {
+    if (_isApplying || _hasApplied) return;
+
+    debugPrint('[MissionDetail] Applying to mission: ${mission.id}');
+
+    setState(() {
+      _isApplying = true;
+    });
+
+    final result = await OffersService.applyToMission(mission.id);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isApplying = false;
+    });
+
+    switch (result) {
+      case ApplyResult.success:
+        setState(() {
+          _hasApplied = true;
+        });
+        _showSnackbar(WkCopy.applySuccess, isSuccess: true);
+        break;
+
+      case ApplyResult.alreadyApplied:
+        setState(() {
+          _hasApplied = true;
+        });
+        _showSnackbar(WkCopy.applyAlreadyApplied);
+        break;
+
+      case ApplyResult.networkError:
+        _showSnackbar(WkCopy.applyNetworkError, isError: true);
+        break;
+
+      case ApplyResult.unauthorized:
+        _showSnackbar(WkCopy.applyError, isError: true);
+        break;
+
+      case ApplyResult.error:
+        _showSnackbar(WkCopy.applyError, isError: true);
+        break;
+    }
   }
 
   /// PR-F09: Builds a secondary action button.

@@ -133,6 +133,14 @@ abstract final class WkCopy {
 
   // ─── PR-F12: Share mission ───
   static const String shareError = 'Impossible de partager';
+
+  // ─── PR-F15: Apply to mission ───
+  static const String applySuccess = 'Candidature envoyée !';
+  static const String applyAlreadyApplied = 'Vous avez déjà postulé à cette mission.';
+  static const String applyError = 'Une erreur est survenue. Réessaye.';
+  static const String applyNetworkError = 'Connexion impossible. Vérifie ta connexion.';
+  static const String applied = 'Postulé';
+  static const String applying = 'Envoi…';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
