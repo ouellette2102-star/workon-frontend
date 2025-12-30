@@ -21,6 +21,62 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F19] Basic Messaging — 2024-12-30
+
+**Risk Level:** 🟡 Semi-safe
+
+**Files Changed:**
+- `lib/services/messages/message_models.dart` (created) — Conversation + Message models
+- `lib/services/messages/messages_api.dart` (created) — HTTP client for conversations/messages
+- `lib/services/messages/messages_service.dart` (created) — Service with polling support
+- `lib/client_part/messages/messages_widget.dart` (updated) — Real conversations list
+- `lib/client_part/chat/chat_widget.dart` (updated) — Real chat with send
+- `lib/flutter_flow/nav/nav.dart` (updated) — Chat route params
+- `lib/config/ui_tokens.dart` (updated) — Messaging microcopy
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Implemented basic messaging between Employer ↔ Worker using HTTP polling. Users can now view their conversations, read messages, and send new messages. Includes optimistic UI updates for sent messages and automatic polling for new messages.
+
+**Endpoints Used:**
+- `GET /conversations` — list user's conversations
+- `GET /conversations/{id}/messages` — messages in a conversation
+- `POST /conversations/{id}/messages` — send a message
+
+**Key Features:**
+- **Conversations list:** Real data with avatar/initials, last message, unread count
+- **Chat screen:** Message bubbles (left/right), send input, timestamps
+- **Optimistic send:** Message appears immediately, updates on success/failure
+- **Polling:** Auto-refresh every 10s when chat is open
+- **Pull-to-refresh:** Manual refresh on both screens
+- **Error handling:** French messages, retry buttons
+- **Empty states:** CTA to explore missions
+
+**UX:**
+- Scroll to bottom after send
+- Loading/error/empty states
+- Badge for unread count
+- Sent/read indicators
+
+**How to Test:**
+1. Login → Messages (bottom nav)
+2. Empty state if no conversations
+3. Tap conversation → Chat opens
+4. Send message → appears immediately
+5. Pull to refresh → messages reload
+6. Wait 10s → polling updates
+7. Token expired → refresh auto → chat OK
+8. Network error → retry button
+
+**Rollback:**
+```bash
+git rm -r lib/services/messages
+git checkout HEAD~1 -- lib/client_part/messages/messages_widget.dart lib/client_part/chat/chat_widget.dart lib/flutter_flow/nav/nav.dart lib/config/ui_tokens.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F19"
+```
+
+---
+
 ## [PR-F18] Profile Edit — 2024-12-28
 
 **Risk Level:** 🟡 Semi-safe

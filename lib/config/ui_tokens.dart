@@ -165,6 +165,20 @@ abstract final class WkCopy {
   static const String saving = 'Enregistrement…';
   static const String saveProfile = 'Enregistrer';
   static const String noChanges = 'Aucune modification';
+
+  // ─── PR-F19: Messaging ───
+  static const String messages = 'Messages';
+  static const String emptyConversations = 'Aucune conversation';
+  static const String emptyConversationsHint = 'Postule à une mission pour démarrer une conversation !';
+  static const String loadingConversations = 'Chargement des conversations…';
+  static const String errorConversations = 'Impossible de charger les conversations.';
+  static const String errorMessages = 'Impossible de charger les messages.';
+  static const String errorSendMessage = 'Impossible d\'envoyer le message.';
+  static const String typeMessage = 'Écris ton message…';
+  static const String send = 'Envoyer';
+  static const String today = 'Aujourd\'hui';
+  static const String yesterday = 'Hier';
+  static const String exploreMissions = 'Explorer les missions';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

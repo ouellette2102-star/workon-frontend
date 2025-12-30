@@ -181,7 +181,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: ChatWidget.routeName,
           path: ChatWidget.routePath,
-          builder: (context, params) => ChatWidget(),
+          builder: (context, params) => ChatWidget(
+            conversationId: params.getParam('conversationId', ParamType.String),
+            participantName: params.getParam('participantName', ParamType.String),
+            participantAvatar: params.getParam('participantAvatar', ParamType.String),
+          ),
         ),
         FFRoute(
           name: MessagesWidget.routeName,
