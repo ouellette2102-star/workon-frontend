@@ -81,6 +81,15 @@ abstract class AuthRepository {
     required String code,
     required String newPassword,
   });
+
+  /// PR-F17: Refreshes the access token using a refresh token.
+  ///
+  /// Returns new [AuthTokens] with fresh access and refresh tokens.
+  ///
+  /// Throws:
+  /// - [UnauthorizedException] if refresh token is invalid or expired.
+  /// - [AuthNetworkException] if connection fails.
+  Future<AuthTokens> refreshTokens({required String refreshToken});
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -244,6 +253,24 @@ class MockAuthRepository implements AuthRepository {
     }
 
     // Mock: always succeeds
+  }
+
+  @override
+  Future<AuthTokens> refreshTokens({required String refreshToken}) async {
+    // Simulate network latency
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    // Mock validation
+    if (refreshToken.isEmpty || refreshToken == 'invalid_refresh_token') {
+      throw const UnauthorizedException();
+    }
+
+    // Return new mock tokens
+    return AuthTokens(
+      accessToken: 'mock_refreshed_access_token_${DateTime.now().millisecondsSinceEpoch}',
+      refreshToken: 'mock_refreshed_refresh_token_${DateTime.now().millisecondsSinceEpoch}',
+      expiresAt: DateTime.now().add(const Duration(hours: 1)),
+    );
   }
 
   /// Extracts a display name from an email address.

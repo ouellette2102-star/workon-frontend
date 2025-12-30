@@ -4,13 +4,20 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
 import 'flutter_flow/nav/nav.dart';
 import 'index.dart';
+import '/services/auth/auth_service.dart';
+import '/services/auth/token_refresh_interceptor.dart';
 import '/services/offers/offers_service.dart';
 import '/services/saved/saved_missions_store.dart';
+
+/// Global key for showing snackbars from anywhere.
+final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +31,21 @@ void main() async {
 
   // PR-F15: Initialize offers service (applied missions store)
   await OffersService.initialize();
+
+  // PR-F17: Set up token refresh interceptor callbacks
+  TokenRefreshInterceptor.setLogoutCallback(() async {
+    await AuthService.logout();
+  });
+  TokenRefreshInterceptor.setSessionExpiredCallback(() {
+    rootScaffoldMessengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(WkCopy.sessionExpired),
+        backgroundColor: WkStatusColors.cancelled,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  });
 
   final appState = FFAppState(); // Initialize FFAppState
   await appState.initializePersistedState();
@@ -88,6 +110,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      scaffoldMessengerKey: rootScaffoldMessengerKey, // PR-F17
       debugShowCheckedModeBanner: false,
       title: 'WorkOnV1',
       localizationsDelegates: [

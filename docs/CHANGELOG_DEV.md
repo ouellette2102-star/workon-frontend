@@ -21,6 +21,63 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F17] Token Refresh Interceptor — 2024-12-28
+
+**Risk Level:** 🟡 Semi-safe (AUTH CRITICAL)
+
+**Files Changed:**
+- `lib/services/auth/token_refresh_interceptor.dart` (created) — interceptor with concurrency control
+- `lib/services/auth/auth_repository.dart` (updated) — added refreshTokens interface
+- `lib/services/auth/real_auth_repository.dart` (updated) — implemented refreshTokens
+- `lib/services/auth/auth_service.dart` (updated) — added tryRefreshTokens
+- `lib/services/api/api_client.dart` (updated) — added authenticatedGet/Post/Put/Delete
+- `lib/main.dart` (updated) — configured interceptor callbacks
+- `lib/config/ui_tokens.dart` (updated) — added sessionExpired microcopy
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Implemented automatic token refresh when access token expires. When a 401 is received, the interceptor attempts to refresh tokens using the stored refresh token. If successful, the original request is replayed. If refresh fails, user is logged out with a snackbar message.
+
+**Endpoint Used:**
+- `POST /api/v1/auth/refresh` — body: `{ refreshToken }` — returns new tokens
+
+**Key Features:**
+- **Automatic refresh:** 401 triggers transparent token refresh
+- **Concurrency control:** Multiple simultaneous 401s wait for single refresh (mutex pattern)
+- **Single retry:** Each request retries max once after refresh (prevents loops)
+- **Graceful logout:** Failed refresh triggers logout + user notification
+- **Global snackbar:** "Session expirée, veuillez vous reconnecter."
+- **API helpers:** `ApiClient.authenticatedGet/Post/Put/Delete` with built-in refresh
+
+**Security:**
+- Tokens never logged
+- Refresh token stored in SharedPreferences (existing pattern)
+- Timeout on refresh request
+- Max 1 retry per request
+
+**How to Test:**
+1. **Normal flow:** Login → use app → tokens stay valid → no 401
+2. **Expired token (simulate):** Manually edit TokenStorage to set expired token, make API call → should refresh and succeed
+3. **Invalid refresh token:** Clear refreshToken in storage, make call with expired access token → should logout + show snackbar
+4. **Concurrent requests:** Trigger multiple API calls simultaneously with expired token → only 1 refresh, all requests succeed
+5. **Backend refresh endpoint down:** Returns 500 on refresh → logout + snackbar
+
+**Manual Test Steps (Detailed):**
+1. Login normally
+2. Navigate to Home (missions load OK)
+3. In DevTools/debugger, call `TokenStorage.setToken('invalid_token')` 
+4. Pull to refresh missions
+5. Expected: Automatic refresh → missions reload OK (or if refresh fails → logout + snackbar)
+
+**Rollback:**
+```bash
+git rm lib/services/auth/token_refresh_interceptor.dart
+git checkout HEAD~1 -- lib/services/auth/auth_repository.dart lib/services/auth/real_auth_repository.dart lib/services/auth/auth_service.dart lib/services/api/api_client.dart lib/main.dart lib/config/ui_tokens.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F17"
+```
+
+---
+
 ## [PR-F16] My Applications (Mes candidatures) — 2024-12-28
 
 **Risk Level:** 🟡 Semi-safe (NEW PAGE + API CALL)

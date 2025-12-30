@@ -153,6 +153,9 @@ abstract final class WkCopy {
   static const String applicationExpired = 'Expirée';
   static const String viewMission = 'Voir la mission';
   static const String appliedOn = 'Postulé le';
+
+  // ─── PR-F17: Session expired ───
+  static const String sessionExpired = 'Session expirée, veuillez vous reconnecter.';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

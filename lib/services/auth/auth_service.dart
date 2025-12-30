@@ -12,8 +12,9 @@
 /// - Exposes [AppSession] for session access (PR#11)
 /// - Enriches user role from backend after auth (PR#12)
 /// - Persists tokens with [TokenStorage] (PR-F04)
+/// - Automatic token refresh on 401 (PR-F17)
 ///
-/// **Current State (PR-F04):** Tokens persist across app restarts.
+/// **Current State (PR-F17):** Tokens refresh automatically when expired.
 library;
 
 import 'package:flutter/foundation.dart';
@@ -674,6 +675,75 @@ abstract final class AuthService {
     } catch (_) {
       // On any error, set unauthenticated
       setAuthState(const AuthState.unauthenticated());
+      return false;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F17: Token Refresh
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Attempts to refresh the access token using the stored refresh token.
+  ///
+  /// This method:
+  /// 1. Gets refresh token from storage
+  /// 2. Calls backend to get new tokens
+  /// 3. Updates storage and session with new tokens
+  ///
+  /// Returns `true` if refresh succeeded, `false` otherwise.
+  ///
+  /// **Never throws** - all errors return `false`.
+  ///
+  /// Example:
+  /// ```dart
+  /// if (await AuthService.tryRefreshTokens()) {
+  ///   // Tokens refreshed, retry request
+  /// } else {
+  ///   // Refresh failed, logout
+  /// }
+  /// ```
+  static Future<bool> tryRefreshTokens() async {
+    try {
+      // Get refresh token from storage
+      final refreshToken = TokenStorage.getRefreshToken();
+      if (refreshToken == null || refreshToken.isEmpty) {
+        debugPrint('[AuthService] No refresh token available');
+        return false;
+      }
+
+      debugPrint('[AuthService] Attempting token refresh...');
+
+      // Call repository to refresh
+      final newTokens = await _repository.refreshTokens(refreshToken: refreshToken);
+
+      // Update storage
+      await TokenStorage.saveTokens(
+        accessToken: newTokens.accessToken,
+        refreshToken: newTokens.refreshToken,
+        expiresAt: newTokens.expiresAt,
+      );
+
+      // Update in-memory session if exists
+      if (_currentSession != null) {
+        _currentSession = AuthSession(
+          user: _currentSession!.user,
+          tokens: newTokens,
+        );
+      }
+
+      // Update app session
+      _setSession(AppSession.fromToken(newTokens.accessToken));
+
+      debugPrint('[AuthService] Token refresh successful');
+      return true;
+    } on UnauthorizedException {
+      debugPrint('[AuthService] Refresh token invalid/expired');
+      return false;
+    } on AuthException catch (e) {
+      debugPrint('[AuthService] Token refresh auth error: ${e.message}');
+      return false;
+    } catch (e) {
+      debugPrint('[AuthService] Token refresh error: $e');
       return false;
     }
   }
