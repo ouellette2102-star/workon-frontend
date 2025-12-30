@@ -156,6 +156,15 @@ abstract final class WkCopy {
 
   // ─── PR-F17: Session expired ───
   static const String sessionExpired = 'Session expirée, veuillez vous reconnecter.';
+
+  // ─── PR-F18: Profile edit ───
+  static const String profileUpdated = 'Profil mis à jour !';
+  static const String profileUpdateError = 'Impossible de mettre à jour le profil.';
+  static const String profileLoadError = 'Impossible de charger le profil.';
+  static const String nameRequired = 'Le nom est requis.';
+  static const String saving = 'Enregistrement…';
+  static const String saveProfile = 'Enregistrer';
+  static const String noChanges = 'Aucune modification';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

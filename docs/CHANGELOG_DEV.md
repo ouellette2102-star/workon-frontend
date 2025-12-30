@@ -21,6 +21,48 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F18] Profile Edit — 2024-12-28
+
+**Risk Level:** 🟡 Semi-safe
+
+**Files Changed:**
+- `lib/services/user/user_api.dart` (updated) — added patchMe() method
+- `lib/services/user/user_service.dart` (updated) — added updateProfile() + fetchCurrentProfile()
+- `lib/client_part/profile_pages/edit_profile/edit_profile_widget.dart` (updated) — wired to real API
+- `lib/config/ui_tokens.dart` (updated) — added profile microcopy
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Implemented real profile editing via PATCH /users/me. The EditProfile screen now pre-fills with current user data (via GET /auth/me), validates form inputs, shows loading states, and saves changes to the backend. Includes error handling and French snackbar messages.
+
+**Endpoint Used:**
+- `PATCH /users/me` — body: `{ fullName?, phone?, city?, bio?, gender? }` — returns updated profile
+
+**Key Features:**
+- **Pre-fill:** Form loads current profile data on init
+- **Validation:** Name is required
+- **Change detection:** Save button checks if anything changed
+- **Loading states:** Loading spinner during fetch and save
+- **Error handling:** User-friendly French messages for all errors
+- **Session handling:** Works with token refresh interceptor (PR-F17)
+
+**How to Test:**
+1. Login → Navigate to Profile → Edit Profile
+2. Verify fields are pre-filled with current data
+3. Modify name → Save → Verify snackbar "Profil mis à jour !"
+4. Navigate back → Verify Profile shows new name
+5. Try saving with empty name → Error snackbar
+6. Try saving without changes → "Aucune modification" snackbar
+7. Kill app → Reopen → Verify profile persists
+
+**Rollback:**
+```bash
+git checkout HEAD~1 -- lib/services/user/user_api.dart lib/services/user/user_service.dart lib/client_part/profile_pages/edit_profile/edit_profile_widget.dart lib/config/ui_tokens.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F18"
+```
+
+---
+
 ## [PR-F17] Token Refresh Interceptor — 2024-12-28
 
 **Risk Level:** 🟡 Semi-safe (AUTH CRITICAL)
