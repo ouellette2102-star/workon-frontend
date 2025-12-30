@@ -185,6 +185,31 @@ abstract final class WkCopy {
   static const String notificationTapToView = 'Appuie pour voir';
   static const String notificationsEnabled = 'Notifications activées';
   static const String notificationsDisabled = 'Notifications désactivées';
+
+  // ─── PR-F21: Ratings/Reviews ───
+  static const String ratings = 'Évaluations';
+  static const String reviews = 'Avis';
+  static const String allReviews = 'Tous les avis';
+  static const String seeAllReviews = 'Voir tous les avis';
+  static const String leaveReview = 'Laisser un avis';
+  static const String yourRating = 'Ta note';
+  static const String yourComment = 'Ton commentaire (optionnel)';
+  static const String commentHint = 'Qu\'as-tu pensé de cette expérience ?';
+  static const String commentMaxLength = 'Maximum 500 caractères';
+  static const String submitReview = 'Envoyer l\'avis';
+  static const String reviewSuccess = 'Merci pour ton avis !';
+  static const String reviewError = 'Impossible d\'envoyer l\'avis.';
+  static const String reviewAlreadySubmitted = 'Tu as déjà laissé un avis.';
+  static const String emptyReviews = 'Aucun avis pour le moment.';
+  static const String emptyReviewsHint = 'Sois le premier à laisser un avis !';
+  static const String errorReviews = 'Impossible de charger les avis.';
+  static const String ratingRequired = 'Une note est requise.';
+  static const String noReviews = 'Aucun avis';
+  static const String oneReview = '1 avis';
+  static const String reviewsCount = 'avis'; // "12 avis"
+  static const String user = 'Utilisateur'; // Anonymous author fallback
+  static const String whatStoodOut = 'Qu\'est-ce qui t\'a marqué ?';
+  static const String experienceWith = 'Comment s\'est passée ton expérience ?';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -21,6 +21,60 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F21] Ratings/Reviews (MVP) — 2024-12-30
+
+**Risk Level:** 🟢 Auto-safe
+
+**Files Changed:**
+- `lib/services/ratings/ratings_models.dart` (created) — Review, RatingSummary, CreateReviewRequest models
+- `lib/services/ratings/ratings_api.dart` (created) — HTTP calls for reviews
+- `lib/services/ratings/ratings_service.dart` (created) — Service layer with error handling
+- `lib/client_part/all_reviews/all_reviews_widget.dart` (updated) — Wired to real API
+- `lib/client_part/leave_review_simple/leave_review_simple_widget.dart` (created) — MVP review submission UI
+- `lib/config/ui_tokens.dart` (updated) — FR microcopy for reviews
+- `lib/index.dart` (updated) — Export LeaveReviewSimpleWidget
+- `lib/flutter_flow/nav/nav.dart` (updated) — Routes for reviews
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Implemented MVP ratings/reviews system. Users can view reviews (summary + list) and submit reviews. Uses existing UI screens where possible, wired to backend API.
+
+**Endpoints (Expected):**
+- `GET /reviews/summary?userId=...` → `{ average, count, distribution? }`
+- `GET /reviews?userId=...` → `[ { id, rating, createdAt, authorName?, comment?, tags? } ]`
+- `POST /reviews` → `{ toUserId, rating, missionId?, comment?, tags? }`
+
+**Key Features:**
+- **View reviews:** AllReviewsWidget now loads real data from API
+- **Rating summary:** Average, count, distribution histogram
+- **Leave review:** New LeaveReviewSimpleWidget with rating, tags, comment
+- **States:** Loading/error/empty handled with FR microcopy
+- **Pull-to-refresh:** RefreshIndicator on reviews list
+
+**Microcopy (FR):**
+- Rating terms: "Évaluation", "avis", "note"
+- Neutral tone: no subordination language
+
+**Manual Test Checklist:**
+1. Login → Navigate to AllReviews → Loading state shows
+2. Reviews load (or empty state if none)
+3. Pull-to-refresh works
+4. Navigate to LeaveReviewSimple with toUserId
+5. Select rating (1-5 stars)
+6. Select tags (optional)
+7. Write comment (optional, max 500 chars)
+8. Submit → Loading → Success snackbar → Back
+
+**Rollback:**
+```bash
+git rm -r lib/services/ratings/
+git rm lib/client_part/leave_review_simple/leave_review_simple_widget.dart
+git checkout HEAD~1 -- lib/client_part/all_reviews/all_reviews_widget.dart lib/config/ui_tokens.dart lib/index.dart lib/flutter_flow/nav/nav.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F21"
+```
+
+---
+
 ## [PR-F20] Push Notifications (MVP) — 2024-12-30
 
 **Risk Level:** 🟢 Auto-safe (disabled by default)

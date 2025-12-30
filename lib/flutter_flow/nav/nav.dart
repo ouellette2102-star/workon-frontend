@@ -173,10 +173,13 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: VideoCallWidget.routePath,
           builder: (context, params) => VideoCallWidget(),
         ),
+        // PR-F21: All reviews with optional userId
         FFRoute(
           name: AllReviewsWidget.routeName,
           path: AllReviewsWidget.routePath,
-          builder: (context, params) => AllReviewsWidget(),
+          builder: (context, params) => AllReviewsWidget(
+            userId: params.getParam('userId', ParamType.String),
+          ),
         ),
         FFRoute(
           name: ChatWidget.routeName,
@@ -271,6 +274,18 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: LeaveReviewWidget.routeName,
           path: LeaveReviewWidget.routePath,
           builder: (context, params) => LeaveReviewWidget(),
+        ),
+        // PR-F21: Leave review with real API
+        FFRoute(
+          name: LeaveReviewSimpleWidget.routeName,
+          path: LeaveReviewSimpleWidget.routePath,
+          builder: (context, params) => LeaveReviewSimpleWidget(
+            toUserId: params.getParam('toUserId', ParamType.String) ?? '',
+            toUserName: params.getParam('toUserName', ParamType.String),
+            toUserAvatar: params.getParam('toUserAvatar', ParamType.String),
+            missionId: params.getParam('missionId', ParamType.String),
+            missionTitle: params.getParam('missionTitle', ParamType.String),
+          ),
         ),
         FFRoute(
           name: BookAgainWidget.routeName,

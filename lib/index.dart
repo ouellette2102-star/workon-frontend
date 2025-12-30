@@ -65,6 +65,8 @@ export '/client_part/cancel_booking/cancel_booking_widget.dart'
     show CancelBookingWidget;
 export '/client_part/leave_review/leave_review_widget.dart'
     show LeaveReviewWidget;
+export '/client_part/leave_review_simple/leave_review_simple_widget.dart'
+    show LeaveReviewSimpleWidget;
 export '/client_part/booking_pages/book_again/book_again_widget.dart'
     show BookAgainWidget;
 export '/client_part/bookmarks/bookmarks_widget.dart' show BookmarksWidget;
