@@ -7,14 +7,19 @@
 /// ```dart
 /// final response = await ApiClient.get('/endpoint');
 /// ```
+///
+/// **PR-F17:** Added authenticatedRequest with automatic token refresh.
 library;
 
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../../config/app_config.dart';
+import '../auth/token_refresh_interceptor.dart';
+import '../auth/token_storage.dart';
 
 /// Centralized API client for backend communication.
 ///
@@ -81,6 +86,85 @@ abstract final class ApiClient {
   /// Call this when the app is disposing to free resources.
   static void dispose() {
     _client.close();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F17: Authenticated Requests with Token Refresh
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Gets headers with current auth token.
+  static Map<String, String> get authHeaders {
+    final token = TokenStorage.getToken();
+    final headers = {...defaultHeaders};
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    return headers;
+  }
+
+  /// Executes an authenticated GET request with automatic token refresh on 401.
+  ///
+  /// Uses [TokenRefreshInterceptor] to handle token expiry transparently.
+  ///
+  /// Example:
+  /// ```dart
+  /// final response = await ApiClient.authenticatedGet(
+  ///   ApiClient.buildUri('/missions/nearby'),
+  /// );
+  /// ```
+  static Future<http.Response> authenticatedGet(
+    Uri uri, {
+    Map<String, String>? additionalHeaders,
+  }) async {
+    return TokenRefreshInterceptor.executeWithRefresh(
+      () => _client.get(
+        uri,
+        headers: {...authHeaders, ...?additionalHeaders},
+      ).timeout(connectionTimeout),
+    );
+  }
+
+  /// Executes an authenticated POST request with automatic token refresh on 401.
+  static Future<http.Response> authenticatedPost(
+    Uri uri, {
+    Object? body,
+    Map<String, String>? additionalHeaders,
+  }) async {
+    return TokenRefreshInterceptor.executeWithRefresh(
+      () => _client.post(
+        uri,
+        headers: {...authHeaders, ...?additionalHeaders},
+        body: body is String ? body : (body != null ? jsonEncode(body) : null),
+      ).timeout(connectionTimeout),
+    );
+  }
+
+  /// Executes an authenticated PUT request with automatic token refresh on 401.
+  static Future<http.Response> authenticatedPut(
+    Uri uri, {
+    Object? body,
+    Map<String, String>? additionalHeaders,
+  }) async {
+    return TokenRefreshInterceptor.executeWithRefresh(
+      () => _client.put(
+        uri,
+        headers: {...authHeaders, ...?additionalHeaders},
+        body: body is String ? body : (body != null ? jsonEncode(body) : null),
+      ).timeout(connectionTimeout),
+    );
+  }
+
+  /// Executes an authenticated DELETE request with automatic token refresh on 401.
+  static Future<http.Response> authenticatedDelete(
+    Uri uri, {
+    Map<String, String>? additionalHeaders,
+  }) async {
+    return TokenRefreshInterceptor.executeWithRefresh(
+      () => _client.delete(
+        uri,
+        headers: {...authHeaders, ...?additionalHeaders},
+      ).timeout(connectionTimeout),
+    );
   }
 }
 

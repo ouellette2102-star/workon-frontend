@@ -5,8 +5,7 @@
 ///
 /// **PR#5:** Initial implementation with login/register/me/logout.
 /// **PR#13:** Added debugPrint logging for error tracing.
-/// **Tokens:** Stored in-memory only (no SecureStorage yet).
-/// **No interceptors:** No automatic token refresh.
+/// **PR-F17:** Added refreshTokens for automatic token refresh.
 library;
 
 import 'dart:async';
@@ -423,6 +422,103 @@ class RealAuthRepository implements AuthRepository {
           json['errors']?.toString();
     } catch (_) {
       return null;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F17: Token Refresh
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @override
+  Future<AuthTokens> refreshTokens({required String refreshToken}) async {
+    final uri = ApiClient.buildUri('/auth/refresh');
+
+    try {
+      debugPrint('[RealAuthRepository] POST $uri');
+      final response = await ApiClient.client
+          .post(
+            uri,
+            headers: ApiClient.defaultHeaders,
+            body: jsonEncode({'refreshToken': refreshToken}),
+          )
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[RealAuthRepository] refreshTokens response: ${response.statusCode}');
+
+      switch (response.statusCode) {
+        case 200:
+        case 201:
+          return _parseTokensResponse(response.body);
+
+        case 401:
+        case 403:
+          debugPrint('[RealAuthRepository] refreshTokens: invalid/expired refresh token');
+          throw const UnauthorizedException();
+
+        default:
+          if (response.statusCode >= 500) {
+            throw const AuthNetworkException('Erreur serveur');
+          }
+          throw const AuthNetworkException();
+      }
+    } on TimeoutException {
+      debugPrint('[RealAuthRepository] refreshTokens timeout');
+      throw const AuthNetworkException('Délai de connexion dépassé');
+    } on http.ClientException catch (e) {
+      debugPrint('[RealAuthRepository] refreshTokens network error: $e');
+      throw const AuthNetworkException();
+    } on Exception catch (e) {
+      if (e is AuthException) rethrow;
+      debugPrint('[RealAuthRepository] refreshTokens unexpected error: $e');
+      throw const AuthNetworkException();
+    }
+  }
+
+  /// Parses token refresh response.
+  AuthTokens _parseTokensResponse(String body) {
+    try {
+      final json = jsonDecode(body) as Map<String, dynamic>;
+
+      // Try standard format: { tokens: {...} }
+      if (json.containsKey('tokens')) {
+        final tokens = json['tokens'] as Map<String, dynamic>;
+        return AuthTokens.fromJson(tokens);
+      }
+
+      // Try flat format: { accessToken, refreshToken, expiresAt }
+      if (json.containsKey('accessToken') || json.containsKey('access_token')) {
+        return AuthTokens(
+          accessToken: (json['accessToken'] ?? json['access_token']) as String,
+          refreshToken: (json['refreshToken'] ?? json['refresh_token'] ?? '') as String,
+          expiresAt: json['expiresAt'] != null
+              ? DateTime.parse(json['expiresAt'] as String)
+              : json['expires_at'] != null
+                  ? DateTime.parse(json['expires_at'] as String)
+                  : null,
+        );
+      }
+
+      // Try wrapped format: { data: { tokens: {...} } }
+      if (json.containsKey('data')) {
+        final data = json['data'] as Map<String, dynamic>;
+        if (data.containsKey('tokens')) {
+          return AuthTokens.fromJson(data['tokens'] as Map<String, dynamic>);
+        }
+        // Try flat in data
+        return AuthTokens(
+          accessToken: (data['accessToken'] ?? data['access_token']) as String,
+          refreshToken: (data['refreshToken'] ?? data['refresh_token'] ?? '') as String,
+          expiresAt: data['expiresAt'] != null
+              ? DateTime.parse(data['expiresAt'] as String)
+              : null,
+        );
+      }
+
+      throw const AuthException('Invalid token response format');
+    } catch (e) {
+      if (e is AuthException) rethrow;
+      debugPrint('[RealAuthRepository] Failed to parse token response: $e');
+      throw const AuthException('Échec du rafraîchissement du token');
     }
   }
 }
