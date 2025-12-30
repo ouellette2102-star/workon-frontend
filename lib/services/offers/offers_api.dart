@@ -4,6 +4,7 @@
 /// Uses existing [ApiClient] for HTTP requests.
 ///
 /// **PR-F15:** Initial implementation for mission applications.
+/// **PR-F16:** Added fetchMyOffersDetailed for full offer objects.
 library;
 
 import 'dart:async';
@@ -15,6 +16,7 @@ import 'package:http/http.dart' as http;
 import '../api/api_client.dart';
 import '../auth/auth_errors.dart';
 import '../auth/auth_service.dart';
+import 'offer_models.dart';
 
 /// Exception thrown by [OffersApi].
 class OffersApiException implements Exception {
@@ -234,6 +236,90 @@ class OffersApi {
       if (e is OffersApiException || e is AuthException) rethrow;
       debugPrint('[OffersApi] fetchMyOffers unexpected error: $e');
       return []; // Graceful fallback
+    }
+  }
+
+  /// PR-F16: Fetches detailed offers created by the current user.
+  ///
+  /// Calls `GET /api/v1/offers/mine` with full response parsing.
+  ///
+  /// Returns a list of [Offer] objects with mission details if available.
+  ///
+  /// Throws:
+  /// - [UnauthorizedException] if not authenticated
+  /// - [OffersApiException] on other errors
+  Future<List<Offer>> fetchMyOffersDetailed() async {
+    debugPrint('[OffersApi] Fetching my offers (detailed)...');
+
+    if (!AuthService.hasSession) {
+      throw const UnauthorizedException();
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      throw const UnauthorizedException();
+    }
+
+    final uri = ApiClient.buildUri('/offers/mine');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      debugPrint('[OffersApi] GET $uri');
+      final response = await ApiClient.client
+          .get(uri, headers: headers)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[OffersApi] fetchMyOffersDetailed response: ${response.statusCode}');
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw const UnauthorizedException();
+      }
+
+      if (response.statusCode != 200) {
+        if (response.statusCode == 404) {
+          debugPrint('[OffersApi] /offers/mine not found, returning empty list');
+          return [];
+        }
+        throw OffersApiException('Erreur ${response.statusCode}');
+      }
+
+      final json = jsonDecode(response.body);
+
+      // Handle various response formats
+      List<dynamic> items;
+      if (json is List) {
+        items = json;
+      } else if (json is Map<String, dynamic>) {
+        items = json['data'] ?? json['offers'] ?? [];
+      } else {
+        items = [];
+      }
+
+      // Parse as Offer objects
+      final offers = <Offer>[];
+      for (final item in items) {
+        if (item is Map<String, dynamic>) {
+          try {
+            offers.add(Offer.fromJson(item));
+          } catch (e) {
+            debugPrint('[OffersApi] Failed to parse offer: $e');
+          }
+        }
+      }
+
+      debugPrint('[OffersApi] Parsed ${offers.length} offers');
+      return offers;
+    } on TimeoutException {
+      throw const OffersApiException('Connexion impossible. Vérifiez votre réseau.');
+    } on http.ClientException {
+      throw const OffersApiException('Erreur réseau. Vérifiez votre connexion.');
+    } on Exception catch (e) {
+      if (e is OffersApiException || e is AuthException) rethrow;
+      debugPrint('[OffersApi] fetchMyOffersDetailed unexpected error: $e');
+      throw const OffersApiException('Une erreur est survenue.');
     }
   }
 

@@ -141,6 +141,18 @@ abstract final class WkCopy {
   static const String applyNetworkError = 'Connexion impossible. Vérifie ta connexion.';
   static const String applied = 'Postulé';
   static const String applying = 'Envoi…';
+
+  // ─── PR-F16: My Applications ───
+  static const String myApplications = 'Mes candidatures';
+  static const String emptyApplications = 'Tu n\'as pas encore postulé.';
+  static const String emptyApplicationsHint = 'Explore les missions et postule !';
+  static const String applicationPending = 'En attente';
+  static const String applicationAccepted = 'Acceptée';
+  static const String applicationRejected = 'Refusée';
+  static const String applicationCancelled = 'Annulée';
+  static const String applicationExpired = 'Expirée';
+  static const String viewMission = 'Voir la mission';
+  static const String appliedOn = 'Postulé le';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

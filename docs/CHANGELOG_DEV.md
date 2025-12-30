@@ -21,6 +21,63 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F16] My Applications (Mes candidatures) — 2024-12-28
+
+**Risk Level:** 🟡 Semi-safe (NEW PAGE + API CALL)
+
+**Files Changed:**
+- `lib/services/offers/offer_models.dart` (created) — Offer model with status enum
+- `lib/services/offers/offers_api.dart` (updated) — added fetchMyOffersDetailed()
+- `lib/services/offers/offers_service.dart` (updated) — added getMyApplications()
+- `lib/client_part/my_applications/my_applications_widget.dart` (created) — applications list page
+- `lib/client_part/home/home_widget.dart` (updated) — added applications button
+- `lib/flutter_flow/nav/nav.dart` (updated) — added route
+- `lib/config/ui_tokens.dart` (updated) — added FR microcopy
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+New page displaying user's mission applications with status tracking. Users can see all missions they applied to, with status badges (En attente, Acceptée, Refusée, etc.) and navigate to mission details. Accessible via the Home screen with a badge showing count of applications.
+
+**Endpoint Used:**
+- `GET /api/v1/offers/mine` — returns list of user's offers with mission details
+
+**Key Features:**
+- **List view:** All applications sorted by most recent first
+- **Status badges:** Visual indicators (En attente/Acceptée/Refusée/Annulée/Expirée)
+- **Mission details:** If backend embeds mission, shows title/city/price
+- **Navigation:** Tap card → opens MissionDetail
+- **Pull to refresh:** Refresh list with swipe
+- **Empty state:** Friendly message + CTA to explore missions
+- **Error state:** Retry button
+- **Quick access:** Badge button in Home header (shows count)
+
+**Microcopy (French):**
+- myApplications: "Mes candidatures"
+- emptyApplications: "Tu n'as pas encore postulé."
+- emptyApplicationsHint: "Explore les missions et postule !"
+- applicationPending/Accepted/Rejected/Cancelled/Expired
+- viewMission: "Voir la mission"
+- appliedOn: "Postulé le"
+
+**Manual Test Flow:**
+1. Login → Home → tap applications button (work icon) → MyApplicationsWidget
+2. Empty state visible if no applications
+3. If applications exist → list with status badges
+4. Pull down to refresh
+5. Tap card → navigates to MissionDetail
+6. Apply to new mission → badge count increments
+7. Kill app → reopen → applications still visible
+
+**Rollback:**
+```bash
+git rm -r lib/client_part/my_applications
+git rm lib/services/offers/offer_models.dart
+git checkout HEAD~1 -- lib/services/offers/offers_api.dart lib/services/offers/offers_service.dart lib/client_part/home/home_widget.dart lib/flutter_flow/nav/nav.dart lib/config/ui_tokens.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F16"
+```
+
+---
+
 ## [PR-F15] Apply to Mission (Real API) — 2024-12-28
 
 **Risk Level:** 🟡 Semi-safe (NEW SERVICE + API CALL)

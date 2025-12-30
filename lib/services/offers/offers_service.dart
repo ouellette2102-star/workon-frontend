@@ -4,11 +4,13 @@
 /// Orchestrates API calls and local persistence.
 ///
 /// **PR-F15:** Initial implementation.
+/// **PR-F16:** Added getMyApplications for fetching full offer list.
 library;
 
 import 'package:flutter/foundation.dart';
 
 import 'applied_missions_store.dart';
+import 'offer_models.dart';
 import 'offers_api.dart';
 
 /// Result of an apply operation.
@@ -168,5 +170,41 @@ abstract final class OffersService {
   static Future<void> clearOnLogout() async {
     await AppliedMissionsStore.clear();
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F16: My Applications
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Fetches the user's applications/offers.
+  ///
+  /// Returns a list of [Offer] objects sorted by most recent first.
+  ///
+  /// On error, returns an empty list and logs the error.
+  static Future<List<Offer>> getMyApplications() async {
+    await initialize();
+
+    try {
+      final offers = await _api.fetchMyOffersDetailed();
+
+      // Sync mission IDs to local store
+      final missionIds = offers.map((o) => o.missionId).toList();
+      await AppliedMissionsStore.syncFromBackend(missionIds);
+
+      // Sort by most recent first
+      offers.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      debugPrint('[OffersService] Fetched ${offers.length} applications');
+      return offers;
+    } on OffersApiException catch (e) {
+      debugPrint('[OffersService] getMyApplications error: ${e.message}');
+      return [];
+    } on Exception catch (e) {
+      debugPrint('[OffersService] getMyApplications unexpected error: $e');
+      return [];
+    }
+  }
+
+  /// Returns the set of applied mission IDs (local store).
+  static Set<String> get appliedMissionIds => AppliedMissionsStore.appliedIds;
 }
 
