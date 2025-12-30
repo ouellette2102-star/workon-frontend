@@ -1,10 +1,13 @@
-import '/client_part/components_client/conversation_item/conversation_item_widget.dart';
 import '/client_part/components_client/mig_nav_bar/mig_nav_bar_widget.dart';
 import '/client_part/components_client/search_btn/search_btn_widget.dart';
+import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/index.dart';
+import '/services/messages/message_models.dart';
+import '/services/messages/messages_service.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,17 +30,55 @@ class _MessagesWidgetState extends State<MessagesWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // PR-F19: State for real conversations
+  bool _isLoading = true;
+  String? _error;
+  List<Conversation> _conversations = [];
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => MessagesModel());
+    _loadConversations();
   }
 
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
+  }
+
+  /// PR-F19: Load conversations from API.
+  Future<void> _loadConversations() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    final result = await MessagesService.fetchConversations();
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        if (result.isSuccess) {
+          _conversations = result.data ?? [];
+        } else {
+          _error = result.errorMessage ?? WkCopy.errorConversations;
+        }
+      });
+    }
+  }
+
+  /// PR-F19: Open chat with conversation.
+  void _openChat(Conversation conversation) {
+    context.pushNamed(
+      ChatWidget.routeName,
+      queryParameters: {
+        'conversationId': conversation.id,
+        'participantName': conversation.participantName,
+        'participantAvatar': conversation.participantAvatar ?? '',
+      },
+    );
   }
 
   @override
@@ -121,118 +162,122 @@ class _MessagesWidgetState extends State<MessagesWidget> {
             mainAxisSize: MainAxisSize.max,
             children: [
               Expanded(
-                child: Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 0.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Wrap(
-                          spacing: 0.0,
-                          runSpacing: 10.0,
-                          alignment: WrapAlignment.start,
-                          crossAxisAlignment: WrapCrossAlignment.start,
-                          direction: Axis.horizontal,
-                          runAlignment: WrapAlignment.start,
-                          verticalDirection: VerticalDirection.down,
-                          clipBehavior: Clip.none,
+                child: _isLoading
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            wrapWithModel(
-                              model: _model.conversationItemModel1,
-                              updateCallback: () => safeSetState(() {}),
-                              child: ConversationItemWidget(
-                                img:
-                                    'https://plus.unsplash.com/premium_photo-1688350808212-4e6908a03925?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cG9ydHJhaXR8ZW58MHwwfDB8fHww',
-                              ),
+                            CircularProgressIndicator(
+                              color: FlutterFlowTheme.of(context).primary,
                             ),
-                            wrapWithModel(
-                              model: _model.conversationItemModel2,
-                              updateCallback: () => safeSetState(() {}),
-                              child: ConversationItemWidget(
-                                img:
-                                    'https://images.unsplash.com/photo-1557862921-37829c790f19?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8cG9ydHJhaXR8ZW58MHwwfDB8fHww',
-                              ),
-                            ),
-                            wrapWithModel(
-                              model: _model.conversationItemModel3,
-                              updateCallback: () => safeSetState(() {}),
-                              child: ConversationItemWidget(
-                                img:
-                                    'https://plus.unsplash.com/premium_photo-1683140621573-233422bfc7f1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8cG9ydHJhaXR8ZW58MHwwfDB8fHww',
-                              ),
-                            ),
-                            wrapWithModel(
-                              model: _model.conversationItemModel4,
-                              updateCallback: () => safeSetState(() {}),
-                              child: ConversationItemWidget(
-                                img:
-                                    'https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fHBvcnRyYWl0fGVufDB8MHwwfHx8MA%3D%3D',
-                              ),
-                            ),
-                            wrapWithModel(
-                              model: _model.conversationItemModel5,
-                              updateCallback: () => safeSetState(() {}),
-                              child: ConversationItemWidget(
-                                img:
-                                    'https://plus.unsplash.com/premium_photo-1722859288966-b00ef70df64b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fHBvcnRyYWl0fGVufDB8MHwwfHx8MA%3D%3D',
-                              ),
-                            ),
-                            wrapWithModel(
-                              model: _model.conversationItemModel6,
-                              updateCallback: () => safeSetState(() {}),
-                              child: ConversationItemWidget(
-                                img:
-                                    'https://images.unsplash.com/photo-1638727295415-286409421143?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fHBvcnRyYWl0fGVufDB8MHwwfHx8MA%3D%3D',
-                              ),
-                            ),
-                            wrapWithModel(
-                              model: _model.conversationItemModel7,
-                              updateCallback: () => safeSetState(() {}),
-                              child: ConversationItemWidget(
-                                img:
-                                    'https://images.unsplash.com/photo-1595868228899-abc8fabb3447?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fHBvcnRyYWl0fGVufDB8MHwwfHx8MA%3D%3D',
-                              ),
-                            ),
-                            wrapWithModel(
-                              model: _model.conversationItemModel8,
-                              updateCallback: () => safeSetState(() {}),
-                              child: ConversationItemWidget(
-                                img:
-                                    'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzV8fHBvcnRyYWl0fGVufDB8MHwwfHx8MA%3D%3D',
-                              ),
-                            ),
-                            wrapWithModel(
-                              model: _model.conversationItemModel9,
-                              updateCallback: () => safeSetState(() {}),
-                              child: ConversationItemWidget(
-                                img:
-                                    'https://plus.unsplash.com/premium_photo-1682096475747-a744ab3f55ab?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mzd8fHBvcnRyYWl0fGVufDB8MHwwfHx8MA%3D%3D',
-                              ),
-                            ),
-                            wrapWithModel(
-                              model: _model.conversationItemModel10,
-                              updateCallback: () => safeSetState(() {}),
-                              child: ConversationItemWidget(
-                                img:
-                                    'https://plus.unsplash.com/premium_photo-1689977807477-a579eda91fa2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDF8fHBvcnRyYWl0fGVufDB8MHwwfHx8MA%3D%3D',
-                              ),
-                            ),
-                            wrapWithModel(
-                              model: _model.conversationItemModel11,
-                              updateCallback: () => safeSetState(() {}),
-                              child: ConversationItemWidget(
-                                img:
-                                    'https://plus.unsplash.com/premium_photo-1682089897177-4dbc85aa672f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTN8fHBvcnRyYWl0fGVufDB8MHwwfHx8MA%3D%3D',
-                              ),
+                            const SizedBox(height: 16),
+                            Text(
+                              WkCopy.loadingConversations,
+                              style: FlutterFlowTheme.of(context).bodyMedium,
                             ),
                           ],
                         ),
-                      ]
-                          .addToStart(SizedBox(height: 20.0))
-                          .addToEnd(SizedBox(height: 20.0)),
-                    ),
-                  ),
-                ),
+                      )
+                    : _error != null
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    size: 48,
+                                    color: FlutterFlowTheme.of(context).error,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    _error!,
+                                    textAlign: TextAlign.center,
+                                    style: FlutterFlowTheme.of(context).bodyMedium,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  FFButtonWidget(
+                                    onPressed: _loadConversations,
+                                    text: WkCopy.retry,
+                                    options: FFButtonOptions(
+                                      height: 40,
+                                      padding: const EdgeInsetsDirectional.fromSTEB(24, 0, 24, 0),
+                                      color: FlutterFlowTheme.of(context).primary,
+                                      textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                            fontFamily: 'General Sans',
+                                            color: Colors.white,
+                                            letterSpacing: 0.0,
+                                          ),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : _conversations.isEmpty
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.chat_bubble_outline,
+                                        size: 64,
+                                        color: FlutterFlowTheme.of(context).secondaryText,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        WkCopy.emptyConversations,
+                                        style: FlutterFlowTheme.of(context).headlineSmall,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        WkCopy.emptyConversationsHint,
+                                        textAlign: TextAlign.center,
+                                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                              fontFamily: 'General Sans',
+                                              color: FlutterFlowTheme.of(context).secondaryText,
+                                              letterSpacing: 0.0,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      FFButtonWidget(
+                                        onPressed: () {
+                                          context.pushNamed(HomeWidget.routeName);
+                                        },
+                                        text: WkCopy.exploreMissions,
+                                        options: FFButtonOptions(
+                                          height: 44,
+                                          padding: const EdgeInsetsDirectional.fromSTEB(24, 0, 24, 0),
+                                          color: FlutterFlowTheme.of(context).primary,
+                                          textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                fontFamily: 'General Sans',
+                                                color: Colors.white,
+                                                letterSpacing: 0.0,
+                                              ),
+                                          borderRadius: BorderRadius.circular(22),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : RefreshIndicator(
+                                onRefresh: _loadConversations,
+                                color: FlutterFlowTheme.of(context).primary,
+                                child: ListView.separated(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                                  itemCount: _conversations.length,
+                                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                                  itemBuilder: (context, index) {
+                                    final conversation = _conversations[index];
+                                    return _buildConversationItem(conversation);
+                                  },
+                                ),
+                              ),
               ),
               Align(
                 alignment: AlignmentDirectional(0.0, 1.0),
@@ -243,6 +288,162 @@ class _MessagesWidgetState extends State<MessagesWidget> {
                     activePage: 'messages',
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// PR-F19: Build a single conversation item.
+  Widget _buildConversationItem(Conversation conversation) {
+    return Container(
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: InkWell(
+          splashColor: Colors.transparent,
+          focusColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          onTap: () => _openChat(conversation),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    // Avatar
+                    Container(
+                      width: 55.0,
+                      height: 55.0,
+                      decoration: BoxDecoration(
+                        color: FlutterFlowTheme.of(context).primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: conversation.participantAvatar != null &&
+                              conversation.participantAvatar!.isNotEmpty
+                          ? ClipOval(
+                              child: Image.network(
+                                conversation.participantAvatar!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Center(
+                                  child: Text(
+                                    conversation.initials,
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .override(
+                                          fontFamily: 'General Sans',
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.0,
+                                        ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Center(
+                              child: Text(
+                                conversation.initials,
+                                style: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .override(
+                                      fontFamily: 'General Sans',
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.0,
+                                    ),
+                              ),
+                            ),
+                    ),
+                    const SizedBox(width: 10),
+                    // Name and last message
+                    Flexible(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            conversation.participantName,
+                            style: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .override(
+                                  fontFamily: 'General Sans',
+                                  fontSize: 16.0,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          if (conversation.lastMessage != null)
+                            Text(
+                              conversation.lastMessage!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    fontFamily: 'General Sans',
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryText,
+                                    letterSpacing: 0.0,
+                                  ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Time and unread badge
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (conversation.unreadCount > 0)
+                    Container(
+                      width: 25.0,
+                      height: 25.0,
+                      decoration: BoxDecoration(
+                        color: FlutterFlowTheme.of(context).primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          conversation.unreadCount > 99
+                              ? '99+'
+                              : conversation.unreadCount.toString(),
+                          style:
+                              FlutterFlowTheme.of(context).bodyMedium.override(
+                                    fontFamily: 'General Sans',
+                                    color: Colors.white,
+                                    fontSize: 12.0,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Text(
+                    conversation.formattedTime,
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily: 'General Sans',
+                          color: FlutterFlowTheme.of(context).secondaryText,
+                          fontSize: 12.0,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                ],
               ),
             ],
           ),
