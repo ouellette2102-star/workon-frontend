@@ -17,6 +17,7 @@ import 'serialization_util.dart';
 import '/index.dart';
 import '/app/auth_gate.dart';
 import '/services/missions/mission_models.dart';
+import '/client_part/my_applications/my_applications_widget.dart';
 import '/client_part/saved/saved_missions_page.dart';
 
 export 'package:go_router/go_router.dart';
@@ -489,6 +490,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: SavedMissionsPage.routeName,
           path: SavedMissionsPage.routePath,
           builder: (context, params) => SavedMissionsPage(),
+        ),
+        // PR-F16: My applications route
+        FFRoute(
+          name: MyApplicationsWidget.routeName,
+          path: MyApplicationsWidget.routePath,
+          builder: (context, params) => MyApplicationsWidget(),
         ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

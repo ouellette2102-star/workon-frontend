@@ -21,6 +21,117 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F16] My Applications (Mes candidatures) — 2024-12-28
+
+**Risk Level:** 🟡 Semi-safe (NEW PAGE + API CALL)
+
+**Files Changed:**
+- `lib/services/offers/offer_models.dart` (created) — Offer model with status enum
+- `lib/services/offers/offers_api.dart` (updated) — added fetchMyOffersDetailed()
+- `lib/services/offers/offers_service.dart` (updated) — added getMyApplications()
+- `lib/client_part/my_applications/my_applications_widget.dart` (created) — applications list page
+- `lib/client_part/home/home_widget.dart` (updated) — added applications button
+- `lib/flutter_flow/nav/nav.dart` (updated) — added route
+- `lib/config/ui_tokens.dart` (updated) — added FR microcopy
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+New page displaying user's mission applications with status tracking. Users can see all missions they applied to, with status badges (En attente, Acceptée, Refusée, etc.) and navigate to mission details. Accessible via the Home screen with a badge showing count of applications.
+
+**Endpoint Used:**
+- `GET /api/v1/offers/mine` — returns list of user's offers with mission details
+
+**Key Features:**
+- **List view:** All applications sorted by most recent first
+- **Status badges:** Visual indicators (En attente/Acceptée/Refusée/Annulée/Expirée)
+- **Mission details:** If backend embeds mission, shows title/city/price
+- **Navigation:** Tap card → opens MissionDetail
+- **Pull to refresh:** Refresh list with swipe
+- **Empty state:** Friendly message + CTA to explore missions
+- **Error state:** Retry button
+- **Quick access:** Badge button in Home header (shows count)
+
+**Microcopy (French):**
+- myApplications: "Mes candidatures"
+- emptyApplications: "Tu n'as pas encore postulé."
+- emptyApplicationsHint: "Explore les missions et postule !"
+- applicationPending/Accepted/Rejected/Cancelled/Expired
+- viewMission: "Voir la mission"
+- appliedOn: "Postulé le"
+
+**Manual Test Flow:**
+1. Login → Home → tap applications button (work icon) → MyApplicationsWidget
+2. Empty state visible if no applications
+3. If applications exist → list with status badges
+4. Pull down to refresh
+5. Tap card → navigates to MissionDetail
+6. Apply to new mission → badge count increments
+7. Kill app → reopen → applications still visible
+
+**Rollback:**
+```bash
+git rm -r lib/client_part/my_applications
+git rm lib/services/offers/offer_models.dart
+git checkout HEAD~1 -- lib/services/offers/offers_api.dart lib/services/offers/offers_service.dart lib/client_part/home/home_widget.dart lib/flutter_flow/nav/nav.dart lib/config/ui_tokens.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F16"
+```
+
+---
+
+## [PR-F15] Apply to Mission (Real API) — 2024-12-28
+
+**Risk Level:** 🟡 Semi-safe (NEW SERVICE + API CALL)
+
+**Files Changed:**
+- `lib/services/offers/offers_api.dart` (created) — HTTP client for offers endpoint
+- `lib/services/offers/offers_service.dart` (created) — high-level service with idempotency
+- `lib/services/offers/applied_missions_store.dart` (created) — local persistence for applied missions
+- `lib/client_part/mission_detail/mission_detail_widget.dart` (updated) — wired Postuler button
+- `lib/config/ui_tokens.dart` (updated) — added apply-related microcopy
+- `lib/main.dart` (updated) — initialized OffersService at startup
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Wired the "Postuler" button in MissionDetail to real backend API (`POST /api/v1/offers`). Users can now apply to missions with proper loading states, error handling, and idempotency protection. Applied missions are persisted locally to prevent re-apply.
+
+**Endpoint Used:**
+- `POST /api/v1/offers` — body: `{ missionId }` — creates offer/application
+- Response: 201 success, 409 already applied, 401 unauthorized
+
+**Key Features:**
+- **Loading state:** Button shows "Envoi…" while request is in progress
+- **Success state:** Button becomes "Postulé" (green) and disabled after success
+- **Idempotency:** Prevents double-tap during request, checks local store before API call
+- **Local persistence:** Applied mission IDs stored in SharedPreferences
+- **409 handling:** Already-applied response treated as success
+- **Error feedback:** French snackbar messages for network/auth/generic errors
+
+**Microcopy (French):**
+- applySuccess: "Candidature envoyée !"
+- applyAlreadyApplied: "Vous avez déjà postulé à cette mission."
+- applyError: "Une erreur est survenue. Réessaye."
+- applyNetworkError: "Connexion impossible. Vérifie ta connexion."
+- applied: "Postulé"
+- applying: "Envoi…"
+
+**Manual Test Flow:**
+1. Login → Home → Tap mission → MissionDetail
+2. "Postuler" button visible (green, enabled)
+3. Tap "Postuler" → button shows "Envoi…" → success snackbar → button becomes "Postulé" (disabled)
+4. Kill app → reopen → same mission → button still shows "Postulé"
+5. Rapid double-tap → only 1 request sent
+6. Offline test → shows network error, button stays enabled
+7. Try apply to already-applied mission → shows "Vous avez déjà postulé" → button disabled
+
+**Rollback:**
+```bash
+git rm -r lib/services/offers
+git checkout HEAD~1 -- lib/client_part/mission_detail/mission_detail_widget.dart lib/config/ui_tokens.dart lib/main.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F15"
+```
+
+---
+
 ## [PR-F14] Reset Password (Real API) — 2024-12-28
 
 **Risk Level:** 🟢 Auto-safe (LOW)

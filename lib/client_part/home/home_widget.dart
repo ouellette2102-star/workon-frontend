@@ -4,7 +4,9 @@ import '/client_part/components_client/mig_nav_bar/mig_nav_bar_widget.dart';
 import '/client_part/components_client/missions_map/missions_map_widget.dart';
 import '/client_part/components_client/service_item/service_item_widget.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
+import '/client_part/my_applications/my_applications_widget.dart';
 import '/client_part/saved/saved_missions_page.dart';
+import '/services/offers/offers_service.dart';
 import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -1183,6 +1185,9 @@ class _HomeWidgetState extends State<HomeWidget> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // PR-F16: My applications button
+                  _buildApplicationsButton(context),
+                  SizedBox(width: WkSpacing.sm),
                   // PR-F11: Saved missions button
                   _buildSavedButton(context),
                   SizedBox(width: WkSpacing.sm),
@@ -1931,6 +1936,68 @@ class _HomeWidgetState extends State<HomeWidget> {
                     style: FlutterFlowTheme.of(context).bodySmall.override(
                           fontFamily: 'General Sans',
                           color: FlutterFlowTheme.of(context).primary,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F16: My Applications Button
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F16: Builds the my applications button.
+  Widget _buildApplicationsButton(BuildContext context) {
+    return ValueListenableBuilder<Set<String>>(
+      valueListenable: OffersService.appliedIdsListenable,
+      builder: (context, appliedIds, _) {
+        final count = appliedIds.length;
+        return InkWell(
+          onTap: () {
+            context.pushNamed(MyApplicationsWidget.routeName);
+          },
+          borderRadius: BorderRadius.circular(WkRadius.xxl),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: WkSpacing.md,
+              vertical: WkSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: count > 0
+                  ? WkStatusColors.open.withOpacity(0.1)
+                  : FlutterFlowTheme.of(context).secondaryBackground,
+              borderRadius: BorderRadius.circular(WkRadius.xxl),
+              border: Border.all(
+                color: count > 0
+                    ? WkStatusColors.open
+                    : FlutterFlowTheme.of(context).alternate,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  count > 0 ? Icons.work : Icons.work_outline,
+                  size: WkIconSize.sm,
+                  color: count > 0
+                      ? WkStatusColors.open
+                      : FlutterFlowTheme.of(context).secondaryText,
+                ),
+                if (count > 0) ...[
+                  SizedBox(width: WkSpacing.xs),
+                  Text(
+                    '$count',
+                    style: FlutterFlowTheme.of(context).bodySmall.override(
+                          fontFamily: 'General Sans',
+                          color: WkStatusColors.open,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.0,
                         ),
