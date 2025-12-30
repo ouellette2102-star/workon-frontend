@@ -13,6 +13,7 @@ import 'index.dart';
 import '/services/auth/auth_service.dart';
 import '/services/auth/token_refresh_interceptor.dart';
 import '/services/offers/offers_service.dart';
+import '/services/push/push_service.dart';
 import '/services/saved/saved_missions_store.dart';
 
 /// Global key for showing snackbars from anywhere.
@@ -31,6 +32,9 @@ void main() async {
 
   // PR-F15: Initialize offers service (applied missions store)
   await OffersService.initialize();
+
+  // PR-F20: Initialize push service
+  await PushService.initialize();
 
   // PR-F17: Set up token refresh interceptor callbacks
   TokenRefreshInterceptor.setLogoutCallback(() async {
@@ -93,6 +97,11 @@ class _MyAppState extends State<MyApp> {
 
     _appStateNotifier = AppStateNotifier.instance;
     _router = createRouter(_appStateNotifier);
+
+    // PR-F20: Set up push service navigator key after router is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      PushService.setNavigatorKey(_router.routerDelegate.navigatorKey);
+    });
 
     Future.delayed(Duration(milliseconds: 1000),
         () => safeSetState(() => _appStateNotifier.stopShowingSplashImage()));

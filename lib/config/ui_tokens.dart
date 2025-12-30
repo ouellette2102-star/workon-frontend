@@ -179,6 +179,12 @@ abstract final class WkCopy {
   static const String today = 'Aujourd\'hui';
   static const String yesterday = 'Hier';
   static const String exploreMissions = 'Explorer les missions';
+
+  // ─── PR-F20: Push notifications ───
+  static const String newMessage = 'Nouveau message';
+  static const String notificationTapToView = 'Appuie pour voir';
+  static const String notificationsEnabled = 'Notifications activées';
+  static const String notificationsDisabled = 'Notifications désactivées';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

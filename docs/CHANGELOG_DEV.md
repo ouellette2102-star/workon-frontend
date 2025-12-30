@@ -21,6 +21,70 @@ Running log of all PRs and changes for audit and rollback purposes.
 
 ---
 
+## [PR-F20] Push Notifications (MVP) — 2024-12-30
+
+**Risk Level:** 🟢 Auto-safe (disabled by default)
+
+**Files Changed:**
+- `lib/services/push/push_config.dart` (created) — Configuration + feature flag
+- `lib/services/push/push_api.dart` (created) — Device registration API
+- `lib/services/push/push_service.dart` (created) — Push service + handlers
+- `lib/main.dart` (updated) — Initialize push service
+- `lib/services/auth/auth_service.dart` (updated) — Register/unregister on login/logout
+- `lib/config/ui_tokens.dart` (updated) — Push microcopy
+- `docs/PUSH_NOTIFICATIONS_SETUP.md` (created) — Full setup documentation
+- `docs/CHANGELOG_DEV.md` (updated)
+
+**Summary:**  
+Implemented push notifications infrastructure ready for Firebase integration. The feature is disabled by default via `PushConfig.enabled = false` to ensure builds work without Firebase configuration. When enabled, devices are registered on login and unregistered on logout.
+
+**Endpoints Required (Backend):**
+- `POST /devices/register` — body: `{ token, platform }`
+- `DELETE /devices/unregister` — body: `{ token }`
+
+**Key Features:**
+- **Feature flag:** `PushConfig.enabled` controls all push operations
+- **Device registration:** Auto-registers FCM token after login
+- **Unregistration:** Removes token on logout
+- **Foreground handling:** Snackbar with "Voir" action
+- **Background handling:** Navigation to chat on tap
+- **Firebase-ready:** Code prepared, just needs uncomment + config files
+
+**Security:**
+- FCM tokens never logged
+- UserId from JWT, not request body
+- Graceful fallback if push not configured
+
+**How to Enable:**
+1. Add Firebase project + download google-services.json
+2. Add firebase_messaging to pubspec.yaml
+3. Set `PushConfig.enabled = true`
+4. Uncomment Firebase code in PushService
+5. Implement backend endpoints
+
+**How to Test (current state):**
+1. Login → no error (push disabled, NO-OP)
+2. Logout → no error (push disabled, NO-OP)
+3. dart analyze = 0
+4. App builds and runs normally
+
+**How to Test (when enabled):**
+1. Login → token registered (check DB)
+2. Send message → push received
+3. Tap notification → opens chat
+4. Foreground → snackbar appears
+5. Logout → token unregistered
+
+**Rollback:**
+```bash
+git rm -r lib/services/push
+git rm docs/PUSH_NOTIFICATIONS_SETUP.md
+git checkout HEAD~1 -- lib/main.dart lib/services/auth/auth_service.dart lib/config/ui_tokens.dart docs/CHANGELOG_DEV.md
+git commit -m "Rollback: PR-F20"
+```
+
+---
+
 ## [PR-F19] Basic Messaging — 2024-12-30
 
 **Risk Level:** 🟡 Semi-safe

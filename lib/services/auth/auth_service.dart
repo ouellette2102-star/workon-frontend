@@ -19,6 +19,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 
+import '../push/push_service.dart';
 import '../user/user_service.dart';
 import 'app_session.dart';
 import 'auth_errors.dart';
@@ -234,6 +235,8 @@ abstract final class AuthService {
     );
     // PR#12: Enrich user role from backend (fire-and-forget, non-blocking)
     UserService.refreshFromBackendIfPossible();
+    // PR-F20: Register device for push notifications (fire-and-forget)
+    PushService.registerDeviceIfNeeded();
     return session.user;
   }
 
@@ -291,6 +294,8 @@ abstract final class AuthService {
     );
     // PR#12: Enrich user role from backend (fire-and-forget, non-blocking)
     UserService.refreshFromBackendIfPossible();
+    // PR-F20: Register device for push notifications (fire-and-forget)
+    PushService.registerDeviceIfNeeded();
     return session.user;
   }
 
@@ -350,6 +355,9 @@ abstract final class AuthService {
   /// ```
   static Future<void> logout() async {
     final token = _currentSession?.tokens.accessToken;
+
+    // PR-F20: Unregister device from push (fire-and-forget, before clearing session)
+    await PushService.unregisterDevice();
 
     // Clear local session first (ensures logout even if network fails)
     _currentSession = null;
