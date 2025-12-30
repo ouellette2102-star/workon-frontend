@@ -245,5 +245,128 @@ abstract final class UserService {
   static void setContext(UserContext ctx) {
     _context.value = ctx;
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Profile Update (PR#18)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Result type for profile update operations.
+  static ProfileUpdateResult? _lastUpdateResult;
+
+  /// Gets the last profile update result.
+  static ProfileUpdateResult? get lastUpdateResult => _lastUpdateResult;
+
+  /// Updates the user profile via PATCH /users/me.
+  ///
+  /// Returns [ProfileUpdateResult] indicating success or failure.
+  ///
+  /// **Never throws** - errors are captured in the result.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await UserService.updateProfile(
+  ///   fullName: 'John Doe',
+  ///   phone: '514-555-1234',
+  /// );
+  /// if (result.isSuccess) {
+  ///   // Profile updated
+  /// } else {
+  ///   // Show error: result.errorMessage
+  /// }
+  /// ```
+  static Future<ProfileUpdateResult> updateProfile({
+    String? fullName,
+    String? phone,
+    String? city,
+    String? bio,
+    String? gender,
+  }) async {
+    try {
+      debugPrint('[UserService] updateProfile: starting...');
+
+      // Call API
+      final updated = await _api.patchMe(
+        fullName: fullName,
+        phone: phone,
+        city: city,
+        bio: bio,
+        gender: gender,
+      );
+
+      debugPrint('[UserService] updateProfile: success');
+
+      // Optionally refresh context from backend
+      await refreshFromBackendIfPossible();
+
+      _lastUpdateResult = ProfileUpdateResult.success(updated);
+      return _lastUpdateResult!;
+    } on UserApiException catch (e) {
+      debugPrint('[UserService] updateProfile: API error: ${e.message}');
+
+      // Map error to user-friendly message
+      String errorMessage;
+      if (e.message.contains('Unauthorized')) {
+        errorMessage = 'Session expirée. Veuillez vous reconnecter.';
+      } else if (e.message.contains('timeout')) {
+        errorMessage = 'Connexion impossible. Vérifiez votre réseau.';
+      } else if (e.message.contains('Server error')) {
+        errorMessage = 'Erreur serveur. Réessayez plus tard.';
+      } else {
+        errorMessage = 'Une erreur est survenue. Réessayez.';
+      }
+
+      _lastUpdateResult = ProfileUpdateResult.failure(errorMessage);
+      return _lastUpdateResult!;
+    } catch (e) {
+      debugPrint('[UserService] updateProfile: unexpected error: $e');
+      _lastUpdateResult = ProfileUpdateResult.failure(
+        'Une erreur inattendue est survenue.',
+      );
+      return _lastUpdateResult!;
+    }
+  }
+
+  /// Fetches the current user profile for pre-filling forms.
+  ///
+  /// Returns a Map with profile data, or null on error.
+  static Future<Map<String, dynamic>?> fetchCurrentProfile() async {
+    try {
+      debugPrint('[UserService] fetchCurrentProfile: starting...');
+      final profile = await _api.fetchMe();
+      debugPrint('[UserService] fetchCurrentProfile: success');
+      return profile;
+    } catch (e) {
+      debugPrint('[UserService] fetchCurrentProfile: error: $e');
+      return null;
+    }
+  }
+}
+
+/// Result of a profile update operation.
+class ProfileUpdateResult {
+  const ProfileUpdateResult._({
+    required this.isSuccess,
+    this.data,
+    this.errorMessage,
+  });
+
+  /// Creates a success result.
+  factory ProfileUpdateResult.success(Map<String, dynamic> data) {
+    return ProfileUpdateResult._(isSuccess: true, data: data);
+  }
+
+  /// Creates a failure result.
+  factory ProfileUpdateResult.failure(String errorMessage) {
+    return ProfileUpdateResult._(isSuccess: false, errorMessage: errorMessage);
+  }
+
+  /// Whether the update was successful.
+  final bool isSuccess;
+
+  /// The updated profile data (on success).
+  final Map<String, dynamic>? data;
+
+  /// The error message (on failure).
+  final String? errorMessage;
 }
 

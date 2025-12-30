@@ -1,10 +1,12 @@
 import '/client_part/components_client/back_icon_btn/back_icon_btn_widget.dart';
+import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
+import '/services/user/user_service.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,6 +31,17 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // PR-F18: State for profile edit
+  bool _isLoading = true;
+  bool _isSaving = false;
+  String? _loadError;
+
+  // Original values for change detection
+  String _originalName = '';
+  String _originalEmail = '';
+  String _originalPhone = '';
+  String _originalGender = '';
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +57,139 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
     _model.phoneNumberFocusNode ??= FocusNode();
 
     _model.phoneNumberMask = MaskTextInputFormatter(mask: '#### ### ###');
+
+    // PR-F18: Load profile data
+    _loadProfileData();
+  }
+
+  /// PR-F18: Loads current profile data to pre-fill form.
+  Future<void> _loadProfileData() async {
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
+
+    try {
+      final profile = await UserService.fetchCurrentProfile();
+      if (profile != null && mounted) {
+        // Extract fields (adapt to backend field names)
+        final name = profile['fullName'] ?? profile['name'] ?? '';
+        final email = profile['email'] ?? '';
+        final phone = profile['phone'] ?? '';
+        final gender = profile['gender'] ?? '';
+
+        // Store originals
+        _originalName = name;
+        _originalEmail = email;
+        _originalPhone = phone;
+        _originalGender = gender;
+
+        // Pre-fill controllers
+        _model.nameTextController?.text = name;
+        _model.emailTextController?.text = email;
+        _model.phoneNumberTextController?.text = phone;
+
+        // Set gender dropdown
+        if (gender.isNotEmpty) {
+          _model.genderValue = gender;
+        }
+
+        setState(() {
+          _isLoading = false;
+        });
+      } else if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loadError = WkCopy.profileLoadError;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loadError = WkCopy.profileLoadError;
+        });
+      }
+    }
+  }
+
+  /// PR-F18: Checks if any field has changed.
+  bool _hasChanges() {
+    final currentName = _model.nameTextController?.text ?? '';
+    final currentPhone = _model.phoneNumberTextController?.text ?? '';
+    final currentGender = _model.genderValue ?? '';
+
+    return currentName != _originalName ||
+        currentPhone != _originalPhone ||
+        currentGender != _originalGender;
+  }
+
+  /// PR-F18: Validates form fields.
+  bool _validateForm() {
+    final name = _model.nameTextController?.text ?? '';
+    if (name.trim().isEmpty) {
+      _showSnackBar(WkCopy.nameRequired, isError: true);
+      return false;
+    }
+    return true;
+  }
+
+  /// PR-F18: Saves profile to backend.
+  Future<void> _saveProfile() async {
+    if (!_validateForm()) return;
+    if (!_hasChanges()) {
+      _showSnackBar(WkCopy.noChanges, isError: false);
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final result = await UserService.updateProfile(
+        fullName: _model.nameTextController?.text,
+        phone: _model.phoneNumberTextController?.text,
+        gender: _model.genderValue,
+      );
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+
+        if (result.isSuccess) {
+          _showSnackBar(WkCopy.profileUpdated, isError: false);
+          // Go back after short delay
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              context.safePop();
+            }
+          });
+        } else {
+          _showSnackBar(result.errorMessage ?? WkCopy.profileUpdateError, isError: true);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+        _showSnackBar(WkCopy.profileUpdateError, isError: true);
+      }
+    }
+  }
+
+  /// PR-F18: Shows a snackbar message.
+  void _showSnackBar(String message, {required bool isError}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red.shade700 : Colors.green.shade700,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   @override
@@ -104,7 +250,57 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
         ),
         body: SafeArea(
           top: true,
-          child: Column(
+          child: _isLoading
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        color: FlutterFlowTheme.of(context).primary,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        WkCopy.loading,
+                        style: FlutterFlowTheme.of(context).bodyMedium,
+                      ),
+                    ],
+                  ),
+                )
+              : _loadError != null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: FlutterFlowTheme.of(context).error,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _loadError!,
+                            style: FlutterFlowTheme.of(context).bodyMedium,
+                          ),
+                          const SizedBox(height: 16),
+                          FFButtonWidget(
+                            onPressed: _loadProfileData,
+                            text: WkCopy.retry,
+                            options: FFButtonOptions(
+                              height: 40,
+                              padding: const EdgeInsetsDirectional.fromSTEB(24, 0, 24, 0),
+                              color: FlutterFlowTheme.of(context).primary,
+                              textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                    fontFamily: 'General Sans',
+                                    color: Colors.white,
+                                    letterSpacing: 0.0,
+                                  ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Column(
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -598,12 +794,12 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
               Padding(
                 padding: EdgeInsets.all(20.0),
                 child: FFButtonWidget(
-                  onPressed: () async {
-                    context.safePop();
-                  },
-                  text: FFLocalizations.of(context).getText(
-                    'w4nip50f' /* Save Profile */,
-                  ),
+                  onPressed: _isSaving ? null : _saveProfile,
+                  text: _isSaving
+                      ? WkCopy.saving
+                      : FFLocalizations.of(context).getText(
+                          'w4nip50f' /* Save Profile */,
+                        ),
                   options: FFButtonOptions(
                     width: double.infinity,
                     height: 50.0,
@@ -611,7 +807,9 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                         EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
                     iconPadding:
                         EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: FlutterFlowTheme.of(context).primary,
+                    color: _isSaving
+                        ? FlutterFlowTheme.of(context).primary.withOpacity(0.6)
+                        : FlutterFlowTheme.of(context).primary,
                     textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                           fontFamily: 'General Sans',
                           color: Colors.white,
