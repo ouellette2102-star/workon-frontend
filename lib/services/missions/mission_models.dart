@@ -11,6 +11,7 @@ enum MissionStatus {
   assigned,
   inProgress,
   completed,
+  paid, // PR-6: Mission paid via Stripe
   cancelled;
 
   /// Parse from string (backend format).
@@ -24,6 +25,8 @@ enum MissionStatus {
         return MissionStatus.inProgress;
       case 'completed':
         return MissionStatus.completed;
+      case 'paid':
+        return MissionStatus.paid;
       case 'cancelled':
         return MissionStatus.cancelled;
       default:
@@ -42,6 +45,8 @@ enum MissionStatus {
         return 'En cours';
       case MissionStatus.completed:
         return 'Terminée';
+      case MissionStatus.paid:
+        return 'Payée';
       case MissionStatus.cancelled:
         return 'Annulée';
     }

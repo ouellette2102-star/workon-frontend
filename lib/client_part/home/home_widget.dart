@@ -2467,6 +2467,8 @@ class _HomeWidgetState extends State<HomeWidget> {
         return WkStatusColors.inProgress;
       case MissionStatus.completed:
         return WkStatusColors.completed;
+      case MissionStatus.paid:
+        return WkStatusColors.paid;
       case MissionStatus.cancelled:
         return WkStatusColors.cancelled;
     }

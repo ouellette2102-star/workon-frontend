@@ -137,6 +137,8 @@ class _MissionsMapWidgetState extends State<MissionsMapWidget> {
         return BitmapDescriptor.hueOrange; // In progress
       case MissionStatus.completed:
         return BitmapDescriptor.hueViolet; // Completed
+      case MissionStatus.paid:
+        return BitmapDescriptor.hueCyan; // PR-6: Paid
       case MissionStatus.cancelled:
         return BitmapDescriptor.hueRose; // Cancelled
     }

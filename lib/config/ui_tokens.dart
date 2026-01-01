@@ -222,6 +222,7 @@ abstract final class WkStatusColors {
   static const Color assigned = Color(0xFF3B82F6); // Blue
   static const Color inProgress = Color(0xFFF59E0B); // Amber
   static const Color completed = Color(0xFF6B7280); // Gray
+  static const Color paid = Color(0xFF059669); // PR-6: Success green for paid
   static const Color cancelled = Color(0xFFEF4444); // Red
   static const Color unknown = Color(0xFF9CA3AF); // Light gray
 }
