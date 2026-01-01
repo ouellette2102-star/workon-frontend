@@ -26,6 +26,8 @@ import '/client_part/ratings/rating_button.dart';
 import '/client_part/ratings/rating_modal.dart';
 import '/client_part/missions/complete/complete_button.dart';
 import '/client_part/missions/complete/complete_handler.dart';
+import '/client_part/payments/pay_button.dart';
+import '/services/payments/payments_service.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart'
@@ -2071,6 +2073,12 @@ class _HomeWidgetState extends State<HomeWidget> {
                 isRating: isRating,
                 onPressed: (targetUserId) => _handleRatingButtonPressed(mission, targetUserId),
               ),
+              // PR-RC1: Pay button for employers
+              PayButton(
+                mission: mission,
+                isPaying: _model.payingMissionIds.contains(mission.id),
+                onPressed: () => _handlePayMission(mission),
+              ),
             ],
           ),
         ),
@@ -2147,6 +2155,80 @@ class _HomeWidgetState extends State<HomeWidget> {
       if (mounted) {
         safeSetState(() {
           _model.ratingMissionIds.remove(mission.id);
+        });
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-RC1: Payment Handler
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-RC1: Handles the "Payer" button press for employers.
+  Future<void> _handlePayMission(Mission mission) async {
+    // Guard: prevent double-click
+    if (_model.payingMissionIds.contains(mission.id)) {
+      debugPrint('[Home] Payment already in progress for ${mission.id}');
+      return;
+    }
+
+    debugPrint('[Home] Initiating payment for mission: ${mission.id}');
+
+    // Set loading state
+    safeSetState(() {
+      _model.payingMissionIds.add(mission.id);
+    });
+
+    try {
+      final result = await PaymentsService.createPaymentIntent(
+        missionId: mission.id,
+      );
+
+      if (!mounted) return;
+
+      switch (result) {
+        case PaymentIntentSuccess(:final intent):
+          debugPrint('[Home] Payment intent created: ${intent.paymentIntentId}');
+          // TODO: Confirm payment with Stripe SDK
+          // For now, show success message with amount
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Paiement initié: ${intent.formattedAmount}'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          
+        case PaymentFailure(:final message, :final isAuthError):
+          debugPrint('[Home] Payment error: $message');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          
+          // If auth error, could trigger re-login
+          if (isAuthError) {
+            debugPrint('[Home] Auth error during payment');
+          }
+      }
+    } catch (e) {
+      debugPrint('[Home] Unexpected payment error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur de paiement. Réessayez.'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        safeSetState(() {
+          _model.payingMissionIds.remove(mission.id);
         });
       }
     }

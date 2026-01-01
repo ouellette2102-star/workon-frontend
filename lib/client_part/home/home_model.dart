@@ -52,6 +52,9 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   // PR-F26: Track which missions user has already rated (missionId)
   final Set<String> ratedMissionIds = {};
 
+  // PR-RC1: Payment loading state (missionId -> isLoading)
+  final Set<String> payingMissionIds = {};
+
   // PR-F23: Missions tab mode (worker only)
   // 'available' = nearby open missions, 'my_missions' = assigned missions
   String missionsTabMode = 'available';
