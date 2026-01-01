@@ -89,5 +89,23 @@ abstract final class AppConfig {
   static const double defaultMapLat = 45.5017;
   static const double defaultMapLng = -73.5673;
   static const double defaultMapZoom = 12.0;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Stripe Configuration (PR-5)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Stripe publishable key from environment variable.
+  /// Set via: --dart-define=STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+  /// For testing, use Stripe test mode publishable key.
+  static const String stripePublishableKey = String.fromEnvironment(
+    'STRIPE_PUBLISHABLE_KEY',
+    defaultValue: 'pk_test_51RAxXTJ6SQZnNrKAhGZAMFDhT8u8BFUVx6u4bJQ9N3nM8L7KVMHQ5jX8mWnY4u9cC3zK2LBvNxS8RrT1yPqA0vJw00a1bCdEfG', // Test key - replace in production
+  );
+
+  /// Check if Stripe is configured.
+  static bool get hasStripeKey => stripePublishableKey.isNotEmpty;
+
+  /// Merchant display name for Stripe Payment Sheet.
+  static const String stripeMerchantName = 'WorkOn';
 }
 

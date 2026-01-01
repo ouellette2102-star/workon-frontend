@@ -3,7 +3,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import '/config/app_config.dart';
 import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
@@ -26,6 +28,15 @@ void main() async {
   usePathUrlStrategy();
 
   await FlutterFlowTheme.initialize();
+
+  // PR-5: Initialize Stripe with publishable key
+  if (AppConfig.hasStripeKey) {
+    Stripe.publishableKey = AppConfig.stripePublishableKey;
+    Stripe.merchantIdentifier = 'merchant.com.workon.app';
+    debugPrint('[Stripe] Initialized with publishable key');
+  } else {
+    debugPrint('[Stripe] ⚠️ No publishable key configured');
+  }
 
   // PR-F11: Initialize saved missions store
   await SavedMissionsStore.initialize();

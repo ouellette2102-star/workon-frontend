@@ -27,7 +27,7 @@ import '/client_part/ratings/rating_modal.dart';
 import '/client_part/missions/complete/complete_button.dart';
 import '/client_part/missions/complete/complete_handler.dart';
 import '/client_part/payments/pay_button.dart';
-import '/services/payments/payments_service.dart';
+import '/services/payments/stripe_service.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart'
@@ -2164,15 +2164,16 @@ class _HomeWidgetState extends State<HomeWidget> {
   // PR-RC1: Payment Handler
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /// PR-RC1: Handles the "Payer" button press for employers.
+  /// PR-5: Handles the "Payer" button press for employers.
+  /// Uses Stripe Payment Sheet for secure card payment.
   Future<void> _handlePayMission(Mission mission) async {
     // Guard: prevent double-click
     if (_model.payingMissionIds.contains(mission.id)) {
-      debugPrint('[Home] Payment already in progress for ${mission.id}');
+      debugPrint('[PaymentFlow] Payment already in progress for ${mission.id}');
       return;
     }
 
-    debugPrint('[Home] Initiating payment for mission: ${mission.id}');
+    debugPrint('[PaymentFlow] Initiating payment for mission: ${mission.id}');
 
     // Set loading state
     safeSetState(() {
@@ -2180,27 +2181,30 @@ class _HomeWidgetState extends State<HomeWidget> {
     });
 
     try {
-      final result = await PaymentsService.createPaymentIntent(
-        missionId: mission.id,
-      );
+      // Use StripeService to handle the full payment flow
+      final result = await StripeService.payForMission(missionId: mission.id);
 
       if (!mounted) return;
 
       switch (result) {
-        case PaymentIntentSuccess(:final intent):
-          debugPrint('[Home] Payment intent created: ${intent.paymentIntentId}');
-          // TODO: Confirm payment with Stripe SDK
-          // For now, show success message with amount
+        case PaymentSheetSuccess():
+          debugPrint('[PaymentFlow] ✅ Payment succeeded for ${mission.id}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Paiement initié: ${intent.formattedAmount}'),
+              content: const Text('Paiement réussi! 🎉'),
               backgroundColor: Colors.green,
               duration: const Duration(seconds: 3),
             ),
           );
-          
-        case PaymentFailure(:final message, :final isAuthError):
-          debugPrint('[Home] Payment error: $message');
+          // Refresh mission list to update status
+          _refreshMissions();
+
+        case PaymentSheetCancelled():
+          debugPrint('[PaymentFlow] User cancelled payment for ${mission.id}');
+          // Silent - user chose to cancel, no error message needed
+
+        case PaymentSheetError(:final message, :final isAuthError):
+          debugPrint('[PaymentFlow] Payment error: $message');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(message),
@@ -2208,18 +2212,18 @@ class _HomeWidgetState extends State<HomeWidget> {
               duration: const Duration(seconds: 3),
             ),
           );
-          
-          // If auth error, could trigger re-login
+
+          // If auth error, could trigger re-login via SessionGuard
           if (isAuthError) {
-            debugPrint('[Home] Auth error during payment');
+            debugPrint('[PaymentFlow] Auth error - session may be expired');
           }
       }
     } catch (e) {
-      debugPrint('[Home] Unexpected payment error: $e');
+      debugPrint('[PaymentFlow] Unexpected error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur de paiement. Réessayez.'),
+            content: const Text('Erreur de paiement. Réessaie.'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
