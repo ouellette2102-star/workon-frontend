@@ -16,8 +16,9 @@ abstract final class AppConfig {
       'https://workon-backend-production.up.railway.app';
 
   /// Development/staging backend API base URL.
+  /// NOTE: Points to production until a separate dev backend is deployed.
   static const String apiBaseUrlDev =
-      'https://workon-backend-dev.up.railway.app';
+      'https://workon-backend-production.up.railway.app';
 
   /// Current active API URL based on environment.
   static const String activeApiUrl = _isProduction ? apiBaseUrl : apiBaseUrlDev;
