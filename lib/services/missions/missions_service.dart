@@ -161,6 +161,9 @@ abstract final class MissionsService {
   /// API client instance.
   static final MissionsApi _api = MissionsApi();
 
+  /// PR-F23: Exposes API for direct calls (e.g., fetchMyAssignments)
+  static MissionsApi get api => _api;
+
   // ─────────────────────────────────────────────────────────────────────────
   // Public API
   // ─────────────────────────────────────────────────────────────────────────
@@ -300,6 +303,105 @@ abstract final class MissionsService {
   /// Resets the service state.
   static void reset() {
     _state.value = const MissionsState.initial();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F20: Employer Flow - Create Mission
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Creates a new mission.
+  ///
+  /// Only employers and residential clients can create missions.
+  ///
+  /// Returns the created [Mission] on success, throws on error.
+  static Future<Mission> create({
+    required String title,
+    required String description,
+    required String category,
+    required double price,
+    required double latitude,
+    required double longitude,
+    required String city,
+    String? address,
+  }) async {
+    debugPrint('[MissionsService] Creating mission: $title');
+
+    final mission = await _api.createMission(
+      title: title,
+      description: description,
+      category: category,
+      price: price,
+      latitude: latitude,
+      longitude: longitude,
+      city: city,
+      address: address,
+    );
+
+    debugPrint('[MissionsService] Mission created: ${mission.id}');
+    return mission;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F22: Worker Flow - Accept Mission
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Accepts a mission (worker takes the call).
+  ///
+  /// Calls `POST /api/v1/missions-local/:id/accept`.
+  ///
+  /// On success, the mission status changes from "open" to "assigned".
+  /// The caller should refresh the missions list after success.
+  ///
+  /// Returns the updated [Mission] on success, throws on error.
+  static Future<Mission> accept(String missionId) async {
+    debugPrint('[MissionsService] Accepting mission: $missionId');
+
+    final mission = await _api.acceptMission(missionId);
+
+    debugPrint('[MissionsService] Mission accepted: ${mission.id} -> ${mission.status}');
+    return mission;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F24: Worker Flow - Start Mission
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Starts a mission (assigned -> in_progress).
+  ///
+  /// Calls `POST /api/v1/missions-local/:id/start`.
+  ///
+  /// On success, the mission status changes from "assigned" to "in_progress".
+  /// The caller should refresh the missions list after success.
+  ///
+  /// Returns the updated [Mission] on success, throws on error.
+  static Future<Mission> start(String missionId) async {
+    debugPrint('[MissionsService] Starting mission: $missionId');
+
+    final mission = await _api.startMission(missionId);
+
+    debugPrint('[MissionsService] Mission started: ${mission.id} -> ${mission.status}');
+    return mission;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F25: Worker Flow - Complete Mission
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Completes a mission (in_progress -> completed).
+  ///
+  /// Calls `POST /api/v1/missions-local/:id/complete`.
+  ///
+  /// On success, the mission status changes to "completed".
+  /// The caller should refresh the missions list after success.
+  ///
+  /// Returns the updated [Mission] on success, throws on error.
+  static Future<Mission> complete(String missionId) async {
+    debugPrint('[MissionsService] Completing mission: $missionId');
+
+    final mission = await _api.completeMission(missionId);
+
+    debugPrint('[MissionsService] Mission completed: ${mission.id} -> ${mission.status}');
+    return mission;
   }
 
   // ─────────────────────────────────────────────────────────────────────────

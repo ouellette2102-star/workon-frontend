@@ -37,6 +37,29 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   double? userLongitude;
   bool locationPermissionDenied = false;
 
+  // PR-F22: Accept mission loading state (missionId -> isLoading)
+  final Set<String> acceptingMissionIds = {};
+
+  // PR-F24: Start mission loading state (missionId -> isLoading)
+  final Set<String> startingMissionIds = {};
+
+  // PR-F25: Complete mission loading state (missionId -> isLoading)
+  final Set<String> finishingMissionIds = {};
+
+  // PR-F26: Rating submission loading state (missionId -> isLoading)
+  final Set<String> ratingMissionIds = {};
+
+  // PR-F26: Track which missions user has already rated (missionId)
+  final Set<String> ratedMissionIds = {};
+
+  // PR-F23: Missions tab mode (worker only)
+  // 'available' = nearby open missions, 'my_missions' = assigned missions
+  String missionsTabMode = 'available';
+  
+  // PR-F23: Separate state for "my missions" (assigned to worker)
+  MissionsState myMissionsState = const MissionsState.initial();
+  bool myMissionsInitialized = false;
+
   // State field(s) for PageView widget.
   PageController? pageViewController;
 

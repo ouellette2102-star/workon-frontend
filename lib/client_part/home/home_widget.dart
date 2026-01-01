@@ -3,10 +3,13 @@ import '/client_part/components_client/filter_options/filter_options_widget.dart
 import '/client_part/components_client/mig_nav_bar/mig_nav_bar_widget.dart';
 import '/client_part/components_client/missions_map/missions_map_widget.dart';
 import '/client_part/components_client/service_item/service_item_widget.dart';
+import '/client_part/create_mission/create_mission_widget.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
 import '/client_part/my_applications/my_applications_widget.dart';
 import '/client_part/saved/saved_missions_page.dart';
 import '/services/offers/offers_service.dart';
+import '/services/user/user_service.dart';
+import '/services/user/user_context.dart';
 import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -14,8 +17,15 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/services/location/location_service.dart';
 import '/services/missions/mission_models.dart';
+import '/services/missions/missions_api.dart';
 import '/services/missions/missions_service.dart';
 import '/services/saved/saved_missions_store.dart';
+import '/services/auth/auth_errors.dart';
+import '/services/auth/auth_service.dart';
+import '/client_part/ratings/rating_button.dart';
+import '/client_part/ratings/rating_modal.dart';
+import '/client_part/missions/complete/complete_button.dart';
+import '/client_part/missions/complete/complete_handler.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart'
@@ -244,11 +254,16 @@ class _HomeWidgetState extends State<HomeWidget> {
           top: true,
           child: Stack(
             children: [
-              SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              // PR-F21: Added RefreshIndicator for pull-to-refresh
+              RefreshIndicator(
+                onRefresh: _handlePullToRefresh,
+                color: FlutterFlowTheme.of(context).primary,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                     Container(
                       width: double.infinity,
                       height: 210.0,
@@ -1132,8 +1147,9 @@ class _HomeWidgetState extends State<HomeWidget> {
                       .divide(SizedBox(height: 20.0))
                       .addToStart(SizedBox(height: 20.0))
                       .addToEnd(SizedBox(height: 100.0)),
+                  ),
                 ),
-              ),
+              ), // End RefreshIndicator (PR-F21)
               Align(
                 alignment: AlignmentDirectional(0.0, 1.0),
                 child: wrapWithModel(
@@ -1144,11 +1160,195 @@ class _HomeWidgetState extends State<HomeWidget> {
                   ),
                 ),
               ),
+              // PR-F20: FAB for employers to create missions
+              _buildCreateMissionFab(context),
             ],
           ),
         ),
       ),
     );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F21: Pull-to-Refresh for Missions
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F21/F23: Handle pull-to-refresh gesture.
+  Future<void> _handlePullToRefresh() async {
+    debugPrint('[Home] Pull-to-refresh triggered (tab: ${_model.missionsTabMode})');
+    if (_model.missionsTabMode == 'my_missions') {
+      await _loadMyMissions();
+    } else {
+      await MissionsService.refresh();
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F20: Create Mission FAB (Employer Flow)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F20: Builds the floating action button for creating missions.
+  /// Only visible for employers and residential clients.
+  Widget _buildCreateMissionFab(BuildContext context) {
+    return ValueListenableBuilder<UserContext>(
+      valueListenable: UserService.contextListenable,
+      builder: (context, userContext, _) {
+        // Only show FAB for employers and residential clients
+        final canCreateMission = userContext.role == UserRole.employer ||
+            userContext.role == UserRole.residential;
+
+        if (!canCreateMission) {
+          return const SizedBox.shrink();
+        }
+
+        return Positioned(
+          right: 16,
+          bottom: 100, // Above the nav bar
+          child: FloatingActionButton.extended(
+            heroTag: 'create_mission_fab',
+            onPressed: () async {
+              final result = await Navigator.of(context).push<dynamic>(
+                MaterialPageRoute(
+                  builder: (context) => const CreateMissionWidget(),
+                ),
+              );
+
+              // If mission was created, refresh the list
+              if (result != null) {
+                await MissionsService.refresh();
+              }
+            },
+            backgroundColor: FlutterFlowTheme.of(context).primary,
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: Text(
+              'Créer mission',
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'General Sans',
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    useGoogleFonts: false,
+                  ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F23: Worker Missions Tabs (Disponibles / Mes missions)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F23: Builds the tab toggle for workers.
+  Widget _buildMissionsTabToggle(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildTabButton(
+              context,
+              label: 'Disponibles',
+              isActive: _model.missionsTabMode == 'available',
+              onTap: () => _switchMissionsTab('available'),
+            ),
+          ),
+          SizedBox(width: 4),
+          Expanded(
+            child: _buildTabButton(
+              context,
+              label: 'Mes missions',
+              isActive: _model.missionsTabMode == 'my_missions',
+              onTap: () => _switchMissionsTab('my_missions'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// PR-F23: Builds a single tab button.
+  Widget _buildTabButton(
+    BuildContext context, {
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isActive
+              ? FlutterFlowTheme.of(context).primary
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  fontFamily: 'General Sans',
+                  color: isActive
+                      ? Colors.white
+                      : FlutterFlowTheme.of(context).secondaryText,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                  letterSpacing: 0.0,
+                ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// PR-F23: Switches between tabs and loads data if needed.
+  void _switchMissionsTab(String tab) {
+    if (_model.missionsTabMode == tab) return;
+
+    debugPrint('[Home] Switching to tab: $tab');
+    safeSetState(() {
+      _model.missionsTabMode = tab;
+    });
+
+    // Load my missions on first switch
+    if (tab == 'my_missions' && !_model.myMissionsInitialized) {
+      _loadMyMissions();
+    }
+  }
+
+  /// PR-F23: Loads worker's assigned missions.
+  Future<void> _loadMyMissions() async {
+    debugPrint('[Home] Loading my missions...');
+    _model.myMissionsInitialized = true;
+
+    safeSetState(() {
+      _model.myMissionsState = const MissionsState.loading();
+    });
+
+    try {
+      final missions = await MissionsService.api.fetchMyAssignments();
+      if (mounted) {
+        safeSetState(() {
+          _model.myMissionsState = MissionsState.loaded(missions: missions);
+        });
+      }
+      debugPrint('[Home] Loaded ${missions.length} assigned missions');
+    } catch (e) {
+      debugPrint('[Home] Error loading my missions: $e');
+      if (mounted) {
+        safeSetState(() {
+          _model.myMissionsState = MissionsState.error(
+            e is MissionsApiException ? e.message : 'Une erreur est survenue',
+          );
+        });
+      }
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -1157,7 +1357,11 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   /// Builds the missions feed section with loading/error/empty/list states.
   Widget _buildMissionsSection(BuildContext context) {
-    final state = _model.missionsState;
+    final userContext = UserService.context;
+    final isWorker = userContext.role == UserRole.worker;
+    final state = _model.missionsTabMode == 'my_missions' 
+        ? _model.myMissionsState 
+        : _model.missionsState;
 
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 0.0),
@@ -1165,6 +1369,11 @@ class _HomeWidgetState extends State<HomeWidget> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // PR-F23: Tab toggle for workers (Disponibles / Mes missions)
+          if (isWorker) ...[
+            _buildMissionsTabToggle(context),
+            SizedBox(height: WkSpacing.md),
+          ],
           // Header
           Row(
             mainAxisSize: MainAxisSize.max,
@@ -1172,7 +1381,9 @@ class _HomeWidgetState extends State<HomeWidget> {
             children: [
               Flexible(
                 child: Text(
-                  WkCopy.missionsNearby,
+                  _model.missionsTabMode == 'my_missions' 
+                      ? 'Mes missions' 
+                      : WkCopy.missionsNearby,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily: 'General Sans',
                         fontSize: 16.0,
@@ -1185,20 +1396,28 @@ class _HomeWidgetState extends State<HomeWidget> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // PR-F16: My applications button
-                  _buildApplicationsButton(context),
-                  SizedBox(width: WkSpacing.sm),
-                  // PR-F11: Saved missions button
-                  _buildSavedButton(context),
-                  SizedBox(width: WkSpacing.sm),
-                  if (state.hasMissions)
+                  // PR-F16: My applications button (only in available tab)
+                  if (_model.missionsTabMode == 'available')
+                    _buildApplicationsButton(context),
+                  if (_model.missionsTabMode == 'available')
+                    SizedBox(width: WkSpacing.sm),
+                  // PR-F11: Saved missions button (only in available tab)
+                  if (_model.missionsTabMode == 'available')
+                    _buildSavedButton(context),
+                  if (_model.missionsTabMode == 'available')
+                    SizedBox(width: WkSpacing.sm),
+                  if (state.hasMissions && _model.missionsTabMode == 'available')
                     _buildViewToggle(context),
                   if (state.hasMissions)
                     SizedBox(width: 8),
-                  if (state.hasMissions)
+                  if (state.hasMissions || state.isLoading)
                     InkWell(
                       onTap: () async {
-                        await MissionsService.refresh();
+                        if (_model.missionsTabMode == 'my_missions') {
+                          await _loadMyMissions();
+                        } else {
+                          await MissionsService.refresh();
+                        }
                       },
                       child: Icon(
                         Icons.refresh,
@@ -1211,9 +1430,11 @@ class _HomeWidgetState extends State<HomeWidget> {
             ],
           ),
           SizedBox(height: WkSpacing.md),
-          // PR-F10: Filters row
-          _buildFiltersRow(context),
-          SizedBox(height: WkSpacing.md),
+          // PR-F10: Filters row (only in available tab)
+          if (_model.missionsTabMode == 'available')
+            _buildFiltersRow(context),
+          if (_model.missionsTabMode == 'available')
+            SizedBox(height: WkSpacing.md),
           // Content based on state and view mode
           _buildMissionsContent(context, state),
         ],
@@ -1223,6 +1444,15 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   /// Builds missions content based on current state.
   Widget _buildMissionsContent(BuildContext context, MissionsState state) {
+    // PR-F21/F23: Filter missions based on current tab
+    final bool isMyMissionsTab = _model.missionsTabMode == 'my_missions';
+    
+    // In "available" tab: show only 'open' status
+    // In "my missions" tab: show assigned/in_progress missions (not open)
+    final displayedMissions = isMyMissionsTab
+        ? state.missions.where((m) => m.status != MissionStatus.open).toList()
+        : state.missions.where((m) => m.status == MissionStatus.open).toList();
+
     // Loading state
     if (state.isLoading) {
       return Container(
@@ -1301,8 +1531,8 @@ class _HomeWidgetState extends State<HomeWidget> {
       );
     }
 
-    // Empty state
-    if (state.isEmpty) {
+    // Empty state (check displayedMissions, not state.isEmpty)
+    if (displayedMissions.isEmpty && state.status == MissionsStatus.loaded) {
       return Container(
         padding: EdgeInsets.all(WkSpacing.xl),
         decoration: BoxDecoration(
@@ -1312,13 +1542,15 @@ class _HomeWidgetState extends State<HomeWidget> {
         child: Column(
           children: [
             Icon(
-              Icons.search_off,
+              isMyMissionsTab ? Icons.work_off_outlined : Icons.search_off,
               color: FlutterFlowTheme.of(context).secondaryText,
               size: WkIconSize.xxl,
             ),
             SizedBox(height: WkSpacing.sm),
             Text(
-              WkCopy.emptyMissions,
+              isMyMissionsTab 
+                  ? 'Aucune mission en cours'
+                  : WkCopy.emptyMissions,
               textAlign: TextAlign.center,
               style: FlutterFlowTheme.of(context).bodyMedium.override(
                     fontFamily: 'General Sans',
@@ -1326,6 +1558,18 @@ class _HomeWidgetState extends State<HomeWidget> {
                     letterSpacing: 0.0,
                   ),
             ),
+            if (isMyMissionsTab) ...[
+              SizedBox(height: WkSpacing.sm),
+              Text(
+                'Acceptez une mission pour commencer',
+                textAlign: TextAlign.center,
+                style: FlutterFlowTheme.of(context).bodySmall.override(
+                      fontFamily: 'General Sans',
+                      color: FlutterFlowTheme.of(context).secondaryText.withOpacity(0.7),
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ],
           ],
         ),
       );
@@ -1336,12 +1580,12 @@ class _HomeWidgetState extends State<HomeWidget> {
       return SizedBox.shrink();
     }
 
-    // PR-F07: Map view
-    if (_model.missionsViewMode == 'map') {
+    // PR-F07: Map view (PR-F21/F23: use filtered displayedMissions)
+    if (_model.missionsViewMode == 'map' && !isMyMissionsTab) {
       return SizedBox(
         height: 300,
         child: MissionsMapWidget(
-          missions: state.missions,
+          missions: displayedMissions,
           onMissionTap: (mission) {
             context.pushNamed(
               MissionDetailWidget.routeName,
@@ -1357,14 +1601,14 @@ class _HomeWidgetState extends State<HomeWidget> {
       );
     }
 
-    // PR-F05b: Cards view
-    if (_model.missionsViewMode == 'cards') {
-      return _buildHorizontalCards(context, state.missions);
+    // PR-F05b: Cards view (PR-F21/F23: use filtered displayedMissions)
+    if (_model.missionsViewMode == 'cards' && !isMyMissionsTab) {
+      return _buildHorizontalCards(context, displayedMissions);
     }
 
-    // List of missions (default)
+    // List of missions (default) (PR-F21/F23: use filtered displayedMissions)
     return Column(
-      children: state.missions.take(5).map((mission) {
+      children: displayedMissions.take(isMyMissionsTab ? 10 : 5).map((mission) {
         return _buildMissionCard(context, mission);
       }).toList(),
     );
@@ -1576,6 +1820,24 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   /// Builds a single mission card.
   Widget _buildMissionCard(BuildContext context, Mission mission) {
+    // PR-F22: Check if user is a worker (can accept missions)
+    final userContext = UserService.context;
+    final isWorker = userContext.role == UserRole.worker;
+    final canAccept = isWorker && mission.status == MissionStatus.open;
+    final isAccepting = _model.acceptingMissionIds.contains(mission.id);
+
+    // PR-F24: Check if worker can start mission (assigned -> in_progress)
+    final isMyMissionsTab = _model.missionsTabMode == 'my_missions';
+    final canStart = isWorker && isMyMissionsTab && mission.status == MissionStatus.assigned;
+    final isStarting = _model.startingMissionIds.contains(mission.id);
+
+    // PR-F25: Complete mission state (extracted to CompleteButton)
+    final isFinishing = _model.finishingMissionIds.contains(mission.id);
+
+    // PR-F26: Rating state (extracted to RatingButton)
+    final isRated = _model.ratedMissionIds.contains(mission.id);
+    final isRating = _model.ratingMissionIds.contains(mission.id);
+
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
       child: InkWell(
@@ -1599,112 +1861,484 @@ class _HomeWidgetState extends State<HomeWidget> {
             color: FlutterFlowTheme.of(context).secondaryBackground,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Category icon
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Icon(
-                    _getCategoryIcon(mission.category),
-                    color: FlutterFlowTheme.of(context).primary,
-                    size: 24,
-                  ),
-                ),
-              ),
-              SizedBox(width: 12),
-              // Mission info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      mission.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            fontFamily: 'General Sans',
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.0,
-                          ),
+              Row(
+                children: [
+                  // Category icon
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: FlutterFlowTheme.of(context).primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    SizedBox(height: 4),
-                    Row(
+                    child: Center(
+                      child: Icon(
+                        _getCategoryIcon(mission.category),
+                        color: FlutterFlowTheme.of(context).primary,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  // Mission info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.location_on_outlined,
-                          size: 14,
-                          color: FlutterFlowTheme.of(context).secondaryText,
-                        ),
-                        SizedBox(width: 4),
                         Text(
-                          mission.city,
-                          style: FlutterFlowTheme.of(context).bodySmall.override(
+                          mission.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: FlutterFlowTheme.of(context).bodyMedium.override(
                                 fontFamily: 'General Sans',
-                                color: FlutterFlowTheme.of(context).secondaryText,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
                                 letterSpacing: 0.0,
                               ),
                         ),
-                        if (mission.distanceKm != null) ...[
-                          SizedBox(width: 8),
-                          Text(
-                            mission.formattedDistance ?? '',
-                            style: FlutterFlowTheme.of(context).bodySmall.override(
-                                  fontFamily: 'General Sans',
-                                  color: FlutterFlowTheme.of(context).primary,
-                                  letterSpacing: 0.0,
-                                ),
-                          ),
-                        ],
+                        SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_outlined,
+                              size: 14,
+                              color: FlutterFlowTheme.of(context).secondaryText,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              mission.city,
+                              style: FlutterFlowTheme.of(context).bodySmall.override(
+                                    fontFamily: 'General Sans',
+                                    color: FlutterFlowTheme.of(context).secondaryText,
+                                    letterSpacing: 0.0,
+                                  ),
+                            ),
+                            if (mission.distanceKm != null) ...[
+                              SizedBox(width: 8),
+                              Text(
+                                mission.formattedDistance ?? '',
+                                style: FlutterFlowTheme.of(context).bodySmall.override(
+                                      fontFamily: 'General Sans',
+                                      color: FlutterFlowTheme.of(context).primary,
+                                      letterSpacing: 0.0,
+                                    ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              // Price
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    mission.formattedPrice,
-                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                          fontFamily: 'General Sans',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: FlutterFlowTheme.of(context).primary,
-                          letterSpacing: 0.0,
-                        ),
                   ),
-                  SizedBox(height: 4),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(mission.status).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      mission.status.displayName,
-                      style: FlutterFlowTheme.of(context).bodySmall.override(
-                            fontFamily: 'General Sans',
-                            color: _getStatusColor(mission.status),
-                            fontSize: 11,
-                            letterSpacing: 0.0,
-                          ),
-                    ),
+                  // Price
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        mission.formattedPrice,
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              fontFamily: 'General Sans',
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: FlutterFlowTheme.of(context).primary,
+                              letterSpacing: 0.0,
+                            ),
+                      ),
+                      SizedBox(height: 4),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(mission.status).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          mission.status.displayName,
+                          style: FlutterFlowTheme.of(context).bodySmall.override(
+                                fontFamily: 'General Sans',
+                                color: _getStatusColor(mission.status),
+                                fontSize: 11,
+                                letterSpacing: 0.0,
+                              ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
+              ),
+              // PR-F22: "Prendre l'appel" button for workers
+              if (canAccept) ...[
+                SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: isAccepting ? null : () => _handleAcceptMission(mission),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: FlutterFlowTheme.of(context).primary,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      disabledBackgroundColor: FlutterFlowTheme.of(context).primary.withOpacity(0.5),
+                    ),
+                    child: isAccepting
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.phone_callback, size: 18),
+                              SizedBox(width: 8),
+                              Text(
+                                'Prendre l\'appel',
+                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                      fontFamily: 'General Sans',
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.0,
+                                    ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+              ],
+              // PR-F24: "Démarrer" button for assigned missions
+              if (canStart) ...[
+                SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: isStarting ? null : () => _handleStartMission(mission),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      disabledBackgroundColor: Colors.green.withOpacity(0.5),
+                    ),
+                    child: isStarting
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.play_arrow, size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Démarrer',
+                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                      fontFamily: 'General Sans',
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.0,
+                                    ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+              ],
+              // PR-F25: "Terminer" button (extracted)
+              CompleteButton(
+                mission: mission,
+                isWorker: isWorker,
+                isMyMissionsTab: isMyMissionsTab,
+                isFinishing: isFinishing,
+                onPressed: () => _handleCompleteMission(mission),
+              ),
+              // PR-F26: Rating button (extracted)
+              RatingButton(
+                mission: mission,
+                isMyMissionsTab: isMyMissionsTab,
+                isRated: isRated,
+                isRating: isRating,
+                onPressed: (targetUserId) => _handleRatingButtonPressed(mission, targetUserId),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F26: Rating Handler (uses extracted RatingModal)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F26: Handles the rating button press - opens modal and processes result.
+  Future<void> _handleRatingButtonPressed(Mission mission, String targetUserId) async {
+    // Guard: prevent double submission
+    if (_model.ratingMissionIds.contains(mission.id)) {
+      debugPrint('[Home] Rating already in progress for ${mission.id}');
+      return;
+    }
+
+    debugPrint('[Home] Opening rating modal for mission: ${mission.id}');
+
+    // Set loading state
+    safeSetState(() {
+      _model.ratingMissionIds.add(mission.id);
+    });
+
+    try {
+      final result = await showRatingModal(
+        context: context,
+        mission: mission,
+        targetUserId: targetUserId,
+      );
+
+      if (!mounted) return;
+
+      if (result == null) {
+        // Modal dismissed without action
+        debugPrint('[Home] Rating modal dismissed');
+        return;
+      }
+
+      if (result.isSuccess) {
+        // Success: show snackbar and mark as rated
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Merci pour votre évaluation !'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+
+        // Mark mission as rated
+        safeSetState(() {
+          _model.ratedMissionIds.add(mission.id);
+        });
+
+        // Refresh "my missions" list
+        await _loadMyMissions();
+      } else if (result.isAlreadyRated) {
+        // Already rated (409): show message and mark locally
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.errorMessage ?? 'Évaluation déjà envoyée'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+
+        safeSetState(() {
+          _model.ratedMissionIds.add(mission.id);
+        });
+      }
+    } finally {
+      if (mounted) {
+        safeSetState(() {
+          _model.ratingMissionIds.remove(mission.id);
+        });
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F22: Accept Mission Handler
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F22: Handles the "Prendre l'appel" button press.
+  Future<void> _handleAcceptMission(Mission mission) async {
+    // Guard: prevent double-click
+    if (_model.acceptingMissionIds.contains(mission.id)) {
+      debugPrint('[Home] Accept already in progress for ${mission.id}');
+      return;
+    }
+
+    debugPrint('[Home] Accepting mission: ${mission.id}');
+
+    // Set loading state
+    safeSetState(() {
+      _model.acceptingMissionIds.add(mission.id);
+    });
+
+    try {
+      await MissionsService.accept(mission.id);
+
+      if (!mounted) return;
+
+      // Success: show snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Mission acceptée !'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Refresh missions list (mission will disappear from "open" list)
+      await MissionsService.refresh();
+
+    } on UnauthorizedException {
+      if (!mounted) return;
+      debugPrint('[Home] Accept mission: unauthorized');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Session expirée. Veuillez vous reconnecter.'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      // TODO: navigate to login if pattern exists
+    } on MissionsApiException catch (e) {
+      if (!mounted) return;
+      debugPrint('[Home] Accept mission error: ${e.message}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      debugPrint('[Home] Accept mission unexpected error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Impossible d\'accepter la mission. Réessaie.'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        safeSetState(() {
+          _model.acceptingMissionIds.remove(mission.id);
+        });
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F24: Start Mission Handler
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F24: Handles the "Démarrer" button press.
+  Future<void> _handleStartMission(Mission mission) async {
+    // Guard: prevent double-click
+    if (_model.startingMissionIds.contains(mission.id)) {
+      debugPrint('[Home] Start already in progress for ${mission.id}');
+      return;
+    }
+
+    debugPrint('[Home] Starting mission: ${mission.id}');
+
+    // Set loading state
+    safeSetState(() {
+      _model.startingMissionIds.add(mission.id);
+    });
+
+    try {
+      await MissionsService.start(mission.id);
+
+      if (!mounted) return;
+
+      // Success: show snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Mission démarrée !'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Refresh "my missions" list
+      await _loadMyMissions();
+
+    } on UnauthorizedException {
+      if (!mounted) return;
+      debugPrint('[Home] Start mission: unauthorized');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Session expirée. Veuillez vous reconnecter.'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } on MissionsApiException catch (e) {
+      if (!mounted) return;
+      debugPrint('[Home] Start mission error: ${e.message}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      debugPrint('[Home] Start mission unexpected error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Impossible de démarrer la mission. Réessaie.'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        safeSetState(() {
+          _model.startingMissionIds.remove(mission.id);
+        });
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-F25: Complete Mission Handler (uses extracted handler)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-F25: Handles the "Terminer" button press.
+  Future<void> _handleCompleteMission(Mission mission) async {
+    // Guard: prevent double-click
+    if (_model.finishingMissionIds.contains(mission.id)) {
+      debugPrint('[Home] Complete already in progress for ${mission.id}');
+      return;
+    }
+
+    // Set loading state
+    safeSetState(() {
+      _model.finishingMissionIds.add(mission.id);
+    });
+
+    try {
+      final result = await handleCompleteMission(mission.id);
+
+      if (!mounted) return;
+
+      // Show snackbar
+      showCompleteMissionSnackbar(context, result);
+
+      // Refresh on success
+      if (result.isSuccess) {
+        await _loadMyMissions();
+      }
+    } finally {
+      if (mounted) {
+        safeSetState(() {
+          _model.finishingMissionIds.remove(mission.id);
+        });
+      }
+    }
   }
 
   /// Returns icon for mission category.

@@ -315,6 +315,456 @@ class MissionsApi {
     }
   }
 
+  /// Creates a new mission.
+  ///
+  /// Calls `POST /api/v1/missions-local`.
+  ///
+  /// Only employers and residential clients can create missions.
+  ///
+  /// **PR-F20:** Employer Flow - Create Mission.
+  Future<Mission> createMission({
+    required String title,
+    required String description,
+    required String category,
+    required double price,
+    required double latitude,
+    required double longitude,
+    required String city,
+    String? address,
+  }) async {
+    debugPrint('[MissionsApi] Creating mission: $title');
+
+    // Check auth
+    if (!AuthService.hasSession) {
+      debugPrint('[MissionsApi] createMission: no active session');
+      throw const UnauthorizedException();
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      debugPrint('[MissionsApi] createMission: no token available');
+      throw const UnauthorizedException();
+    }
+
+    final uri = ApiClient.buildUri('/missions-local');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = {
+      'title': title,
+      'description': description,
+      'category': category,
+      'price': price,
+      'latitude': latitude,
+      'longitude': longitude,
+      'city': city,
+      if (address != null && address.isNotEmpty) 'address': address,
+    };
+
+    debugPrint('[MissionsApi] POST $uri');
+    debugPrint('[MissionsApi] Body: $body');
+
+    try {
+      final response = await ApiClient.client
+          .post(
+            uri,
+            headers: headers,
+            body: jsonEncode(body),
+          )
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[MissionsApi] createMission response: ${response.statusCode}');
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        final errorBody = _tryParseError(response.body);
+        debugPrint('[MissionsApi] createMission: forbidden - $errorBody');
+        throw MissionsApiException(errorBody ?? 'Non autorisé');
+      }
+
+      if (response.statusCode >= 500) {
+        debugPrint('[MissionsApi] createMission: server error');
+        throw const MissionsApiException('Erreur serveur. Réessayez plus tard.');
+      }
+
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        final errorBody = _tryParseError(response.body);
+        debugPrint('[MissionsApi] createMission: error ${response.statusCode} - $errorBody');
+        throw MissionsApiException(errorBody ?? 'Erreur lors de la création');
+      }
+
+      final json = jsonDecode(response.body);
+      final data = json is Map<String, dynamic>
+          ? (json['data'] ?? json)
+          : json;
+
+      final mission = Mission.fromJson(data as Map<String, dynamic>);
+      debugPrint('[MissionsApi] createMission: success - ${mission.id}');
+      return mission;
+    } on TimeoutException {
+      debugPrint('[MissionsApi] createMission: timeout');
+      throw const MissionsApiException('Délai de connexion dépassé');
+    } on http.ClientException catch (e) {
+      debugPrint('[MissionsApi] createMission: network error - $e');
+      throw const MissionsApiException('Erreur réseau. Vérifiez votre connexion.');
+    } on FormatException catch (e) {
+      debugPrint('[MissionsApi] createMission: JSON parse error - $e');
+      throw const MissionsApiException('Réponse invalide du serveur');
+    } on Exception catch (e) {
+      if (e is MissionsApiException || e is AuthException) rethrow;
+      debugPrint('[MissionsApi] createMission: unexpected error - $e');
+      throw const MissionsApiException('Erreur inattendue');
+    }
+  }
+
+  /// Accepts a mission (worker takes the call).
+  ///
+  /// Calls `POST /api/v1/missions-local/:id/accept`.
+  ///
+  /// Precondition: mission.status must be "open".
+  /// Result: mission becomes "assigned" to the worker.
+  ///
+  /// **PR-F22:** Worker Flow - Accept Mission.
+  ///
+  /// Throws:
+  /// - [UnauthorizedException] if not authenticated
+  /// - [MissionsApiException] if mission not available or other error
+  Future<Mission> acceptMission(String missionId) async {
+    debugPrint('[MissionsApi] Accepting mission: $missionId');
+
+    // Validate ID
+    if (missionId.isEmpty) {
+      debugPrint('[MissionsApi] acceptMission: empty ID provided');
+      throw const MissionsApiException('ID de mission invalide');
+    }
+
+    // Check auth
+    if (!AuthService.hasSession) {
+      debugPrint('[MissionsApi] acceptMission: no active session');
+      throw const UnauthorizedException();
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      debugPrint('[MissionsApi] acceptMission: no token available');
+      throw const UnauthorizedException();
+    }
+
+    final uri = ApiClient.buildUri('/missions-local/$missionId/accept');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    debugPrint('[MissionsApi] POST $uri');
+
+    try {
+      final response = await ApiClient.client
+          .post(uri, headers: headers)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[MissionsApi] acceptMission response: ${response.statusCode}');
+
+      if (response.statusCode == 401) {
+        debugPrint('[MissionsApi] acceptMission: unauthorized');
+        throw const UnauthorizedException();
+      }
+
+      if (response.statusCode == 403) {
+        final errorBody = _tryParseError(response.body);
+        debugPrint('[MissionsApi] acceptMission: forbidden - $errorBody');
+        throw MissionsApiException(errorBody ?? 'Seuls les workers peuvent accepter des missions');
+      }
+
+      // 400 or 409: mission not available (already taken, cancelled, etc.)
+      if (response.statusCode == 400 || response.statusCode == 409) {
+        final errorBody = _tryParseError(response.body);
+        debugPrint('[MissionsApi] acceptMission: conflict/bad request - $errorBody');
+        throw MissionsApiException(errorBody ?? 'Cette mission n\'est plus disponible');
+      }
+
+      if (response.statusCode == 404) {
+        debugPrint('[MissionsApi] acceptMission: mission not found');
+        throw const MissionsApiException('Mission non trouvée');
+      }
+
+      if (response.statusCode >= 500) {
+        debugPrint('[MissionsApi] acceptMission: server error');
+        throw const MissionsApiException('Erreur serveur. Réessayez plus tard.');
+      }
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        final errorBody = _tryParseError(response.body);
+        debugPrint('[MissionsApi] acceptMission: error ${response.statusCode} - $errorBody');
+        throw MissionsApiException(errorBody ?? 'Erreur lors de l\'acceptation');
+      }
+
+      final json = jsonDecode(response.body);
+      final data = json is Map<String, dynamic>
+          ? (json['data'] ?? json)
+          : json;
+
+      final mission = Mission.fromJson(data as Map<String, dynamic>);
+      debugPrint('[MissionsApi] acceptMission: success - ${mission.id} now ${mission.status}');
+      return mission;
+    } on TimeoutException {
+      debugPrint('[MissionsApi] acceptMission: timeout');
+      throw const MissionsApiException('Délai de connexion dépassé');
+    } on http.ClientException catch (e) {
+      debugPrint('[MissionsApi] acceptMission: network error - $e');
+      throw const MissionsApiException('Erreur réseau. Vérifiez votre connexion.');
+    } on FormatException catch (e) {
+      debugPrint('[MissionsApi] acceptMission: JSON parse error - $e');
+      throw const MissionsApiException('Réponse invalide du serveur');
+    } on Exception catch (e) {
+      if (e is MissionsApiException || e is AuthException) rethrow;
+      debugPrint('[MissionsApi] acceptMission: unexpected error - $e');
+      throw const MissionsApiException('Erreur inattendue');
+    }
+  }
+
+  /// Starts a mission (assigned -> in_progress).
+  ///
+  /// Calls `POST /api/v1/missions-local/:id/start`.
+  ///
+  /// Precondition: mission.status must be "assigned" and user is the assigned worker.
+  /// Result: mission status becomes "in_progress".
+  ///
+  /// **PR-F24:** Worker Flow - Start Mission.
+  ///
+  /// Throws:
+  /// - [UnauthorizedException] if not authenticated
+  /// - [MissionsApiException] if mission cannot be started
+  Future<Mission> startMission(String missionId) async {
+    debugPrint('[MissionsApi] Starting mission: $missionId');
+
+    // Validate ID
+    if (missionId.isEmpty) {
+      debugPrint('[MissionsApi] startMission: empty ID provided');
+      throw const MissionsApiException('ID de mission invalide');
+    }
+
+    // Check auth
+    if (!AuthService.hasSession) {
+      debugPrint('[MissionsApi] startMission: no active session');
+      throw const UnauthorizedException();
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      debugPrint('[MissionsApi] startMission: no token available');
+      throw const UnauthorizedException();
+    }
+
+    final uri = ApiClient.buildUri('/missions-local/$missionId/start');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    debugPrint('[MissionsApi] POST $uri');
+
+    try {
+      final response = await ApiClient.client
+          .post(uri, headers: headers)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[MissionsApi] startMission response: ${response.statusCode}');
+
+      if (response.statusCode == 401) {
+        debugPrint('[MissionsApi] startMission: unauthorized');
+        throw const UnauthorizedException();
+      }
+
+      if (response.statusCode == 403) {
+        final errorBody = _tryParseError(response.body);
+        debugPrint('[MissionsApi] startMission: forbidden - $errorBody');
+        throw MissionsApiException(errorBody ?? 'Vous ne pouvez pas démarrer cette mission');
+      }
+
+      if (response.statusCode == 404) {
+        debugPrint('[MissionsApi] startMission: not found');
+        throw const MissionsApiException('Mission non trouvée');
+      }
+
+      // 400 or 409: mission cannot be started (wrong status, etc.)
+      if (response.statusCode == 400 || response.statusCode == 409) {
+        final errorBody = _tryParseError(response.body);
+        debugPrint('[MissionsApi] startMission: conflict/bad request - $errorBody');
+        throw MissionsApiException(errorBody ?? 'Impossible de démarrer cette mission');
+      }
+
+      if (response.statusCode >= 500) {
+        debugPrint('[MissionsApi] startMission: server error');
+        throw const MissionsApiException('Erreur serveur. Réessayez plus tard.');
+      }
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        final errorBody = _tryParseError(response.body);
+        debugPrint('[MissionsApi] startMission: error ${response.statusCode} - $errorBody');
+        throw MissionsApiException(errorBody ?? 'Erreur lors du démarrage');
+      }
+
+      final json = jsonDecode(response.body);
+      final data = json is Map<String, dynamic>
+          ? (json['data'] ?? json)
+          : json;
+
+      final mission = Mission.fromJson(data as Map<String, dynamic>);
+      debugPrint('[MissionsApi] startMission: success - ${mission.id} now ${mission.status}');
+      return mission;
+    } on TimeoutException {
+      debugPrint('[MissionsApi] startMission: timeout');
+      throw const MissionsApiException('Délai de connexion dépassé');
+    } on http.ClientException catch (e) {
+      debugPrint('[MissionsApi] startMission: network error - $e');
+      throw const MissionsApiException('Erreur réseau. Vérifiez votre connexion.');
+    } on FormatException catch (e) {
+      debugPrint('[MissionsApi] startMission: JSON parse error - $e');
+      throw const MissionsApiException('Réponse invalide du serveur');
+    } on Exception catch (e) {
+      if (e is MissionsApiException || e is AuthException) rethrow;
+      debugPrint('[MissionsApi] startMission: unexpected error - $e');
+      throw const MissionsApiException('Erreur inattendue');
+    }
+  }
+
+  /// Completes a mission (in_progress -> completed).
+  ///
+  /// Calls `POST /api/v1/missions-local/:id/complete`.
+  ///
+  /// Precondition: mission.status must be "in_progress" (or "assigned") and user is the assigned worker.
+  /// Result: mission status becomes "completed".
+  ///
+  /// **PR-F25:** Worker Flow - Complete Mission.
+  ///
+  /// Throws:
+  /// - [UnauthorizedException] if not authenticated
+  /// - [MissionsApiException] if mission cannot be completed
+  Future<Mission> completeMission(String missionId) async {
+    debugPrint('[MissionsApi] Completing mission: $missionId');
+
+    // Validate ID
+    if (missionId.isEmpty) {
+      debugPrint('[MissionsApi] completeMission: empty ID provided');
+      throw const MissionsApiException('ID de mission invalide');
+    }
+
+    // Check auth
+    if (!AuthService.hasSession) {
+      debugPrint('[MissionsApi] completeMission: no active session');
+      throw const UnauthorizedException();
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      debugPrint('[MissionsApi] completeMission: no token available');
+      throw const UnauthorizedException();
+    }
+
+    final uri = ApiClient.buildUri('/missions-local/$missionId/complete');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    debugPrint('[MissionsApi] POST $uri');
+
+    try {
+      final response = await ApiClient.client
+          .post(uri, headers: headers)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[MissionsApi] completeMission response: ${response.statusCode}');
+
+      if (response.statusCode == 401) {
+        debugPrint('[MissionsApi] completeMission: unauthorized');
+        throw const UnauthorizedException();
+      }
+
+      if (response.statusCode == 403) {
+        final errorBody = _tryParseError(response.body);
+        debugPrint('[MissionsApi] completeMission: forbidden - $errorBody');
+        throw MissionsApiException(errorBody ?? 'Vous ne pouvez pas terminer cette mission');
+      }
+
+      if (response.statusCode == 404) {
+        debugPrint('[MissionsApi] completeMission: not found');
+        throw const MissionsApiException('Mission non trouvée');
+      }
+
+      // 400 or 409: mission cannot be completed (wrong status, etc.)
+      if (response.statusCode == 400 || response.statusCode == 409) {
+        final errorBody = _tryParseError(response.body);
+        debugPrint('[MissionsApi] completeMission: conflict/bad request - $errorBody');
+        throw MissionsApiException(errorBody ?? 'Impossible de terminer cette mission');
+      }
+
+      if (response.statusCode >= 500) {
+        debugPrint('[MissionsApi] completeMission: server error');
+        throw const MissionsApiException('Erreur serveur. Réessayez plus tard.');
+      }
+
+      if (response.statusCode != 200 && response.statusCode != 201 && response.statusCode != 204) {
+        final errorBody = _tryParseError(response.body);
+        debugPrint('[MissionsApi] completeMission: error ${response.statusCode} - $errorBody');
+        throw MissionsApiException(errorBody ?? 'Erreur lors de la complétion');
+      }
+
+      // Handle 204 No Content or empty body
+      if (response.statusCode == 204 || response.body.isEmpty) {
+        debugPrint('[MissionsApi] completeMission: success (204/no content)');
+        // Return a placeholder - caller should refresh to get updated mission
+        return Mission(
+          id: missionId,
+          title: '',
+          description: '',
+          category: '',
+          price: 0,
+          latitude: 0,
+          longitude: 0,
+          city: '',
+          status: MissionStatus.completed,
+          createdAt: DateTime.now(),
+        );
+      }
+
+      final json = jsonDecode(response.body);
+      final data = json is Map<String, dynamic>
+          ? (json['data'] ?? json)
+          : json;
+
+      final mission = Mission.fromJson(data as Map<String, dynamic>);
+      debugPrint('[MissionsApi] completeMission: success - ${mission.id} now ${mission.status}');
+      return mission;
+    } on TimeoutException {
+      debugPrint('[MissionsApi] completeMission: timeout');
+      throw const MissionsApiException('Délai de connexion dépassé');
+    } on http.ClientException catch (e) {
+      debugPrint('[MissionsApi] completeMission: network error - $e');
+      throw const MissionsApiException('Erreur réseau. Vérifiez votre connexion.');
+    } on FormatException catch (e) {
+      debugPrint('[MissionsApi] completeMission: JSON parse error - $e');
+      throw const MissionsApiException('Réponse invalide du serveur');
+    } on Exception catch (e) {
+      if (e is MissionsApiException || e is AuthException) rethrow;
+      debugPrint('[MissionsApi] completeMission: unexpected error - $e');
+      throw const MissionsApiException('Erreur inattendue');
+    }
+  }
+
+  /// Tries to parse error message from response body.
+  String? _tryParseError(String body) {
+    try {
+      final json = jsonDecode(body);
+      if (json is Map<String, dynamic>) {
+        return json['message'] as String? ?? json['error'] as String?;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   /// Handles list response parsing.
   List<Mission> _handleListResponse(http.Response response) {
     if (response.statusCode == 401 || response.statusCode == 403) {
