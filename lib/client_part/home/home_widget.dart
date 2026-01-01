@@ -27,6 +27,7 @@ import '/client_part/ratings/rating_modal.dart';
 import '/client_part/missions/complete/complete_button.dart';
 import '/client_part/missions/complete/complete_handler.dart';
 import '/client_part/payments/pay_button.dart';
+import '/client_part/payments/payment_receipt_screen.dart';
 import '/services/payments/stripe_service.dart';
 import 'dart:ui';
 import '/index.dart';
@@ -2189,11 +2190,14 @@ class _HomeWidgetState extends State<HomeWidget> {
       switch (result) {
         case PaymentSheetSuccess():
           debugPrint('[PaymentFlow] ✅ Payment succeeded for ${mission.id}');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Paiement réussi! 🎉'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 3),
+          // PR-7: Navigate to payment receipt screen
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => PaymentReceiptScreen(
+                mission: mission,
+                amount: (mission.price * 100).round(), // Convert to cents
+                currency: 'CAD',
+              ),
             ),
           );
           // Refresh mission list to update status
