@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 
 import '../api/api_client.dart';
 import '../auth/auth_service.dart';
+import '../auth/auth_errors.dart';
 import '../auth/token_storage.dart';
 import 'ratings_models.dart';
 
@@ -69,7 +70,8 @@ class RatingsApi {
       debugPrint('[RatingsApi] getSummary: ${response.statusCode}');
 
       if (response.statusCode == 401 || response.statusCode == 403) {
-        throw const RatingsApiException('Session expirée');
+        // PR-SESSION: Throw UnauthorizedException for explicit 401 detection
+        throw const UnauthorizedException();
       }
 
       if (response.statusCode == 404) {
@@ -134,7 +136,8 @@ class RatingsApi {
       debugPrint('[RatingsApi] getReviews: ${response.statusCode}');
 
       if (response.statusCode == 401 || response.statusCode == 403) {
-        throw const RatingsApiException('Session expirée');
+        // PR-SESSION: Throw UnauthorizedException for explicit 401 detection
+        throw const UnauthorizedException();
       }
 
       if (response.statusCode == 404) {
@@ -202,7 +205,8 @@ class RatingsApi {
       debugPrint('[RatingsApi] createReview: ${response.statusCode}');
 
       if (response.statusCode == 401 || response.statusCode == 403) {
-        throw const RatingsApiException('Session expirée');
+        // PR-SESSION: Throw UnauthorizedException for explicit 401 detection
+        throw const UnauthorizedException();
       }
 
       if (response.statusCode == 409) {

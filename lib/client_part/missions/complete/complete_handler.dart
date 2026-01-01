@@ -14,10 +14,13 @@ class CompleteMissionResult {
   const CompleteMissionResult({
     required this.isSuccess,
     this.errorMessage,
+    this.isUnauthorized = false,
   });
 
   final bool isSuccess;
   final String? errorMessage;
+  /// PR-SESSION: Flag to indicate 401 unauthorized (session expired)
+  final bool isUnauthorized;
 }
 
 /// Handles the complete mission action.
@@ -36,9 +39,10 @@ Future<CompleteMissionResult> handleCompleteMission(String missionId) async {
     return const CompleteMissionResult(isSuccess: true);
   } on UnauthorizedException {
     debugPrint('[CompleteHandler] Unauthorized');
+    // PR-SESSION: Mark as unauthorized so caller can trigger SessionGuard
     return const CompleteMissionResult(
       isSuccess: false,
-      errorMessage: 'Session expirée. Veuillez vous reconnecter.',
+      isUnauthorized: true,
     );
   } on MissionsApiException catch (e) {
     debugPrint('[CompleteHandler] API error: ${e.message}');

@@ -15,11 +15,14 @@ class RatingSubmissionResult {
     required this.isSuccess,
     required this.isAlreadyRated,
     this.errorMessage,
+    this.isUnauthorized = false,
   });
 
   final bool isSuccess;
   final bool isAlreadyRated;
   final String? errorMessage;
+  /// PR-SESSION: Flag to indicate 401 unauthorized (session expired)
+  final bool isUnauthorized;
 }
 
 /// Shows the rating modal bottom sheet.
@@ -101,9 +104,18 @@ class _RatingModalContentState extends State<_RatingModalContent> {
         final errorMessage = result.errorMessage ?? 'Impossible d\'envoyer l\'évaluation';
         debugPrint('[RatingModal] Rating error: $errorMessage');
 
-        final isAlreadyRated = errorMessage.contains('déjà');
-
-        if (isAlreadyRated) {
+        // PR-SESSION: Check explicit isUnauthorized flag (never inferred from text)
+        if (result.isUnauthorized) {
+          // Session expired - close modal and let caller handle redirect
+          Navigator.of(context).pop(
+            RatingSubmissionResult(
+              isSuccess: false,
+              isAlreadyRated: false,
+              isUnauthorized: true,
+              errorMessage: errorMessage,
+            ),
+          );
+        } else if (errorMessage.contains('déjà')) {
           // Already rated - close modal and report
           Navigator.of(context).pop(
             RatingSubmissionResult(
