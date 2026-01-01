@@ -142,7 +142,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                     ),
                                     Text(
                                       FFLocalizations.of(context).getText(
-                                        'kqhpslw5' /* Sparkly */,
+                                        'kqhpslw5' /* WorkOn */,
                                       ),
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium
@@ -417,7 +417,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                           ),
                                           Text(
                                             FFLocalizations.of(context).getText(
-                                              '8m1xdu51' /* Sparkly */,
+                                              '8m1xdu51' /* WorkOn */,
                                             ),
                                             style: FlutterFlowTheme.of(context)
                                                 .bodyMedium
@@ -1332,7 +1332,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                     ),
                                     Text(
                                       FFLocalizations.of(context).getText(
-                                        'ns9943dv' /* Sparkly */,
+                                        'ns9943dv' /* WorkOn */,
                                       ),
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium

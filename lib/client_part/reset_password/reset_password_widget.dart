@@ -137,7 +137,7 @@ class _ResetPasswordWidgetState extends State<ResetPasswordWidget> {
                                     ),
                                     Text(
                                       FFLocalizations.of(context).getText(
-                                        '3u3p55cg' /* Sparkly */,
+                                        '3u3p55cg' /* WorkOn */,
                                       ),
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium
@@ -461,7 +461,7 @@ class _ResetPasswordWidgetState extends State<ResetPasswordWidget> {
                                           ),
                                           Text(
                                             FFLocalizations.of(context).getText(
-                                              'abgrpw8s' /* Sparkly */,
+                                              'abgrpw8s' /* WorkOn */,
                                             ),
                                             style: FlutterFlowTheme.of(context)
                                                 .bodyMedium
@@ -1391,7 +1391,7 @@ class _ResetPasswordWidgetState extends State<ResetPasswordWidget> {
                                     ),
                                     Text(
                                       FFLocalizations.of(context).getText(
-                                        'qfojv3te' /* Sparkly */,
+                                        'qfojv3te' /* WorkOn */,
                                       ),
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium

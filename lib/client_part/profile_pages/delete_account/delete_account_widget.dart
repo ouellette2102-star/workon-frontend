@@ -138,7 +138,7 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                                     ),
                                     Text(
                                       FFLocalizations.of(context).getText(
-                                        'e7xe20q4' /* Sparkly */,
+                                        'e7xe20q4' /* WorkOn */,
                                       ),
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium
@@ -388,7 +388,7 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                                           ),
                                           Text(
                                             FFLocalizations.of(context).getText(
-                                              'r2ezrzks' /* Sparkly */,
+                                              'r2ezrzks' /* WorkOn */,
                                             ),
                                             style: FlutterFlowTheme.of(context)
                                                 .bodyMedium
@@ -1303,7 +1303,7 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                                     ),
                                     Text(
                                       FFLocalizations.of(context).getText(
-                                        'v096hcw8' /* Sparkly */,
+                                        'v096hcw8' /* WorkOn */,
                                       ),
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium

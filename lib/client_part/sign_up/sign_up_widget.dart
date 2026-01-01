@@ -99,7 +99,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                   children: [
                     Text(
                       FFLocalizations.of(context).getText(
-                        'ocqoppa7' /* Welcome to Sparkly! */,
+                        'ocqoppa7' /* Welcome to WorkOn! */,
                       ),
                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                             fontFamily: 'General Sans',

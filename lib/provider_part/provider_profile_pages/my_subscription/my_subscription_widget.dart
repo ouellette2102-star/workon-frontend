@@ -143,7 +143,7 @@ class _MySubscriptionWidgetState extends State<MySubscriptionWidget> {
                         ),
                         Text(
                           FFLocalizations.of(context).getText(
-                            'v20zn2py' /* Sparkly Pro */,
+                            'v20zn2py' /* WorkOn Pro */,
                           ),
                           style:
                               FlutterFlowTheme.of(context).bodyMedium.override(
@@ -235,7 +235,7 @@ class _MySubscriptionWidgetState extends State<MySubscriptionWidget> {
                                       children: [
                                         Text(
                                           FFLocalizations.of(context).getText(
-                                            'i8fleoy7' /* Sparkly Pro */,
+                                            'i8fleoy7' /* WorkOn Pro */,
                                           ),
                                           style: FlutterFlowTheme.of(context)
                                               .bodyMedium

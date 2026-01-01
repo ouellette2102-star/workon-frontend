@@ -162,7 +162,7 @@ class _PricingPlansWidgetState extends State<PricingPlansWidget> {
                             children: [
                               Text(
                                 FFLocalizations.of(context).getText(
-                                  '44o0d88r' /* Sparkly Pro */,
+                                  '44o0d88r' /* WorkOn Pro */,
                                 ),
                                 style: FlutterFlowTheme.of(context)
                                     .bodyMedium

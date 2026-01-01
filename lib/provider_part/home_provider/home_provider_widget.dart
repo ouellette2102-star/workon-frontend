@@ -741,7 +741,7 @@ class _HomeProviderWidgetState extends State<HomeProviderWidget> {
                                       ),
                                       Text(
                                         FFLocalizations.of(context).getText(
-                                          'ag1d0jc1' /* Sparkly Professional */,
+                                          'ag1d0jc1' /* WorkOn Professional */,
                                         ),
                                         style: FlutterFlowTheme.of(context)
                                             .bodyMedium

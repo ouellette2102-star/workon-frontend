@@ -552,7 +552,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                                   Flexible(
                                     child: Text(
                                       FFLocalizations.of(context).getText(
-                                        '3vbjs4eu' /* About Sparkly */,
+                                        '3vbjs4eu' /* About WorkOn */,
                                       ),
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium

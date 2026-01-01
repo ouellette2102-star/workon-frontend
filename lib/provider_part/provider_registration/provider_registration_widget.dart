@@ -184,7 +184,7 @@ class _ProviderRegistrationWidgetState
                               ),
                               Text(
                                 FFLocalizations.of(context).getText(
-                                  'gfg7dcmv' /* Start making money on Sparkly ... */,
+                                  'gfg7dcmv' /* Start making money on WorkOn ... */,
                                 ),
                                 textAlign: TextAlign.center,
                                 style: FlutterFlowTheme.of(context)

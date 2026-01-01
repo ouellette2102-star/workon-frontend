@@ -108,7 +108,7 @@ class _AboutWidgetState extends State<AboutWidget> {
                   ),
                   Text(
                     FFLocalizations.of(context).getText(
-                      'nxfhlrfu' /* Sparkly v1.0.0 */,
+                      'nxfhlrfu' /* WorkOn v1.0.0 */,
                     ),
                     style: FlutterFlowTheme.of(context).bodyMedium.override(
                           fontFamily: 'General Sans',

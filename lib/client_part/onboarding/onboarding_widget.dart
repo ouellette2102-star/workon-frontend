@@ -461,7 +461,7 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
                         ),
                         Text(
                           FFLocalizations.of(context).getText(
-                            'f8ob8t3r' /* Sparkly */,
+                            'f8ob8t3r' /* WorkOn */,
                           ),
                           style:
                               FlutterFlowTheme.of(context).bodyMedium.override(

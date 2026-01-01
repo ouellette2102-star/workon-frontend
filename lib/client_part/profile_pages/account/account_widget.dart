@@ -315,7 +315,7 @@ class _AccountWidgetState extends State<AccountWidget> {
                                             Text(
                                               FFLocalizations.of(context)
                                                   .getText(
-                                                '3e57fla4' /* Make money with Sparkly */,
+                                                '3e57fla4' /* Make money with WorkOn */,
                                               ),
                                               maxLines: 1,
                                               style: FlutterFlowTheme.of(

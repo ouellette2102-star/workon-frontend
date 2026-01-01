@@ -82,7 +82,7 @@ class _TransactionItemWidgetState extends State<TransactionItemWidget> {
                     Flexible(
                       child: Text(
                         FFLocalizations.of(context).getText(
-                          'qzx9xz8z' /* $65,960.00 from Sparkly */,
+                          'qzx9xz8z' /* $65,960.00 from WorkOn */,
                         ),
                         maxLines: 1,
                         style: FlutterFlowTheme.of(context).bodyMedium.override(

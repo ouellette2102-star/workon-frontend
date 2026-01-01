@@ -346,7 +346,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                       ),
                                       Text(
                                         FFLocalizations.of(context).getText(
-                                          '9yaemsl0' /* Sparkly Professional */,
+                                          '9yaemsl0' /* WorkOn Professional */,
                                         ),
                                         style: FlutterFlowTheme.of(context)
                                             .bodyMedium
