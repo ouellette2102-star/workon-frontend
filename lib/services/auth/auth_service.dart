@@ -174,6 +174,9 @@ abstract final class AuthService {
   /// Returns the current user, or null if not authenticated.
   static AuthUser? get currentUser => _currentSession?.user;
 
+  /// Returns the current user's ID, or null if not authenticated.
+  static String? get currentUserId => _currentSession?.user.id;
+
   /// Returns the current tokens, or null if not authenticated.
   static AuthTokens? get currentTokens => _currentSession?.tokens;
 

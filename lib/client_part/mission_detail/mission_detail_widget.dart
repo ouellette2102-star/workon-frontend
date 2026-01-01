@@ -303,7 +303,7 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                 style: FlutterFlowTheme.of(context).bodyMedium.override(
                       fontFamily: 'General Sans',
                       letterSpacing: 0.0,
-                      height: 1.5,
+                      lineHeight: 1.5,
                     ),
               ),
             ),
@@ -889,7 +889,7 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
                     color: FlutterFlowTheme.of(context).secondaryText,
                     fontSize: 11,
                     letterSpacing: 0.0,
-                    height: 1.4,
+                    lineHeight: 1.4,
                   ),
             ),
           ),

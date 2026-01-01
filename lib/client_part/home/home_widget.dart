@@ -2383,8 +2383,6 @@ class _HomeWidgetState extends State<HomeWidget> {
         return WkStatusColors.completed;
       case MissionStatus.cancelled:
         return WkStatusColors.cancelled;
-      case MissionStatus.unknown:
-        return WkStatusColors.unknown;
     }
   }
 

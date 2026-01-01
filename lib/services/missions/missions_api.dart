@@ -726,7 +726,9 @@ class MissionsApi {
           longitude: 0,
           city: '',
           status: MissionStatus.completed,
+          createdByUserId: '',
           createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
       }
 

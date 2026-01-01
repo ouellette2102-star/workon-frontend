@@ -51,8 +51,8 @@ class SessionExpiredException extends AuthException {
 
 /// Thrown when there is a network or server error during auth.
 class AuthNetworkException extends AuthException {
-  /// Creates an [AuthNetworkException].
-  const AuthNetworkException()
-      : super('Unable to connect. Please check your connection');
+  /// Creates an [AuthNetworkException] with optional message.
+  const AuthNetworkException([String message = 'Unable to connect. Please check your connection'])
+      : super(message);
 }
 

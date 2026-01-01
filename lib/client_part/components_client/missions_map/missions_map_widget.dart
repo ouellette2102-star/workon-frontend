@@ -15,7 +15,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
 import '/config/app_config.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_util.dart';
+import '/flutter_flow/flutter_flow_util.dart' hide LatLng;
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/services/location/location_service.dart';
 import '/services/missions/mission_models.dart';
