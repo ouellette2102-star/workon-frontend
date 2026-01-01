@@ -2197,7 +2197,7 @@ class _HomeWidgetState extends State<HomeWidget> {
             ),
           );
           // Refresh mission list to update status
-          _refreshMissions();
+          _loadMissions();
 
         case PaymentSheetCancelled():
           debugPrint('[PaymentFlow] User cancelled payment for ${mission.id}');

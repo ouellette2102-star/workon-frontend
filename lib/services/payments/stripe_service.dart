@@ -5,7 +5,10 @@
 /// **PR-5:** Stripe Payment Sheet integration.
 library;
 
+import 'dart:ui' show Color;
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_stripe/flutter_stripe.dart';
 
 import '/config/app_config.dart';
