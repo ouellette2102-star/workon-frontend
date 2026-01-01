@@ -75,23 +75,32 @@ class UserApi {
           .get(uri, headers: headers)
           .timeout(ApiClient.connectionTimeout);
 
+      // PR-8: Enhanced logging for debugging profile load issues
       debugPrint('[UserApi] fetchMe response: ${response.statusCode}');
+      if (response.statusCode != 200) {
+        debugPrint('[UserApi] fetchMe body: ${response.body}');
+      }
 
       // Check response
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        debugPrint('[UserApi] fetchMe: unauthorized/forbidden');
-        throw UserApiException('Unauthorized: ${response.statusCode}');
+      if (response.statusCode == 401) {
+        debugPrint('[UserApi] fetchMe: 401 Unauthorized - session expired');
+        throw const UserApiException('Session expirée');
+      }
+
+      if (response.statusCode == 403) {
+        debugPrint('[UserApi] fetchMe: 403 Forbidden');
+        throw const UserApiException('Accès refusé');
       }
 
       if (response.statusCode >= 500) {
         debugPrint('[UserApi] fetchMe: server error ${response.statusCode}');
-        throw UserApiException('Server error: ${response.statusCode}');
+        throw UserApiException('Erreur serveur: ${response.statusCode}');
       }
 
       if (response.statusCode != 200) {
         debugPrint('[UserApi] fetchMe: unexpected status ${response.statusCode}');
         throw UserApiException(
-          'Failed to fetch profile: ${response.statusCode}',
+          'Erreur ${response.statusCode}',
         );
       }
 

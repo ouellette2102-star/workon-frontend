@@ -8,6 +8,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/services/user/user_service.dart';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -98,16 +99,27 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
           _isLoading = false;
         });
       } else if (mounted) {
+        debugPrint('[EditProfile] fetchCurrentProfile returned null');
         setState(() {
           _isLoading = false;
           _loadError = WkCopy.profileLoadError;
         });
       }
     } catch (e) {
+      // PR-8: Enhanced error logging for profile load issues
+      debugPrint('[EditProfile] Error loading profile: $e');
       if (mounted) {
+        // Check for session expired message
+        final errorStr = e.toString();
+        final isSessionExpired = errorStr.contains('401') ||
+            errorStr.contains('expirée') ||
+            errorStr.contains('Unauthorized');
+
         setState(() {
           _isLoading = false;
-          _loadError = WkCopy.profileLoadError;
+          _loadError = isSessionExpired
+              ? 'Session expirée. Veuillez vous reconnecter.'
+              : WkCopy.profileLoadError;
         });
       }
     }
