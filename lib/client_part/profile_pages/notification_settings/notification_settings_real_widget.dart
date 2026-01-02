@@ -8,6 +8,7 @@ import '/services/errors/error_handler.dart';
 import '/services/push/notification_prefs.dart';
 import '/services/push/push_api.dart';
 import '/services/push/push_config.dart';
+import '/services/push/push_service.dart';
 import 'package:flutter/material.dart';
 
 /// PR-08: Real notification settings with persistence and device registration.
@@ -30,6 +31,9 @@ class _NotificationSettingsRealWidgetState
   bool _isLoading = true;
   bool _isRegistering = false;
   String? _errorMessage;
+  
+  /// PR-22: Push status for UI feedback
+  PushStatus _pushStatus = PushStatus.unknown;
 
   // Preference values
   bool _generalEnabled = true;
@@ -51,6 +55,23 @@ class _NotificationSettingsRealWidgetState
   void initState() {
     super.initState();
     _loadPreferences();
+    // PR-22: Listen to push status changes
+    _pushStatus = PushService.status;
+    PushService.statusListenable.addListener(_onPushStatusChanged);
+  }
+
+  @override
+  void dispose() {
+    PushService.statusListenable.removeListener(_onPushStatusChanged);
+    super.dispose();
+  }
+
+  void _onPushStatusChanged() {
+    if (mounted) {
+      setState(() {
+        _pushStatus = PushService.status;
+      });
+    }
   }
 
   Future<void> _loadPreferences() async {
@@ -141,48 +162,43 @@ class _NotificationSettingsRealWidgetState
     }
   }
 
+  /// PR-22: Register device using PushService with retry/backoff.
   Future<void> _registerDevice() async {
     if (!PushConfig.enabled) {
       debugPrint('[NotificationSettings] Push disabled by config');
       return;
     }
 
-    // Get stored token or try to get a new one
-    String? token = await NotificationPrefs.getDeviceToken();
+    // Use PushService which handles retry/backoff
+    final success = await PushService.retryRegistration();
 
-    // If no token, show guidance
-    if (token == null || token.isEmpty) {
-      debugPrint('[NotificationSettings] No device token available');
-
-      // For now, we'll use a placeholder. When Firebase is configured,
-      // this will use FirebaseMessaging.instance.getToken()
-      // TODO: When Firebase is configured, get real token here
-      
+    if (!success && _pushStatus == PushStatus.tokenUnavailable) {
+      // Show guidance when token is unavailable
       if (!mounted) return;
       
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text(
             'Token de notification indisponible. '
-            'Les notifications seront activées dès que possible.',
+            'Vérifie que les notifications sont autorisées dans les paramètres de ton téléphone.',
+          ),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 5),
+        ),
+      );
+    } else if (!success && _pushStatus == PushStatus.pendingRegistration) {
+      // Registration will be retried automatically
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Connexion en cours... Les notifications seront activées automatiquement.',
           ),
           behavior: SnackBarBehavior.floating,
         ),
       );
-      
-      // Still mark as "wanting notifications" even without token
-      await NotificationPrefs.setDeviceRegistered(false);
-      return;
-    }
-
-    final platform = Platform.isAndroid ? 'android' : 'ios';
-    final success = await _api.registerDevice(token: token, platform: platform);
-
-    if (success) {
-      await NotificationPrefs.setDeviceRegistered(true);
-      debugPrint('[NotificationSettings] Device registered successfully');
-    } else {
-      debugPrint('[NotificationSettings] Device registration failed');
+    } else if (!success) {
       throw Exception('Registration failed');
     }
   }
@@ -325,16 +341,8 @@ class _NotificationSettingsRealWidgetState
           _buildMasterToggle(context),
           SizedBox(height: WkSpacing.xl),
 
-          // Push status info
-          if (!PushConfig.enabled) ...[
-            _buildInfoCard(
-              context,
-              icon: Icons.info_outline,
-              message: 'Les notifications push seront disponibles prochainement.',
-              color: FlutterFlowTheme.of(context).primary,
-            ),
-            SizedBox(height: WkSpacing.xl),
-          ],
+          // PR-22: Push status info cards
+          ..._buildStatusCards(context),
 
           // Categories
           _buildSectionTitle(context, 'Sécurité et compte'),
@@ -600,11 +608,93 @@ class _NotificationSettingsRealWidgetState
     );
   }
 
+  /// PR-22: Builds status cards based on push status.
+  List<Widget> _buildStatusCards(BuildContext context) {
+    final cards = <Widget>[];
+
+    // Push disabled by config
+    if (!PushConfig.enabled) {
+      cards.add(_buildInfoCard(
+        context,
+        icon: Icons.info_outline,
+        message: 'Les notifications push seront disponibles prochainement.',
+        color: FlutterFlowTheme.of(context).primary,
+      ));
+      cards.add(SizedBox(height: WkSpacing.xl));
+      return cards;
+    }
+
+    // Token unavailable
+    if (_pushStatus == PushStatus.tokenUnavailable && _generalEnabled) {
+      cards.add(_buildInfoCard(
+        context,
+        icon: Icons.warning_amber_outlined,
+        message: 
+            'Token de notification indisponible. '
+            'Vérifie que les notifications sont autorisées dans les paramètres système.',
+        color: WkStatusColors.cancelled,
+        action: TextButton(
+          onPressed: _openSystemSettings,
+          child: Text(
+            'Ouvrir les paramètres',
+            style: TextStyle(
+              color: WkStatusColors.cancelled,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ));
+      cards.add(SizedBox(height: WkSpacing.xl));
+    }
+
+    // Pending registration
+    if (_pushStatus == PushStatus.pendingRegistration && _generalEnabled) {
+      cards.add(_buildInfoCard(
+        context,
+        icon: Icons.sync,
+        message: 
+            'Enregistrement en cours... '
+            'Les notifications seront activées automatiquement.',
+        color: FlutterFlowTheme.of(context).warning,
+      ));
+      cards.add(SizedBox(height: WkSpacing.xl));
+    }
+
+    // Ready and registered
+    if (_pushStatus == PushStatus.ready && _generalEnabled) {
+      cards.add(_buildInfoCard(
+        context,
+        icon: Icons.check_circle_outline,
+        message: 'Notifications activées et prêtes à être reçues.',
+        color: WkStatusColors.active,
+      ));
+      cards.add(SizedBox(height: WkSpacing.xl));
+    }
+
+    return cards;
+  }
+
+  /// Opens system notification settings.
+  void _openSystemSettings() {
+    // This would use app_settings package in production
+    // For now, show a guidance message
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Ouvre Paramètres > Applications > WorkOn > Notifications',
+        ),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 5),
+      ),
+    );
+  }
+
   Widget _buildInfoCard(
     BuildContext context, {
     required IconData icon,
     required String message,
     required Color color,
+    Widget? action,
   }) {
     return Container(
       width: double.infinity,
@@ -616,20 +706,29 @@ class _NotificationSettingsRealWidgetState
           color: color.withOpacity(0.3),
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color),
-          SizedBox(width: WkSpacing.md),
-          Expanded(
-            child: Text(
-              message,
-              style: FlutterFlowTheme.of(context).bodySmall.override(
-                    fontFamily: 'General Sans',
-                    color: color,
-                    letterSpacing: 0.0,
-                  ),
-            ),
+          Row(
+            children: [
+              Icon(icon, color: color),
+              SizedBox(width: WkSpacing.md),
+              Expanded(
+                child: Text(
+                  message,
+                  style: FlutterFlowTheme.of(context).bodySmall.override(
+                        fontFamily: 'General Sans',
+                        color: color,
+                        letterSpacing: 0.0,
+                      ),
+                ),
+              ),
+            ],
           ),
+          if (action != null) ...[
+            SizedBox(height: WkSpacing.sm),
+            action,
+          ],
         ],
       ),
     );

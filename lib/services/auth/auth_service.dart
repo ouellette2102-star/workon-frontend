@@ -586,6 +586,8 @@ abstract final class AuthService {
       _setSession(AppSession.fromToken(accessToken));
       await UserService.setFromAuth(userId: user.id, email: user.email);
       UserService.refreshFromBackendIfPossible();
+      // PR-22: Register device for push notifications on session restore (fire-and-forget)
+      PushService.registerDeviceIfNeeded();
 
       debugPrint('[AuthService] Session restored for ${user.email}');
       return true;
