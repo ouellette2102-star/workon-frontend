@@ -19,6 +19,7 @@ import '/app/auth_gate.dart';
 import '/services/missions/mission_models.dart';
 import '/client_part/my_applications/my_applications_widget.dart';
 import '/client_part/employer_missions/employer_missions_widget.dart';
+import '/client_part/employer_missions/mission_applications_widget.dart';
 import '/client_part/saved/saved_missions_page.dart';
 
 export 'package:go_router/go_router.dart';
@@ -522,6 +523,20 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: EmployerMissionsWidget.routeName,
           path: EmployerMissionsWidget.routePath,
           builder: (context, params) => EmployerMissionsWidget(),
+        ),
+        // PR-02: Mission applications route
+        FFRoute(
+          name: MissionApplicationsWidget.routeName,
+          path: MissionApplicationsWidget.routePath,
+          builder: (context, params) {
+            final missionId = params.getParam('missionId', ParamType.String) ?? '';
+            final extra = params.extra as Map<String, dynamic>?;
+            final missionTitle = extra?['missionTitle'] as String?;
+            return MissionApplicationsWidget(
+              missionId: missionId,
+              missionTitle: missionTitle,
+            );
+          },
         ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

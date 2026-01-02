@@ -1,5 +1,6 @@
 import '/client_part/components_client/back_icon_btn/back_icon_btn_widget.dart';
 import '/client_part/create_mission/create_mission_widget.dart';
+import '/client_part/employer_missions/mission_applications_widget.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
 import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -402,17 +403,15 @@ class _EmployerMissionsWidgetState extends State<EmployerMissionsWidget> {
                         letterSpacing: 0.0,
                       ),
                 ),
-                // View Applications button (stub for PR-02)
+                // PR-02: View Applications button
                 if (mission.status == MissionStatus.open)
                   TextButton.icon(
                     onPressed: () {
-                      // PR-02: Will wire to applications list
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Voir les candidatures - Bientôt disponible'),
-                          backgroundColor: FlutterFlowTheme.of(context).primary,
-                          behavior: SnackBarBehavior.floating,
-                        ),
+                      // PR-02: Navigate to applications list
+                      context.pushNamed(
+                        MissionApplicationsWidget.routeName,
+                        pathParameters: {'missionId': mission.id},
+                        extra: {'missionTitle': mission.title},
                       );
                     },
                     icon: Icon(
