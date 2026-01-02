@@ -23,6 +23,7 @@ import '/client_part/employer_missions/mission_applications_widget.dart';
 import '/client_part/payments/transactions_widget.dart';
 import '/provider_part/jobs/jobs_real_widget.dart';
 import '/provider_part/earnings/earnings_real_widget.dart';
+import '/client_part/profile_pages/notification_settings/notification_settings_real_widget.dart';
 import '/client_part/saved/saved_missions_page.dart';
 
 export 'package:go_router/go_router.dart';
@@ -561,6 +562,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: EarningsRealWidget.routeName,
           path: EarningsRealWidget.routePath,
           builder: (context, params) => EarningsRealWidget(),
+        ),
+        // PR-08: Notification settings with persistence
+        FFRoute(
+          name: NotificationSettingsRealWidget.routeName,
+          path: NotificationSettingsRealWidget.routePath,
+          builder: (context, params) => NotificationSettingsRealWidget(),
         ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
