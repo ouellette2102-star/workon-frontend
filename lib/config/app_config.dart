@@ -6,8 +6,11 @@
 /// **PR-G2:** Added AppEnv enum, safety guards, and environment badge.
 library;
 
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PR-G2: Environment Enum
@@ -341,6 +344,54 @@ abstract final class AppConfig {
   static void notifyKillSwitchChanged() {
     killSwitchNotifier.value++;
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-H2: Forced Update / Minimum App Version
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Current app version (semantic versioning).
+  /// Set via: --dart-define=APP_VERSION=1.2.3
+  static const String appVersionH2 = String.fromEnvironment(
+    'APP_VERSION',
+    defaultValue: '1.0.0',
+  );
+
+  /// Minimum required app version.
+  /// Set via: --dart-define=MIN_APP_VERSION=1.0.0
+  static const String minAppVersion = String.fromEnvironment(
+    'MIN_APP_VERSION',
+    defaultValue: '1.0.0',
+  );
+
+  /// iOS App Store URL for forced update.
+  /// Set via: --dart-define=STORE_URL_IOS=https://apps.apple.com/app/id...
+  static const String storeUrlIos = String.fromEnvironment(
+    'STORE_URL_IOS',
+    defaultValue: 'https://apps.apple.com/app/workon',
+  );
+
+  /// Android Play Store URL for forced update.
+  /// Set via: --dart-define=STORE_URL_ANDROID=https://play.google.com/store/apps/details?id=...
+  static const String storeUrlAndroid = String.fromEnvironment(
+    'STORE_URL_ANDROID',
+    defaultValue: 'https://play.google.com/store/apps/details?id=com.workon.app',
+  );
+
+  /// Returns true if app version is below minimum required version.
+  /// Fail-open in release mode (returns false on parse error).
+  static bool get isUpdateRequired {
+    try {
+      final current = VersionUtils.parse(appVersionH2);
+      final minimum = VersionUtils.parse(minAppVersion);
+      return VersionUtils.compare(current, minimum) < 0;
+    } catch (e) {
+      // Fail-open: don't block app if version parsing fails
+      if (kDebugMode) {
+        debugPrint('[AppConfig] ⚠️ Version parse error: $e');
+      }
+      return false;
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -370,7 +421,12 @@ class EnvBadge extends StatelessWidget {
     return ValueListenableBuilder<int>(
       valueListenable: AppConfig.killSwitchNotifier,
       builder: (context, _, __) {
-        // PR-H1: Maintenance mode gate (highest priority)
+        // PR-H2: Forced update gate (highest priority)
+        if (AppConfig.isUpdateRequired) {
+          return const ForcedUpdateScreen();
+        }
+
+        // PR-H1: Maintenance mode gate
         if (AppConfig.maintenanceMode) {
           return const MaintenanceScreen();
         }
@@ -567,6 +623,194 @@ abstract final class KillSwitch {
         content: Text('Les paiements sont temporairement désactivés.'),
         backgroundColor: Color(0xFFF59E0B),
         behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-H2: Version Utilities
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Parsed semantic version (major.minor.patch).
+class Version {
+  const Version(this.major, this.minor, this.patch);
+
+  final int major;
+  final int minor;
+  final int patch;
+
+  @override
+  String toString() => '$major.$minor.$patch';
+}
+
+/// Utilities for semantic version parsing and comparison.
+abstract final class VersionUtils {
+  /// Parses a version string (e.g., "1.2.3") into a [Version] object.
+  /// Throws [FormatException] if the format is invalid.
+  static Version parse(String versionString) {
+    final parts = versionString.trim().split('.');
+    if (parts.isEmpty || parts.length > 3) {
+      throw FormatException('Invalid version format: $versionString');
+    }
+
+    int parseComponent(String s) {
+      final value = int.tryParse(s);
+      if (value == null || value < 0) {
+        throw FormatException('Invalid version component: $s');
+      }
+      return value;
+    }
+
+    final major = parseComponent(parts[0]);
+    final minor = parts.length > 1 ? parseComponent(parts[1]) : 0;
+    final patch = parts.length > 2 ? parseComponent(parts[2]) : 0;
+
+    return Version(major, minor, patch);
+  }
+
+  /// Compares two versions.
+  /// Returns negative if [a] < [b], zero if equal, positive if [a] > [b].
+  static int compare(Version a, Version b) {
+    if (a.major != b.major) return a.major.compareTo(b.major);
+    if (a.minor != b.minor) return a.minor.compareTo(b.minor);
+    return a.patch.compareTo(b.patch);
+  }
+
+  /// Opens the appropriate store URL based on platform.
+  static Future<void> openStore() async {
+    final String url;
+    try {
+      url = Platform.isIOS ? AppConfig.storeUrlIos : AppConfig.storeUrlAndroid;
+    } catch (_) {
+      // Platform not available (web), use Android URL
+      return;
+    }
+
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-H2: Forced Update Screen
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Full-screen forced update UI.
+///
+/// Displayed when [AppConfig.isUpdateRequired] is true.
+/// Shows a French message with a button to open the store.
+class ForcedUpdateScreen extends StatelessWidget {
+  const ForcedUpdateScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Update icon
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFDBEAFE),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.system_update_rounded,
+                      size: 64,
+                      color: Color(0xFF3B82F6),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  // Title
+                  const Text(
+                    'Mise à jour requise',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  // Description
+                  const Text(
+                    'Une nouvelle version de WorkOn est disponible. '
+                    'Veuillez mettre à jour l\'application pour continuer.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF64748B),
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 40),
+                  // Update button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => VersionUtils.openStore(),
+                      icon: const Icon(Icons.download_rounded),
+                      label: const Text('Mettre à jour'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3B82F6),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // "Plus tard" button - ONLY for dev/staging, NEVER in production
+                  if (!AppConfig.isProd && !kReleaseMode) ...[
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        // Skip update check (for testing only)
+                        AppConfig.notifyKillSwitchChanged();
+                      },
+                      child: const Text(
+                        'Plus tard (dev uniquement)',
+                        style: TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                  // Version info (debug only)
+                  if (kDebugMode) ...[
+                    const SizedBox(height: 24),
+                    Text(
+                      'Version: ${AppConfig.appVersionH2}\n'
+                      'Minimum: ${AppConfig.minAppVersion}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF94A3B8),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
