@@ -21,6 +21,8 @@ import '/client_part/my_applications/my_applications_widget.dart';
 import '/client_part/employer_missions/employer_missions_widget.dart';
 import '/client_part/employer_missions/mission_applications_widget.dart';
 import '/client_part/payments/transactions_widget.dart';
+import '/provider_part/jobs/jobs_real_widget.dart';
+import '/provider_part/earnings/earnings_real_widget.dart';
 import '/client_part/saved/saved_missions_page.dart';
 
 export 'package:go_router/go_router.dart';
@@ -544,6 +546,21 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: TransactionsWidget.routeName,
           path: TransactionsWidget.routePath,
           builder: (context, params) => TransactionsWidget(),
+        ),
+        // PR-07: Provider Jobs (real data)
+        FFRoute(
+          name: JobsRealWidget.routeName,
+          path: JobsRealWidget.routePath,
+          builder: (context, params) {
+            final initialTab = params.getParam('initialTab', ParamType.int) ?? 0;
+            return JobsRealWidget(initialTab: initialTab);
+          },
+        ),
+        // PR-07: Provider Earnings (real data)
+        FFRoute(
+          name: EarningsRealWidget.routeName,
+          path: EarningsRealWidget.routePath,
+          builder: (context, params) => EarningsRealWidget(),
         ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
