@@ -15,6 +15,7 @@ import 'package:intl/intl.dart';
 /// Shows all missions created by the employer with their status.
 ///
 /// **PR-01:** Initial implementation for employer my missions.
+/// **PR-10:** Added status filter tabs (Open/Active/Done).
 class EmployerMissionsWidget extends StatefulWidget {
   const EmployerMissionsWidget({super.key});
 
@@ -25,17 +26,78 @@ class EmployerMissionsWidget extends StatefulWidget {
   State<EmployerMissionsWidget> createState() => _EmployerMissionsWidgetState();
 }
 
+/// PR-10: Filter tabs for mission status
+enum _MissionFilter {
+  all,
+  open,
+  active,
+  done,
+}
+
 class _EmployerMissionsWidgetState extends State<EmployerMissionsWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  List<Mission> _missions = [];
+  List<Mission> _allMissions = [];
   bool _isLoading = true;
   String? _errorMessage;
+  
+  /// PR-10: Current filter selection
+  _MissionFilter _currentFilter = _MissionFilter.all;
 
   @override
   void initState() {
     super.initState();
     _loadMissions();
+  }
+
+  /// PR-10: Get filtered missions based on current filter
+  List<Mission> get _filteredMissions {
+    switch (_currentFilter) {
+      case _MissionFilter.all:
+        return _allMissions;
+      case _MissionFilter.open:
+        return _allMissions
+            .where((m) => m.status == MissionStatus.open)
+            .toList();
+      case _MissionFilter.active:
+        return _allMissions
+            .where((m) =>
+                m.status == MissionStatus.assigned ||
+                m.status == MissionStatus.inProgress)
+            .toList();
+      case _MissionFilter.done:
+        return _allMissions
+            .where((m) =>
+                m.status == MissionStatus.completed ||
+                m.status == MissionStatus.paid ||
+                m.status == MissionStatus.cancelled)
+            .toList();
+    }
+  }
+
+  /// PR-10: Get count for each filter
+  int _getFilterCount(_MissionFilter filter) {
+    switch (filter) {
+      case _MissionFilter.all:
+        return _allMissions.length;
+      case _MissionFilter.open:
+        return _allMissions
+            .where((m) => m.status == MissionStatus.open)
+            .length;
+      case _MissionFilter.active:
+        return _allMissions
+            .where((m) =>
+                m.status == MissionStatus.assigned ||
+                m.status == MissionStatus.inProgress)
+            .length;
+      case _MissionFilter.done:
+        return _allMissions
+            .where((m) =>
+                m.status == MissionStatus.completed ||
+                m.status == MissionStatus.paid ||
+                m.status == MissionStatus.cancelled)
+            .length;
+    }
   }
 
   Future<void> _loadMissions() async {
@@ -53,7 +115,7 @@ class _EmployerMissionsWidgetState extends State<EmployerMissionsWidget> {
       if (!mounted) return;
 
       setState(() {
-        _missions = missions;
+        _allMissions = missions;
         _isLoading = false;
       });
     } catch (e) {
@@ -87,6 +149,8 @@ class _EmployerMissionsWidgetState extends State<EmployerMissionsWidget> {
         child: Column(
           children: [
             _buildHeader(context),
+            // PR-10: Filter tabs
+            _buildFilterTabs(context),
             Expanded(child: _buildContent(context)),
           ],
         ),
@@ -130,6 +194,133 @@ class _EmployerMissionsWidgetState extends State<EmployerMissionsWidget> {
     );
   }
 
+  /// PR-10: Build filter tabs
+  Widget _buildFilterTabs(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: WkSpacing.pagePadding),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildFilterChip(
+              context,
+              filter: _MissionFilter.all,
+              label: 'Toutes',
+              icon: Icons.list_alt,
+            ),
+            SizedBox(width: WkSpacing.sm),
+            _buildFilterChip(
+              context,
+              filter: _MissionFilter.open,
+              label: 'Ouvertes',
+              icon: Icons.fiber_new,
+            ),
+            SizedBox(width: WkSpacing.sm),
+            _buildFilterChip(
+              context,
+              filter: _MissionFilter.active,
+              label: 'En cours',
+              icon: Icons.play_circle_outline,
+            ),
+            SizedBox(width: WkSpacing.sm),
+            _buildFilterChip(
+              context,
+              filter: _MissionFilter.done,
+              label: 'Terminées',
+              icon: Icons.check_circle_outline,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// PR-10: Build individual filter chip
+  Widget _buildFilterChip(
+    BuildContext context, {
+    required _MissionFilter filter,
+    required String label,
+    required IconData icon,
+  }) {
+    final isSelected = _currentFilter == filter;
+    final count = _getFilterCount(filter);
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _currentFilter = filter;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(
+          horizontal: WkSpacing.md,
+          vertical: WkSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? FlutterFlowTheme.of(context).primary
+              : FlutterFlowTheme.of(context).secondaryBackground,
+          borderRadius: BorderRadius.circular(WkRadius.md),
+          border: Border.all(
+            color: isSelected
+                ? FlutterFlowTheme.of(context).primary
+                : FlutterFlowTheme.of(context).alternate,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected
+                  ? Colors.white
+                  : FlutterFlowTheme.of(context).primaryText,
+            ),
+            SizedBox(width: WkSpacing.xs),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected
+                    ? Colors.white
+                    : FlutterFlowTheme.of(context).primaryText,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+            if (count > 0) ...[
+              SizedBox(width: WkSpacing.xs),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.white.withOpacity(0.2)
+                      : FlutterFlowTheme.of(context).primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    color: isSelected
+                        ? Colors.white
+                        : FlutterFlowTheme.of(context).primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildContent(BuildContext context) {
     if (_isLoading) {
       return _buildLoadingState(context);
@@ -139,8 +330,13 @@ class _EmployerMissionsWidgetState extends State<EmployerMissionsWidget> {
       return _buildErrorState(context);
     }
 
-    if (_missions.isEmpty) {
+    // PR-10: Check if all missions is empty vs filtered is empty
+    if (_allMissions.isEmpty) {
       return _buildEmptyState(context);
+    }
+
+    if (_filteredMissions.isEmpty) {
+      return _buildFilteredEmptyState(context);
     }
 
     return _buildMissionsList(context);
@@ -259,16 +455,88 @@ class _EmployerMissionsWidgetState extends State<EmployerMissionsWidget> {
     );
   }
 
+  /// PR-10: Empty state for filtered results
+  Widget _buildFilteredEmptyState(BuildContext context) {
+    String message;
+    IconData icon;
+
+    switch (_currentFilter) {
+      case _MissionFilter.open:
+        message = 'Aucune mission ouverte';
+        icon = Icons.fiber_new_outlined;
+        break;
+      case _MissionFilter.active:
+        message = 'Aucune mission en cours';
+        icon = Icons.play_circle_outline;
+        break;
+      case _MissionFilter.done:
+        message = 'Aucune mission terminée';
+        icon = Icons.check_circle_outline;
+        break;
+      case _MissionFilter.all:
+        message = 'Aucune mission';
+        icon = Icons.list_alt_outlined;
+        break;
+    }
+
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(WkSpacing.pagePadding),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 64,
+              color: FlutterFlowTheme.of(context).secondaryText,
+            ),
+            SizedBox(height: WkSpacing.lg),
+            Text(
+              message,
+              style: FlutterFlowTheme.of(context).headlineSmall.override(
+                    fontFamily: 'General Sans',
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.0,
+                  ),
+            ),
+            SizedBox(height: WkSpacing.sm),
+            Text(
+              'Essayez un autre filtre ou créez une nouvelle mission.',
+              textAlign: TextAlign.center,
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'General Sans',
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                    letterSpacing: 0.0,
+                  ),
+            ),
+            SizedBox(height: WkSpacing.xl),
+            OutlinedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _currentFilter = _MissionFilter.all;
+                });
+              },
+              icon: const Icon(Icons.clear_all),
+              label: const Text('Voir toutes les missions'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildMissionsList(BuildContext context) {
+    final missions = _filteredMissions; // PR-10: Use filtered list
+
     return RefreshIndicator(
       onRefresh: _loadMissions,
       color: FlutterFlowTheme.of(context).primary,
       child: ListView.separated(
         padding: EdgeInsets.all(WkSpacing.pagePadding),
-        itemCount: _missions.length,
+        itemCount: missions.length,
         separatorBuilder: (_, __) => SizedBox(height: WkSpacing.md),
         itemBuilder: (context, index) {
-          final mission = _missions[index];
+          final mission = missions[index];
           return _buildMissionCard(context, mission);
         },
       ),
