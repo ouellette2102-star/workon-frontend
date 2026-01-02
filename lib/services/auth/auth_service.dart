@@ -492,6 +492,12 @@ abstract final class AuthService {
   ///
   /// Call this at app startup to automatically log in returning users.
   /// Initializes [TokenStorage], checks for stored token, validates with backend.
+  /// 
+  /// **Uber-grade flow:**
+  /// 1. If access token exists → try /auth/me
+  /// 2. If /auth/me fails with 401 → try refresh token
+  /// 3. If refresh succeeds → retry /auth/me with new token
+  /// 4. If refresh fails → clear tokens and return false
   ///
   /// Returns `true` if session was restored successfully.
   /// Returns `false` if no token stored, token invalid, or network error.
@@ -516,22 +522,53 @@ abstract final class AuthService {
       }
 
       // Get stored token
-      final accessToken = TokenStorage.getToken();
+      var accessToken = TokenStorage.getToken();
       if (accessToken == null || accessToken.isEmpty) {
         debugPrint('[AuthService] Stored token is empty');
         return false;
       }
 
-      // Check if expired locally
+      // Check if expired locally - try refresh first before giving up
       if (TokenStorage.isExpired) {
-        debugPrint('[AuthService] Stored token is expired');
-        await TokenStorage.clearToken();
-        return false;
+        debugPrint('[AuthService] Stored token is expired, attempting refresh...');
+        final refreshed = await tryRefreshTokens();
+        if (!refreshed) {
+          debugPrint('[AuthService] Refresh failed, clearing tokens');
+          await TokenStorage.clearToken();
+          return false;
+        }
+        // Get the new token after refresh
+        accessToken = TokenStorage.getToken();
+        if (accessToken == null || accessToken.isEmpty) {
+          debugPrint('[AuthService] No token after refresh');
+          return false;
+        }
+        debugPrint('[AuthService] Token refreshed successfully');
       }
 
-      // Validate with backend
+      // Validate with backend (with retry on 401)
       debugPrint('[AuthService] Validating stored token with backend...');
-      final user = await _repository.me(accessToken: accessToken);
+      AuthUser user;
+      try {
+        user = await _repository.me(accessToken: accessToken);
+      } on UnauthorizedException {
+        // Token rejected by backend - try refresh once
+        debugPrint('[AuthService] Token rejected (401), attempting refresh...');
+        final refreshed = await tryRefreshTokens();
+        if (!refreshed) {
+          debugPrint('[AuthService] Refresh failed after 401');
+          await TokenStorage.clearToken();
+          return false;
+        }
+        // Retry /auth/me with new token
+        accessToken = TokenStorage.getToken();
+        if (accessToken == null || accessToken.isEmpty) {
+          debugPrint('[AuthService] No token after refresh');
+          return false;
+        }
+        debugPrint('[AuthService] Retrying /auth/me with refreshed token...');
+        user = await _repository.me(accessToken: accessToken);
+      }
 
       // Restore session
       final tokens = AuthTokens(
@@ -593,6 +630,153 @@ abstract final class AuthService {
     UserService.reset(); // PR#10
     _setSession(const AppSession.none()); // PR#11
     await TokenStorage.clearToken(); // PR-F04
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F2: Email Change
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Requests an email change by sending OTP to the new email address.
+  ///
+  /// This is the first step of the email change flow.
+  /// After calling this, the user should enter the 6-digit OTP code
+  /// and call [verifyEmailOtp].
+  ///
+  /// Throws [AuthException] on validation error or rate limit.
+  /// Throws [UnauthorizedException] if not authenticated.
+  ///
+  /// Example:
+  /// ```dart
+  /// try {
+  ///   await AuthService.requestEmailChange(newEmail: 'new@example.com');
+  ///   // Navigate to OTP verification screen
+  /// } on AuthException catch (e) {
+  ///   print('Error: ${e.message}');
+  /// }
+  /// ```
+  static Future<void> requestEmailChange({required String newEmail}) async {
+    final trimmedEmail = newEmail.trim();
+    
+    if (trimmedEmail.isEmpty) {
+      throw const AuthException('Adresse email requise');
+    }
+    
+    // Basic email validation
+    if (!trimmedEmail.contains('@') || !trimmedEmail.contains('.')) {
+      throw const AuthException('Adresse email invalide');
+    }
+    
+    debugPrint('[AuthService] Requesting email change to $trimmedEmail');
+    await _repository.requestEmailChange(newEmail: trimmedEmail);
+    debugPrint('[AuthService] OTP sent to new email');
+  }
+
+  /// Verifies the OTP code and updates the user's email.
+  ///
+  /// This is the second step of the email change flow.
+  /// Call this after receiving the 6-digit OTP code via email.
+  ///
+  /// Throws [AuthException] with specific error codes:
+  /// - OTP_INVALID: Wrong code
+  /// - OTP_EXPIRED: Code expired (10 min)
+  /// - OTP_LOCKED: Too many attempts
+  /// - EMAIL_IN_USE: Email already taken
+  ///
+  /// Example:
+  /// ```dart
+  /// try {
+  ///   await AuthService.verifyEmailOtp(
+  ///     newEmail: 'new@example.com',
+  ///     code: '123456',
+  ///   );
+  ///   print('Email updated successfully!');
+  /// } on AuthException catch (e) {
+  ///   print('Error: ${e.message}');
+  /// }
+  /// ```
+  static Future<void> verifyEmailOtp({
+    required String newEmail,
+    required String code,
+  }) async {
+    final trimmedCode = code.trim();
+    
+    if (trimmedCode.isEmpty) {
+      throw const AuthException('Code de vérification requis');
+    }
+    
+    if (trimmedCode.length != 6) {
+      throw const AuthException('Le code doit contenir 6 chiffres');
+    }
+    
+    debugPrint('[AuthService] Verifying OTP for email change to $newEmail');
+    await _repository.verifyEmailOtp(newEmail: newEmail, code: trimmedCode);
+    
+    // Update local session email if we have a session
+    if (_currentSession != null) {
+      _currentSession = AuthSession(
+        user: AuthUser(
+          id: _currentSession!.user.id,
+          email: newEmail,
+          name: _currentSession!.user.name,
+        ),
+        tokens: _currentSession!.tokens,
+      );
+      
+      // Update auth state
+      setAuthState(AuthState.authenticated(
+        userId: _currentSession!.user.id,
+        email: newEmail,
+      ));
+      
+      // Update user service
+      await UserService.setFromAuth(
+        userId: _currentSession!.user.id,
+        email: newEmail,
+      );
+    }
+    
+    debugPrint('[AuthService] Email changed successfully');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F2: Account Deletion
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Permanently deletes the user's account.
+  ///
+  /// This action is IRREVERSIBLE. The user's data will be anonymized/deleted
+  /// in compliance with GDPR.
+  ///
+  /// After successful deletion, the session is cleared and the user
+  /// is logged out.
+  ///
+  /// Throws [AuthException] on failure.
+  /// Throws [UnauthorizedException] if not authenticated.
+  ///
+  /// Example:
+  /// ```dart
+  /// try {
+  ///   await AuthService.deleteAccount();
+  ///   // Navigate to onboarding/login screen
+  /// } on AuthException catch (e) {
+  ///   print('Error: ${e.message}');
+  /// }
+  /// ```
+  static Future<void> deleteAccount() async {
+    debugPrint('[AuthService] Deleting account...');
+    
+    // Call backend to delete account
+    await _repository.deleteAccount();
+    
+    // Clear all local state (similar to logout)
+    await PushService.unregisterDevice();
+    _currentSession = null;
+    setAuthState(const AuthState.unauthenticated());
+    UserService.reset();
+    _setSession(const AppSession.none());
+    await TokenStorage.clearToken();
+    
+    debugPrint('[AuthService] Account deleted successfully');
   }
 
   // ─────────────────────────────────────────────────────────────────────────

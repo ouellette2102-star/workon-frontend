@@ -44,6 +44,10 @@ class ChangeEmailModel extends FlutterFlowModel<ChangeEmailWidget> {
   late SuccessWidgetModel successWidgetModel;
   // Model for FailedWidget component.
   late FailedWidgetModel failedWidgetModel;
+  
+  // PR-F2: Loading state and email to verify
+  bool isLoading = false;
+  String? pendingNewEmail; // Email for OTP verification
 
   @override
   void initState(BuildContext context) {

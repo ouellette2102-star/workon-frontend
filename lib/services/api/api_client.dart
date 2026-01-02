@@ -9,6 +9,7 @@
 /// ```
 ///
 /// **PR-F17:** Added authenticatedRequest with automatic token refresh.
+/// **PR-OBS:** Added X-Request-Id correlation header.
 library;
 
 import 'dart:async';
@@ -20,6 +21,7 @@ import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
 import '../auth/token_refresh_interceptor.dart';
 import '../auth/token_storage.dart';
+import 'request_id.dart';
 
 /// Centralized API client for backend communication.
 ///
@@ -57,12 +59,13 @@ abstract final class ApiClient {
 
   /// Default headers for all requests.
   ///
-  /// Auth headers will be injected here in future PRs.
+  /// Includes:
+  /// - Content-Type and Accept for JSON
+  /// - X-Request-Id for correlation/tracing (PR-OBS)
   static Map<String, String> get defaultHeaders => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        // TODO(PR#future): Add Authorization header from auth service
-        // 'Authorization': 'Bearer ${AuthService.token}',
+        RequestId.headerName: RequestId.sessionId,
       };
 
   // ─────────────────────────────────────────────────────────────────────────

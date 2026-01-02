@@ -1,4 +1,5 @@
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -12,8 +13,10 @@ import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
 import 'flutter_flow/nav/nav.dart';
 import 'index.dart';
+import '/services/auth/auth_bootstrap.dart';
 import '/services/auth/auth_service.dart';
 import '/services/auth/token_refresh_interceptor.dart';
+import '/services/errors/error_handler.dart';
 import '/services/offers/offers_service.dart';
 import '/services/push/push_service.dart';
 import '/services/saved/saved_missions_store.dart';
@@ -26,6 +29,19 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoRouter.optionURLReflectsImperativeAPIs = true;
   usePathUrlStrategy();
+
+  // PR-ERROR: Initialize global error handlers
+  ErrorHandler.initialize();
+
+  // PR-G2: Validate environment configuration (safety guards)
+  AppConfig.validateConfiguration();
+  
+  // PR-ERROR: Custom error widget for release builds (replaces red screen)
+  if (!kDebugMode) {
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      return const AppErrorWidget();
+    };
+  }
 
   await FlutterFlowTheme.initialize();
 
@@ -62,12 +78,22 @@ void main() async {
     );
   });
 
+  // PR-BOOT: Uber-grade cold-start bootstrap (before runApp)
+  // - Attempts silent refresh if tokens exist
+  // - Clears tokens only on auth error (401/403)
+  // - Keeps tokens on network error (user can retry later)
+  final bootstrapResult = await AuthBootstrap.bootstrapAuth();
+  debugPrint('[main] Bootstrap result: $bootstrapResult');
+
   final appState = FFAppState(); // Initialize FFAppState
   await appState.initializePersistedState();
 
-  runApp(ChangeNotifierProvider(
-    create: (context) => appState,
-    child: MyApp(),
+  // PR-G2: Wrap with environment badge overlay
+  runApp(EnvBadge(
+    child: ChangeNotifierProvider(
+      create: (context) => appState,
+      child: MyApp(),
+    ),
   ));
 }
 

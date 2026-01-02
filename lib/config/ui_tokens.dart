@@ -78,6 +78,9 @@ abstract final class WkCopy {
   static const String errorNotFound = 'Élément introuvable.';
   static const String errorMissionNotFound = 'Mission introuvable.';
   static const String errorNetwork = 'Connexion impossible. Vérifie ta connexion.';
+  static const String errorTimeout = 'Délai de connexion dépassé. Réessaie.';
+  static const String errorServer = 'Erreur serveur. Réessaie plus tard.';
+  static const String errorUnexpected = 'Une erreur inattendue est survenue.';
 
   // ─── Actions ───
   static const String retry = 'Réessayer';
@@ -156,6 +159,9 @@ abstract final class WkCopy {
 
   // ─── PR-F17: Session expired ───
   static const String sessionExpired = 'Session expirée, veuillez vous reconnecter.';
+
+  // ─── PR-F2: Bootstrap recovery ───
+  static const String bootstrapRetryHint = 'Vérifie ta connexion et réessaie.';
 
   // ─── PR-F18: Profile edit ───
   static const String profileUpdated = 'Profil mis à jour !';

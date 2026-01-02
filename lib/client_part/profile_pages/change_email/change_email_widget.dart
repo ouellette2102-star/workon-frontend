@@ -7,6 +7,8 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:ui';
 import '/index.dart';
+import '/services/auth/auth_service.dart';
+import '/services/auth/auth_errors.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -320,7 +322,9 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                             ),
                             FFButtonWidget(
                               onPressed: () async {
-                                await _model.pageViewController?.nextPage(
+                                // Skip to new email page (page 2)
+                                await _model.pageViewController?.animateToPage(
+                                  2,
                                   duration: Duration(milliseconds: 300),
                                   curve: Curves.ease,
                                 );
@@ -349,7 +353,12 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                             ),
                             FFButtonWidget(
                               onPressed: () {
-                                print('Button pressed ...');
+                                // Skip directly to new email entry
+                                _model.pageViewController?.animateToPage(
+                                  2,
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.ease,
+                                );
                               },
                               text: FFLocalizations.of(context).getText(
                                 'cxd6bbp5' /* Use other verification method */,
@@ -473,7 +482,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                               PinCodeTextField(
                                 autoDisposeControllers: false,
                                 appContext: context,
-                                length: 4,
+                                length: 6,
                                 textStyle: FlutterFlowTheme.of(context)
                                     .bodyLarge
                                     .override(
@@ -484,26 +493,25 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,
                                 enableActiveFill: true,
-                                autoFocus: false,
+                                autoFocus: true,
                                 focusNode: _model.pinCodeFocusNode,
                                 enablePinAutofill: true,
                                 errorTextSpace: 0.0,
                                 showCursor: false,
                                 cursorColor:
                                     FlutterFlowTheme.of(context).primary,
-                                obscureText: true,
-                                obscuringCharacter: '●',
-                                hintCharacter: '●',
+                                obscureText: false,
+                                hintCharacter: '○',
                                 keyboardType: TextInputType.number,
                                 pinTheme: PinTheme(
-                                  fieldHeight: 70.0,
-                                  fieldWidth: 75.0,
+                                  fieldHeight: 50.0,
+                                  fieldWidth: 45.0,
                                   borderWidth: 1.0,
                                   borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(20.0),
-                                    bottomRight: Radius.circular(20.0),
-                                    topLeft: Radius.circular(20.0),
-                                    topRight: Radius.circular(20.0),
+                                    bottomLeft: Radius.circular(12.0),
+                                    bottomRight: Radius.circular(12.0),
+                                    topLeft: Radius.circular(12.0),
+                                    topRight: Radius.circular(12.0),
                                   ),
                                   shape: PinCodeFieldShape.box,
                                   activeColor:
@@ -548,6 +556,40 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                               .primary,
                                           fontWeight: FontWeight.bold,
                                         ),
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () async {
+                                            final newEmail = _model.pendingNewEmail;
+                                            if (newEmail == null || newEmail.isEmpty) {
+                                              return;
+                                            }
+                                            
+                                            try {
+                                              await AuthService.requestEmailChange(newEmail: newEmail);
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Nouveau code envoyé à $newEmail'),
+                                                  backgroundColor: FlutterFlowTheme.of(context).success,
+                                                ),
+                                              );
+                                            } on AuthException catch (e) {
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(e.message),
+                                                  backgroundColor: FlutterFlowTheme.of(context).error,
+                                                ),
+                                              );
+                                            } catch (e) {
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Erreur lors de l\'envoi du code'),
+                                                  backgroundColor: FlutterFlowTheme.of(context).error,
+                                                ),
+                                              );
+                                            }
+                                          },
                                       )
                                     ],
                                     style: FlutterFlowTheme.of(context)
@@ -575,15 +617,80 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                           padding: EdgeInsetsDirectional.fromSTEB(
                               20.0, 0.0, 20.0, 0.0),
                           child: FFButtonWidget(
-                            onPressed: () async {
-                              await _model.pageViewController?.nextPage(
-                                duration: Duration(milliseconds: 300),
-                                curve: Curves.ease,
-                              );
+                            onPressed: _model.isLoading ? null : () async {
+                              final code = _model.pinCodeController?.text.trim() ?? '';
+                              final newEmail = _model.pendingNewEmail;
+                              
+                              if (code.length != 6) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Veuillez entrer le code à 6 chiffres'),
+                                    backgroundColor: FlutterFlowTheme.of(context).error,
+                                  ),
+                                );
+                                return;
+                              }
+                              
+                              if (newEmail == null || newEmail.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Erreur: email non défini. Recommencez.'),
+                                    backgroundColor: FlutterFlowTheme.of(context).error,
+                                  ),
+                                );
+                                // Go back to new email page
+                                await _model.pageViewController?.animateToPage(
+                                  2,
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.ease,
+                                );
+                                return;
+                              }
+                              
+                              safeSetState(() => _model.isLoading = true);
+                              
+                              try {
+                                await AuthService.verifyEmailOtp(
+                                  newEmail: newEmail,
+                                  code: code,
+                                );
+                                
+                                if (!mounted) return;
+                                
+                                // Navigate to success page (page index 3)
+                                await _model.pageViewController?.animateToPage(
+                                  3,
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.ease,
+                                );
+                              } on AuthException catch (e) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(e.message),
+                                    backgroundColor: FlutterFlowTheme.of(context).error,
+                                  ),
+                                );
+                              } catch (e) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Une erreur est survenue. Réessayez.'),
+                                    backgroundColor: FlutterFlowTheme.of(context).error,
+                                  ),
+                                );
+                                debugPrint('[ChangeEmail] Verify error: $e');
+                              } finally {
+                                if (mounted) {
+                                  safeSetState(() => _model.isLoading = false);
+                                }
+                              }
                             },
-                            text: FFLocalizations.of(context).getText(
-                              '0afhjcjd' /* Continue */,
-                            ),
+                            text: _model.isLoading
+                                ? 'Vérification...'
+                                : FFLocalizations.of(context).getText(
+                                    '0afhjcjd' /* Continue */,
+                                  ),
                             options: FFButtonOptions(
                               width: double.infinity,
                               height: 50.0,
@@ -591,7 +698,9 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   16.0, 0.0, 16.0, 0.0),
                               iconPadding: EdgeInsetsDirectional.fromSTEB(
                                   0.0, 0.0, 0.0, 0.0),
-                              color: FlutterFlowTheme.of(context).primary,
+                              color: _model.isLoading
+                                  ? FlutterFlowTheme.of(context).secondaryText
+                                  : FlutterFlowTheme.of(context).primary,
                               textStyle: FlutterFlowTheme.of(context)
                                   .titleSmall
                                   .override(
@@ -647,7 +756,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: ((String pinCodeValue) {
-                                        return pinCodeValue.length >= 4
+                                        return pinCodeValue.length >= 6
                                             ? true
                                             : false;
                                       }(_model.pinCodeController!.text))
@@ -704,7 +813,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: ((String pinCodeValue) {
-                                        return pinCodeValue.length >= 4
+                                        return pinCodeValue.length >= 6
                                             ? true
                                             : false;
                                       }(_model.pinCodeController!.text))
@@ -761,7 +870,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: ((String pinCodeValue) {
-                                        return pinCodeValue.length >= 4
+                                        return pinCodeValue.length >= 6
                                             ? true
                                             : false;
                                       }(_model.pinCodeController!.text))
@@ -818,7 +927,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: ((String pinCodeValue) {
-                                        return pinCodeValue.length >= 4
+                                        return pinCodeValue.length >= 6
                                             ? true
                                             : false;
                                       }(_model.pinCodeController!.text))
@@ -875,7 +984,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: ((String pinCodeValue) {
-                                        return pinCodeValue.length >= 4
+                                        return pinCodeValue.length >= 6
                                             ? true
                                             : false;
                                       }(_model.pinCodeController!.text))
@@ -932,7 +1041,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: ((String pinCodeValue) {
-                                        return pinCodeValue.length >= 4
+                                        return pinCodeValue.length >= 6
                                             ? true
                                             : false;
                                       }(_model.pinCodeController!.text))
@@ -989,7 +1098,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: ((String pinCodeValue) {
-                                        return pinCodeValue.length >= 4
+                                        return pinCodeValue.length >= 6
                                             ? true
                                             : false;
                                       }(_model.pinCodeController!.text))
@@ -1046,7 +1155,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: ((String pinCodeValue) {
-                                        return pinCodeValue.length >= 4
+                                        return pinCodeValue.length >= 6
                                             ? true
                                             : false;
                                       }(_model.pinCodeController!.text))
@@ -1103,7 +1212,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: ((String pinCodeValue) {
-                                        return pinCodeValue.length >= 4
+                                        return pinCodeValue.length >= 6
                                             ? true
                                             : false;
                                       }(_model.pinCodeController!.text))
@@ -1160,7 +1269,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: ((String pinCodeValue) {
-                                        return pinCodeValue.length >= 4
+                                        return pinCodeValue.length >= 6
                                             ? true
                                             : false;
                                       }(_model.pinCodeController!.text))
@@ -1206,7 +1315,7 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: ((String pinCodeValue) {
-                                        return pinCodeValue.length >= 4
+                                        return pinCodeValue.length >= 6
                                             ? true
                                             : false;
                                       }(_model.pinCodeController!.text))
@@ -1509,15 +1618,73 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                               ].divide(SizedBox(height: 10.0)),
                             ),
                             FFButtonWidget(
-                              onPressed: () async {
-                                await _model.pageViewController?.nextPage(
-                                  duration: Duration(milliseconds: 300),
-                                  curve: Curves.ease,
-                                );
+                              onPressed: _model.isLoading ? null : () async {
+                                final newEmail = _model.newEmailTextController?.text.trim() ?? '';
+                                
+                                if (newEmail.isEmpty || !newEmail.contains('@')) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Veuillez entrer une adresse email valide'),
+                                      backgroundColor: FlutterFlowTheme.of(context).error,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                
+                                safeSetState(() => _model.isLoading = true);
+                                
+                                try {
+                                  await AuthService.requestEmailChange(newEmail: newEmail);
+                                  
+                                  if (!mounted) return;
+                                  
+                                  // Store email for OTP verification
+                                  _model.pendingNewEmail = newEmail;
+                                  
+                                  // Clear OTP field
+                                  _model.pinCodeController?.clear();
+                                  
+                                  // Navigate to OTP page (page index 1)
+                                  await _model.pageViewController?.animateToPage(
+                                    1,
+                                    duration: Duration(milliseconds: 300),
+                                    curve: Curves.ease,
+                                  );
+                                  
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Code de vérification envoyé à $newEmail'),
+                                      backgroundColor: FlutterFlowTheme.of(context).success,
+                                    ),
+                                  );
+                                } on AuthException catch (e) {
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(e.message),
+                                      backgroundColor: FlutterFlowTheme.of(context).error,
+                                    ),
+                                  );
+                                } catch (e) {
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Une erreur est survenue. Réessayez.'),
+                                      backgroundColor: FlutterFlowTheme.of(context).error,
+                                    ),
+                                  );
+                                  debugPrint('[ChangeEmail] Error: $e');
+                                } finally {
+                                  if (mounted) {
+                                    safeSetState(() => _model.isLoading = false);
+                                  }
+                                }
                               },
-                              text: FFLocalizations.of(context).getText(
-                                '2g6nb58l' /* Save New Email */,
-                              ),
+                              text: _model.isLoading 
+                                  ? 'Envoi en cours...'
+                                  : FFLocalizations.of(context).getText(
+                                      '2g6nb58l' /* Save New Email */,
+                                    ),
                               options: FFButtonOptions(
                                 width: double.infinity,
                                 height: 50.0,
@@ -1525,7 +1692,9 @@ class _ChangeEmailWidgetState extends State<ChangeEmailWidget> {
                                     16.0, 0.0, 16.0, 0.0),
                                 iconPadding: EdgeInsetsDirectional.fromSTEB(
                                     0.0, 0.0, 0.0, 0.0),
-                                color: FlutterFlowTheme.of(context).primary,
+                                color: _model.isLoading 
+                                    ? FlutterFlowTheme.of(context).secondaryText
+                                    : FlutterFlowTheme.of(context).primary,
                                 textStyle: FlutterFlowTheme.of(context)
                                     .titleSmall
                                     .override(

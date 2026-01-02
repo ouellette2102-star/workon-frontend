@@ -41,12 +41,19 @@ class DeleteAccountModel extends FlutterFlowModel<DeleteAccountWidget> {
   bool? checkboxValue2;
   // Model for FailedWidget component.
   late FailedWidgetModel failedWidgetModel;
+  
+  // PR-F2: Confirm text field and loading state
+  FocusNode? confirmFocusNode;
+  TextEditingController? confirmTextController;
+  bool isLoading = false;
 
   @override
   void initState(BuildContext context) {
     backIconBtnModel = createModel(context, () => BackIconBtnModel());
     pinCodeController = TextEditingController();
     failedWidgetModel = createModel(context, () => FailedWidgetModel());
+    confirmTextController = TextEditingController();
+    confirmFocusNode = FocusNode();
   }
 
   @override
@@ -57,6 +64,9 @@ class DeleteAccountModel extends FlutterFlowModel<DeleteAccountWidget> {
 
     pinCodeFocusNode?.dispose();
     pinCodeController?.dispose();
+    
+    confirmFocusNode?.dispose();
+    confirmTextController?.dispose();
 
     failedWidgetModel.dispose();
   }
