@@ -182,7 +182,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp.router(
       scaffoldMessengerKey: rootScaffoldMessengerKey, // PR-F17
       debugShowCheckedModeBanner: false,
-      title: 'WorkOnV1',
+      title: 'WorkOn',
       localizationsDelegates: [
         FFLocalizationsDelegate(),
         GlobalMaterialLocalizations.delegate,
