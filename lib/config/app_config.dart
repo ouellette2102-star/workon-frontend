@@ -12,6 +12,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../services/remote_config/remote_config.dart';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PR-G2: Environment Enum
 // ─────────────────────────────────────────────────────────────────────────────
@@ -294,7 +296,13 @@ abstract final class AppConfig {
   static bool _maintenanceModeOverride = false;
 
   /// Returns true if maintenance mode is active.
-  static bool get maintenanceMode => _maintenanceModeEnv || _maintenanceModeOverride;
+  /// Checks: remote config → runtime override → compile-time env.
+  static bool get maintenanceMode {
+    // PR-H3: Remote config takes precedence if set
+    final remote = RemoteConfig.current?.maintenanceMode;
+    if (remote != null) return remote;
+    return _maintenanceModeEnv || _maintenanceModeOverride;
+  }
 
   /// Sets maintenance mode at runtime (for remote config later).
   static void setMaintenanceMode(bool value) {
@@ -312,7 +320,12 @@ abstract final class AppConfig {
   static bool _disableAuthOverride = false;
 
   /// Returns true if auth is disabled.
-  static bool get disableAuth => _disableAuthEnv || _disableAuthOverride;
+  /// Checks: remote config → runtime override → compile-time env.
+  static bool get disableAuth {
+    final remote = RemoteConfig.current?.disableAuth;
+    if (remote != null) return remote;
+    return _disableAuthEnv || _disableAuthOverride;
+  }
 
   /// Sets auth disabled at runtime.
   static void setDisableAuth(bool value) {
@@ -330,7 +343,12 @@ abstract final class AppConfig {
   static bool _disablePaymentsOverride = false;
 
   /// Returns true if payments are disabled.
-  static bool get disablePayments => _disablePaymentsEnv || _disablePaymentsOverride;
+  /// Checks: remote config → runtime override → compile-time env.
+  static bool get disablePayments {
+    final remote = RemoteConfig.current?.disablePayments;
+    if (remote != null) return remote;
+    return _disablePaymentsEnv || _disablePaymentsOverride;
+  }
 
   /// Sets payments disabled at runtime.
   static void setDisablePayments(bool value) {
@@ -377,12 +395,33 @@ abstract final class AppConfig {
     defaultValue: 'https://play.google.com/store/apps/details?id=com.workon.app',
   );
 
+  /// Effective minimum app version (remote config → compile-time).
+  static String get effectiveMinAppVersion {
+    final remote = RemoteConfig.current?.minAppVersion;
+    if (remote != null && remote.isNotEmpty) return remote;
+    return minAppVersion;
+  }
+
+  /// Effective iOS store URL (remote config → compile-time).
+  static String get effectiveStoreUrlIos {
+    final remote = RemoteConfig.current?.storeUrlIos;
+    if (remote != null && remote.isNotEmpty) return remote;
+    return storeUrlIos;
+  }
+
+  /// Effective Android store URL (remote config → compile-time).
+  static String get effectiveStoreUrlAndroid {
+    final remote = RemoteConfig.current?.storeUrlAndroid;
+    if (remote != null && remote.isNotEmpty) return remote;
+    return storeUrlAndroid;
+  }
+
   /// Returns true if app version is below minimum required version.
   /// Fail-open in release mode (returns false on parse error).
   static bool get isUpdateRequired {
     try {
       final current = VersionUtils.parse(appVersionH2);
-      final minimum = VersionUtils.parse(minAppVersion);
+      final minimum = VersionUtils.parse(effectiveMinAppVersion);
       return VersionUtils.compare(current, minimum) < 0;
     } catch (e) {
       // Fail-open: don't block app if version parsing fails
@@ -390,6 +429,23 @@ abstract final class AppConfig {
         debugPrint('[AppConfig] ⚠️ Version parse error: $e');
       }
       return false;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-H3: Remote Config Integration
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Initializes remote config (fetches in background, non-blocking).
+  /// Safe to call multiple times (deduped internally).
+  static Future<void> initRemoteConfig() async {
+    if (!RemoteConfig.isEnabled) return;
+    try {
+      await RemoteConfig.get();
+      // Notify UI to re-evaluate gates after fetch
+      notifyKillSwitchChanged();
+    } catch (_) {
+      // Fail-open: ignore errors
     }
   }
 }
@@ -678,10 +734,13 @@ abstract final class VersionUtils {
   }
 
   /// Opens the appropriate store URL based on platform.
+  /// Uses effective URLs (remote config → compile-time).
   static Future<void> openStore() async {
     final String url;
     try {
-      url = Platform.isIOS ? AppConfig.storeUrlIos : AppConfig.storeUrlAndroid;
+      url = Platform.isIOS
+          ? AppConfig.effectiveStoreUrlIos
+          : AppConfig.effectiveStoreUrlAndroid;
     } catch (_) {
       // Platform not available (web), use Android URL
       return;
