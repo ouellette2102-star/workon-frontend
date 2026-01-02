@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -17,6 +19,7 @@ import '/services/analytics/analytics_service.dart';
 import '/services/auth/auth_bootstrap.dart';
 import '/services/auth/auth_service.dart';
 import '/services/auth/token_refresh_interceptor.dart';
+import '/services/errors/crash_reporting_service.dart';
 import '/services/errors/error_handler.dart';
 import '/services/offers/offers_service.dart';
 import '/services/push/push_service.dart';
@@ -98,13 +101,34 @@ void main() async {
   final appState = FFAppState(); // Initialize FFAppState
   await appState.initializePersistedState();
 
-  // PR-G2: Wrap with environment badge overlay
-  runApp(EnvBadge(
-    child: ChangeNotifierProvider(
-      create: (context) => appState,
-      child: MyApp(),
-    ),
-  ));
+  // PR-24: Wrap runApp in runZonedGuarded for async error catching
+  _runAppWithErrorBoundary(appState);
+}
+
+/// PR-24: Runs the app with a global error zone.
+///
+/// Catches async errors not caught by Flutter framework.
+void _runAppWithErrorBoundary(FFAppState appState) {
+  // Use runZonedGuarded to catch all async errors
+  runZonedGuarded(
+    () {
+      // PR-G2: Wrap with environment badge overlay
+      runApp(EnvBadge(
+        child: ChangeNotifierProvider(
+          create: (context) => appState,
+          child: MyApp(),
+        ),
+      ));
+    },
+    (error, stackTrace) {
+      // PR-24: Handle uncaught async errors
+      debugPrint('[main] Uncaught async error: $error');
+      debugPrint('[main] Stack: $stackTrace');
+
+      // Record to crash reporting (with sanitization)
+      CrashReportingService.handleZoneError(error, stackTrace);
+    },
+  );
 }
 
 class MyApp extends StatefulWidget {
