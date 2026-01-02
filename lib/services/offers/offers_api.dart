@@ -408,6 +408,158 @@ class OffersApi {
     }
   }
 
+  /// PR-03: Accepts an offer/application (employer action).
+  ///
+  /// Calls `PATCH /api/v1/offers/:offerId` with `{ status: 'accepted' }`.
+  ///
+  /// This assigns the worker to the mission and updates the offer status.
+  ///
+  /// Throws:
+  /// - [UnauthorizedException] if not authenticated
+  /// - [OffersApiException] on other errors
+  Future<Offer> acceptOffer(String offerId) async {
+    debugPrint('[OffersApi] Accepting offer: $offerId');
+
+    if (!AuthService.hasSession) {
+      throw const UnauthorizedException();
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      throw const UnauthorizedException();
+    }
+
+    final uri = ApiClient.buildUri('/offers/$offerId');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = jsonEncode({'status': 'accepted'});
+
+    try {
+      debugPrint('[OffersApi] PATCH $uri');
+      final response = await ApiClient.client
+          .patch(uri, headers: headers, body: body)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[OffersApi] acceptOffer response: ${response.statusCode}');
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw const UnauthorizedException();
+      }
+
+      if (response.statusCode == 404) {
+        throw const OffersApiException('Candidature non trouvée', 404);
+      }
+
+      if (response.statusCode == 409) {
+        throw const OffersApiException('Cette candidature a déjà été traitée', 409);
+      }
+
+      if (response.statusCode >= 400 && response.statusCode < 500) {
+        final msg = _extractErrorMessage(response.body);
+        throw OffersApiException(msg ?? 'Erreur lors de l\'acceptation', response.statusCode);
+      }
+
+      if (response.statusCode >= 500) {
+        throw const OffersApiException('Erreur serveur. Réessayez plus tard.', 500);
+      }
+
+      final json = jsonDecode(response.body);
+      final data = json is Map<String, dynamic>
+          ? (json['data'] ?? json)
+          : json;
+
+      final offer = Offer.fromJson(data as Map<String, dynamic>);
+      debugPrint('[OffersApi] Offer accepted: ${offer.id} -> ${offer.status}');
+      return offer;
+    } on TimeoutException {
+      throw const OffersApiException('Connexion impossible. Vérifiez votre réseau.');
+    } on http.ClientException {
+      throw const OffersApiException('Erreur réseau. Vérifiez votre connexion.');
+    } on Exception catch (e) {
+      if (e is OffersApiException || e is AuthException) rethrow;
+      debugPrint('[OffersApi] acceptOffer unexpected error: $e');
+      throw const OffersApiException('Une erreur est survenue.');
+    }
+  }
+
+  /// PR-03: Rejects an offer/application (employer action).
+  ///
+  /// Calls `PATCH /api/v1/offers/:offerId` with `{ status: 'rejected' }`.
+  ///
+  /// Throws:
+  /// - [UnauthorizedException] if not authenticated
+  /// - [OffersApiException] on other errors
+  Future<Offer> rejectOffer(String offerId) async {
+    debugPrint('[OffersApi] Rejecting offer: $offerId');
+
+    if (!AuthService.hasSession) {
+      throw const UnauthorizedException();
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      throw const UnauthorizedException();
+    }
+
+    final uri = ApiClient.buildUri('/offers/$offerId');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = jsonEncode({'status': 'rejected'});
+
+    try {
+      debugPrint('[OffersApi] PATCH $uri');
+      final response = await ApiClient.client
+          .patch(uri, headers: headers, body: body)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[OffersApi] rejectOffer response: ${response.statusCode}');
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw const UnauthorizedException();
+      }
+
+      if (response.statusCode == 404) {
+        throw const OffersApiException('Candidature non trouvée', 404);
+      }
+
+      if (response.statusCode == 409) {
+        throw const OffersApiException('Cette candidature a déjà été traitée', 409);
+      }
+
+      if (response.statusCode >= 400 && response.statusCode < 500) {
+        final msg = _extractErrorMessage(response.body);
+        throw OffersApiException(msg ?? 'Erreur lors du refus', response.statusCode);
+      }
+
+      if (response.statusCode >= 500) {
+        throw const OffersApiException('Erreur serveur. Réessayez plus tard.', 500);
+      }
+
+      final json = jsonDecode(response.body);
+      final data = json is Map<String, dynamic>
+          ? (json['data'] ?? json)
+          : json;
+
+      final offer = Offer.fromJson(data as Map<String, dynamic>);
+      debugPrint('[OffersApi] Offer rejected: ${offer.id} -> ${offer.status}');
+      return offer;
+    } on TimeoutException {
+      throw const OffersApiException('Connexion impossible. Vérifiez votre réseau.');
+    } on http.ClientException {
+      throw const OffersApiException('Erreur réseau. Vérifiez votre connexion.');
+    } on Exception catch (e) {
+      if (e is OffersApiException || e is AuthException) rethrow;
+      debugPrint('[OffersApi] rejectOffer unexpected error: $e');
+      throw const OffersApiException('Une erreur est survenue.');
+    }
+  }
+
   /// Extracts error message from response body.
   String? _extractErrorMessage(String body) {
     try {

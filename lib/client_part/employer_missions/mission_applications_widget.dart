@@ -36,6 +36,11 @@ class _MissionApplicationsWidgetState extends State<MissionApplicationsWidget> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  // PR-03: Track offers being processed
+  final Set<String> _processingOfferIds = {};
+  // PR-03: Track if any offer has been accepted (mission assigned)
+  bool _hasAcceptedOffer = false;
+
   @override
   void initState() {
     super.initState();
@@ -58,9 +63,13 @@ class _MissionApplicationsWidgetState extends State<MissionApplicationsWidget> {
       // Sort by most recent first
       applications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
+      // PR-03: Check if any offer is already accepted
+      final hasAccepted = applications.any((o) => o.status == OfferStatus.accepted);
+
       setState(() {
         _applications = applications;
         _isLoading = false;
+        _hasAcceptedOffer = hasAccepted;
       });
     } catch (e) {
       debugPrint('[MissionApplications] Error loading applications: $e');
@@ -70,6 +79,136 @@ class _MissionApplicationsWidgetState extends State<MissionApplicationsWidget> {
         _isLoading = false;
         _errorMessage = WkCopy.errorGeneric;
       });
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-03: Accept/Reject Actions
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// PR-03: Accepts an offer (assigns worker to mission).
+  Future<void> _acceptOffer(Offer offer) async {
+    if (_processingOfferIds.contains(offer.id)) return;
+    if (_hasAcceptedOffer) return; // Already assigned
+
+    setState(() {
+      _processingOfferIds.add(offer.id);
+    });
+
+    try {
+      final updatedOffer = await _api.acceptOffer(offer.id);
+
+      if (!mounted) return;
+
+      // Update the offer in the list
+      setState(() {
+        _processingOfferIds.remove(offer.id);
+        _hasAcceptedOffer = true;
+        
+        // Update the offer status in the list
+        final index = _applications.indexWhere((o) => o.id == offer.id);
+        if (index >= 0) {
+          _applications[index] = updatedOffer;
+        }
+      });
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Candidat accepté avec succès !'),
+          backgroundColor: WkStatusColors.completed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      // Close the drawer
+      Navigator.of(context).pop();
+
+    } catch (e) {
+      debugPrint('[MissionApplications] Error accepting offer: $e');
+      if (!mounted) return;
+
+      setState(() {
+        _processingOfferIds.remove(offer.id);
+      });
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e is OffersApiException 
+              ? e.message 
+              : 'Erreur lors de l\'acceptation'),
+          backgroundColor: WkStatusColors.cancelled,
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Réessayer',
+            textColor: Colors.white,
+            onPressed: () => _acceptOffer(offer),
+          ),
+        ),
+      );
+    }
+  }
+
+  /// PR-03: Rejects an offer.
+  Future<void> _rejectOffer(Offer offer) async {
+    if (_processingOfferIds.contains(offer.id)) return;
+
+    setState(() {
+      _processingOfferIds.add(offer.id);
+    });
+
+    try {
+      final updatedOffer = await _api.rejectOffer(offer.id);
+
+      if (!mounted) return;
+
+      // Update the offer in the list
+      setState(() {
+        _processingOfferIds.remove(offer.id);
+        
+        // Update the offer status in the list
+        final index = _applications.indexWhere((o) => o.id == offer.id);
+        if (index >= 0) {
+          _applications[index] = updatedOffer;
+        }
+      });
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Candidature refusée'),
+          backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      // Close the drawer
+      Navigator.of(context).pop();
+
+    } catch (e) {
+      debugPrint('[MissionApplications] Error rejecting offer: $e');
+      if (!mounted) return;
+
+      setState(() {
+        _processingOfferIds.remove(offer.id);
+      });
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e is OffersApiException 
+              ? e.message 
+              : 'Erreur lors du refus'),
+          backgroundColor: WkStatusColors.cancelled,
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Réessayer',
+            textColor: Colors.white,
+            onPressed: () => _rejectOffer(offer),
+          ),
+        ),
+      );
     }
   }
 
@@ -654,24 +793,15 @@ class _MissionApplicationsWidgetState extends State<MissionApplicationsWidget> {
                       ),
                       SizedBox(height: WkSpacing.xl),
 
-                      // Action buttons (PR-03 will wire accept/reject)
-                      if (application.status == OfferStatus.pending) ...[
+                      // PR-03: Action buttons (wired to API)
+                      if (application.status == OfferStatus.pending && !_hasAcceptedOffer) ...[
                         Row(
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          'Refuser - Bientôt disponible'),
-                                      backgroundColor:
-                                          FlutterFlowTheme.of(context).primary,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                },
+                                onPressed: _processingOfferIds.contains(application.id)
+                                    ? null
+                                    : () => _rejectOffer(application),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: WkStatusColors.cancelled,
                                   side: BorderSide(
@@ -679,24 +809,24 @@ class _MissionApplicationsWidgetState extends State<MissionApplicationsWidget> {
                                   padding: EdgeInsets.symmetric(
                                       vertical: WkSpacing.md),
                                 ),
-                                child: const Text('Refuser'),
+                                child: _processingOfferIds.contains(application.id)
+                                    ? SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: WkStatusColors.cancelled,
+                                        ),
+                                      )
+                                    : const Text('Refuser'),
                               ),
                             ),
                             SizedBox(width: WkSpacing.md),
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          'Accepter - Bientôt disponible'),
-                                      backgroundColor:
-                                          FlutterFlowTheme.of(context).primary,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                },
+                                onPressed: _processingOfferIds.contains(application.id)
+                                    ? null
+                                    : () => _acceptOffer(application),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
                                       FlutterFlowTheme.of(context).primary,
@@ -704,10 +834,55 @@ class _MissionApplicationsWidgetState extends State<MissionApplicationsWidget> {
                                   padding: EdgeInsets.symmetric(
                                       vertical: WkSpacing.md),
                                 ),
-                                child: const Text('Accepter'),
+                                child: _processingOfferIds.contains(application.id)
+                                    ? SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text('Accepter'),
                               ),
                             ),
                           ],
+                        ),
+                      ],
+
+                      // PR-03: Show "already assigned" message for pending offers when mission is assigned
+                      if (application.status == OfferStatus.pending && _hasAcceptedOffer) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(WkSpacing.md),
+                          decoration: BoxDecoration(
+                            color: FlutterFlowTheme.of(context).secondaryText.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(WkRadius.sm),
+                            border: Border.all(
+                              color: FlutterFlowTheme.of(context).secondaryText.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: FlutterFlowTheme.of(context).secondaryText,
+                              ),
+                              SizedBox(width: WkSpacing.sm),
+                              Expanded(
+                                child: Text(
+                                  'Un autre candidat a été accepté pour cette mission.',
+                                  style: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .override(
+                                        fontFamily: 'General Sans',
+                                        color: FlutterFlowTheme.of(context).secondaryText,
+                                        letterSpacing: 0.0,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
 
