@@ -10,7 +10,6 @@
 /// **PR-OBS:** Added logError for structured debug logging.
 library;
 
-import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
