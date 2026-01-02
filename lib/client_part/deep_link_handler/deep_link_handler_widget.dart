@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/services/analytics/analytics_service.dart';
 import '/services/deep_linking/deep_link_service.dart';
 import '/services/missions/missions_service.dart';
 import '/services/users/users_service.dart';
@@ -38,6 +39,11 @@ class _MissionDeepLinkHandlerState extends State<MissionDeepLinkHandler> {
   @override
   void initState() {
     super.initState();
+    // PR-23: Track deep link opened
+    AnalyticsService.trackDeepLinkOpened(
+      linkType: 'mission',
+      targetId: widget.missionId,
+    );
     _loadAndNavigate();
   }
 
@@ -131,6 +137,11 @@ class _ProfileDeepLinkHandlerState extends State<ProfileDeepLinkHandler> {
   @override
   void initState() {
     super.initState();
+    // PR-23: Track deep link opened
+    AnalyticsService.trackDeepLinkOpened(
+      linkType: 'profile',
+      targetId: widget.userId,
+    );
     _loadAndNavigate();
   }
 
@@ -230,6 +241,16 @@ class _InviteDeepLinkHandlerState extends State<InviteDeepLinkHandler> {
   @override
   void initState() {
     super.initState();
+    // PR-23: Track deep link opened with UTM params
+    AnalyticsService.trackDeepLinkOpened(
+      linkType: 'invite',
+      targetId: widget.referralCode,
+      utmParams: {
+        if (widget.utmSource != null) 'utm_source': widget.utmSource!,
+        if (widget.utmCampaign != null) 'utm_campaign': widget.utmCampaign!,
+        if (widget.utmMedium != null) 'utm_medium': widget.utmMedium!,
+      },
+    );
     _processAndNavigate();
   }
 
@@ -244,6 +265,9 @@ class _InviteDeepLinkHandlerState extends State<InviteDeepLinkHandler> {
     );
 
     await DeepLinkService.saveAttribution(attribution);
+    
+    // PR-23: Load attribution for future events
+    await AnalyticsService.loadAttribution();
 
     if (!mounted) return;
 

@@ -3,6 +3,7 @@ import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/analytics/analytics_service.dart';
 import '/services/missions/mission_models.dart';
 import '/services/missions/missions_api.dart';
 import '/services/missions/missions_service.dart';
@@ -84,6 +85,12 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
       debugPrint('[MissionDetail] Using provided mission: ${widget.mission!.id}');
       _mission = widget.mission;
       _isLoading = false;
+      // PR-23: Track mission viewed
+      AnalyticsService.trackMissionViewed(
+        missionId: widget.mission!.id,
+        category: widget.mission!.category,
+        price: widget.mission!.price,
+      );
     } else if (widget.missionId.isNotEmpty) {
       debugPrint('[MissionDetail] Fetching mission by ID: ${widget.missionId}');
       _loadMission();
@@ -112,6 +119,12 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
       
       if (mission != null) {
         debugPrint('[MissionDetail] Mission loaded: ${mission.title}');
+        // PR-23: Track mission viewed
+        AnalyticsService.trackMissionViewed(
+          missionId: mission.id,
+          category: mission.category,
+          price: mission.price,
+        );
         setState(() {
           _mission = mission;
           _isLoading = false;
@@ -812,6 +825,11 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
 
     switch (result) {
       case ApplyResult.success:
+        // PR-23: Track offer submitted
+        AnalyticsService.trackOfferSubmitted(
+          missionId: mission.id,
+          offerAmount: mission.price,
+        );
         setState(() {
           _hasApplied = true;
         });

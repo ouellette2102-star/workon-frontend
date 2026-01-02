@@ -4,6 +4,7 @@ import '/client_part/profile_pages/terms_of_service/terms_of_service_widget.dart
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/analytics/analytics_service.dart';
 import '/services/auth/auth_errors.dart';
 import '/services/auth/auth_service.dart';
 import '/services/legal/consent_store.dart';
@@ -42,6 +43,9 @@ class _SignUpWidgetState extends State<SignUpWidget> {
 
     _model.passwordTextController ??= TextEditingController();
     _model.passwordFocusNode ??= FocusNode();
+
+    // PR-23: Track sign up started
+    AnalyticsService.track(AnalyticsEvent.signUpStarted);
   }
 
   @override
@@ -459,6 +463,11 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                                 // Success: AuthGate will redirect to Home
                                 // No manual navigation needed
                               } on EmailAlreadyInUseException {
+                                // PR-23: Track sign up failed
+                                AnalyticsService.track(
+                                  AnalyticsEvent.signUpFailed,
+                                  params: {'reason': 'email_exists'},
+                                );
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -480,6 +489,11 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                                   );
                                 }
                               } on AuthException catch (e) {
+                                // PR-23: Track sign up failed
+                                AnalyticsService.track(
+                                  AnalyticsEvent.signUpFailed,
+                                  params: {'reason': 'auth_error'},
+                                );
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(

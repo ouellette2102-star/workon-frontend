@@ -3,6 +3,7 @@ import '/client_part/components_client/invite_friend_item/invite_friend_item_wid
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/analytics/analytics_service.dart';
 import '/services/deep_linking/deep_link_service.dart';
 import '/services/auth/auth_service.dart';
 import 'dart:ui';
@@ -379,6 +380,8 @@ class _InviteFriendsWidgetState extends State<InviteFriendsWidget> {
 
   /// Shares the invite link using the system share sheet.
   void _shareInviteLink(String link) {
+    // PR-23: Track invite shared
+    AnalyticsService.track(AnalyticsEvent.inviteShared);
     Share.share(
       'Rejoins-moi sur WorkOn! Trouve des missions près de chez toi ou propose tes services.\n\n$link',
       subject: 'Invitation WorkOn',

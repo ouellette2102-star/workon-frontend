@@ -13,6 +13,7 @@ import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
 import 'flutter_flow/nav/nav.dart';
 import 'index.dart';
+import '/services/analytics/analytics_service.dart';
 import '/services/auth/auth_bootstrap.dart';
 import '/services/auth/auth_service.dart';
 import '/services/auth/token_refresh_interceptor.dart';
@@ -81,12 +82,18 @@ void main() async {
     );
   });
 
+  // PR-23: Load saved attribution for analytics
+  await AnalyticsService.loadAttribution();
+
   // PR-BOOT: Uber-grade cold-start bootstrap (before runApp)
   // - Attempts silent refresh if tokens exist
   // - Clears tokens only on auth error (401/403)
   // - Keeps tokens on network error (user can retry later)
   final bootstrapResult = await AuthBootstrap.bootstrapAuth();
   debugPrint('[main] Bootstrap result: $bootstrapResult');
+
+  // PR-23: Track app open
+  AnalyticsService.trackAppOpen();
 
   final appState = FFAppState(); // Initialize FFAppState
   await appState.initializePersistedState();

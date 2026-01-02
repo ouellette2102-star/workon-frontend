@@ -29,6 +29,7 @@ import '/client_part/missions/complete/complete_button.dart';
 import '/client_part/missions/complete/complete_handler.dart';
 import '/client_part/payments/pay_button.dart';
 import '/client_part/payments/payment_receipt_screen.dart';
+import '/services/analytics/analytics_service.dart';
 import '/services/payments/stripe_service.dart';
 import 'dart:ui';
 import '/index.dart';
@@ -2189,6 +2190,13 @@ class _HomeWidgetState extends State<HomeWidget> {
       _model.payingMissionIds.add(mission.id);
     });
 
+    // PR-23: Track payment started
+    AnalyticsService.trackPaymentStarted(
+      missionId: mission.id,
+      amount: mission.price,
+      currency: 'CAD',
+    );
+
     try {
       // Use StripeService to handle the full payment flow
       final result = await StripeService.payForMission(missionId: mission.id);
@@ -2198,6 +2206,12 @@ class _HomeWidgetState extends State<HomeWidget> {
       switch (result) {
         case PaymentSheetSuccess():
           debugPrint('[PaymentFlow] ✅ Payment succeeded for ${mission.id}');
+          // PR-23: Track payment success
+          AnalyticsService.trackPaymentSuccess(
+            missionId: mission.id,
+            amount: mission.price,
+            currency: 'CAD',
+          );
           // PR-7: Navigate to payment receipt screen
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -2213,10 +2227,21 @@ class _HomeWidgetState extends State<HomeWidget> {
 
         case PaymentSheetCancelled():
           debugPrint('[PaymentFlow] User cancelled payment for ${mission.id}');
+          // PR-23: Track payment cancelled
+          AnalyticsService.track(
+            AnalyticsEvent.paymentCancelled,
+            params: {'mission_id': mission.id},
+          );
           // Silent - user chose to cancel, no error message needed
 
         case PaymentSheetError(:final message, :final isAuthError):
           debugPrint('[PaymentFlow] Payment error: $message');
+          // PR-23: Track payment failed
+          AnalyticsService.trackPaymentFailed(
+            missionId: mission.id,
+            amount: mission.price,
+            errorMessage: message,
+          );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(message),
@@ -2232,6 +2257,12 @@ class _HomeWidgetState extends State<HomeWidget> {
       }
     } catch (e) {
       debugPrint('[PaymentFlow] Unexpected error: $e');
+      // PR-23: Track payment failed
+      AnalyticsService.trackPaymentFailed(
+        missionId: mission.id,
+        amount: mission.price,
+        errorMessage: e.toString(),
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

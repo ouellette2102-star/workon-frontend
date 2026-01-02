@@ -19,6 +19,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 
+import '../analytics/analytics_service.dart';
 import '../push/push_service.dart';
 import '../user/user_service.dart';
 import 'app_session.dart';
@@ -240,6 +241,9 @@ abstract final class AuthService {
     UserService.refreshFromBackendIfPossible();
     // PR-F20: Register device for push notifications (fire-and-forget)
     PushService.registerDeviceIfNeeded();
+    // PR-23: Track login success
+    AnalyticsService.setUserId(session.user.id);
+    AnalyticsService.trackLoginSuccess(method: 'email');
     return session.user;
   }
 
@@ -299,6 +303,9 @@ abstract final class AuthService {
     UserService.refreshFromBackendIfPossible();
     // PR-F20: Register device for push notifications (fire-and-forget)
     PushService.registerDeviceIfNeeded();
+    // PR-23: Track sign up completed
+    AnalyticsService.setUserId(session.user.id);
+    AnalyticsService.trackSignUpCompleted(method: 'email');
     return session.user;
   }
 
@@ -358,6 +365,10 @@ abstract final class AuthService {
   /// ```
   static Future<void> logout() async {
     final token = _currentSession?.tokens.accessToken;
+
+    // PR-23: Track logout before clearing session
+    AnalyticsService.track(AnalyticsEvent.logout);
+    AnalyticsService.clearUserId();
 
     // PR-F20: Unregister device from push (fire-and-forget, before clearing session)
     await PushService.unregisterDevice();

@@ -2,6 +2,7 @@ import '/client_part/components_client/back_icon_btn/back_icon_btn_widget.dart';
 import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/services/analytics/analytics_service.dart';
 import '/services/offers/offer_models.dart';
 import '/services/offers/offers_api.dart';
 import 'package:flutter/material.dart';
@@ -113,6 +114,16 @@ class _MissionApplicationsWidgetState extends State<MissionApplicationsWidget> {
       });
 
       // Show success message
+      // PR-23: Track worker accepted
+      AnalyticsService.track(
+        AnalyticsEvent.workerAccepted,
+        params: {
+          'mission_id': widget.missionId,
+          'offer_id': offer.id,
+          'worker_id': offer.userId,
+        },
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Candidat accepté avec succès !'),
