@@ -674,13 +674,16 @@ class _EmployerMissionsWidgetState extends State<EmployerMissionsWidget> {
                 // PR-02: View Applications button
                 if (mission.status == MissionStatus.open)
                   TextButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       // PR-02: Navigate to applications list
-                      context.pushNamed(
+                      // PR-11: Refresh on return in case a worker was accepted
+                      await context.pushNamed(
                         MissionApplicationsWidget.routeName,
                         pathParameters: {'missionId': mission.id},
                         extra: {'missionTitle': mission.title},
                       );
+                      // Refresh missions list after returning
+                      _loadMissions();
                     },
                     icon: Icon(
                       Icons.people_outline,
