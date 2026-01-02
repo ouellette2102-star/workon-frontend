@@ -274,16 +274,87 @@ abstract final class AppConfig {
 
   /// Merchant display name for Stripe Payment Sheet.
   static const String stripeMerchantName = 'WorkOn';
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-H1: Feature Flags / Kill-Switch
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Maintenance mode flag. When true, app shows MaintenanceScreen.
+  /// Set via: --dart-define=MAINTENANCE_MODE=true
+  /// Default: false (app runs normally)
+  static const bool _maintenanceModeEnv = bool.fromEnvironment(
+    'MAINTENANCE_MODE',
+    defaultValue: false,
+  );
+
+  /// Runtime override for maintenance mode (allows toggling without rebuild).
+  static bool _maintenanceModeOverride = false;
+
+  /// Returns true if maintenance mode is active.
+  static bool get maintenanceMode => _maintenanceModeEnv || _maintenanceModeOverride;
+
+  /// Sets maintenance mode at runtime (for remote config later).
+  static void setMaintenanceMode(bool value) {
+    _maintenanceModeOverride = value;
+  }
+
+  /// Auth disabled flag. When true, login/register are blocked.
+  /// Set via: --dart-define=DISABLE_AUTH=true
+  /// Default: false (auth works normally)
+  static const bool _disableAuthEnv = bool.fromEnvironment(
+    'DISABLE_AUTH',
+    defaultValue: false,
+  );
+
+  static bool _disableAuthOverride = false;
+
+  /// Returns true if auth is disabled.
+  static bool get disableAuth => _disableAuthEnv || _disableAuthOverride;
+
+  /// Sets auth disabled at runtime.
+  static void setDisableAuth(bool value) {
+    _disableAuthOverride = value;
+  }
+
+  /// Payments disabled flag. When true, payment entry points are blocked.
+  /// Set via: --dart-define=DISABLE_PAYMENTS=true
+  /// Default: false (payments work normally)
+  static const bool _disablePaymentsEnv = bool.fromEnvironment(
+    'DISABLE_PAYMENTS',
+    defaultValue: false,
+  );
+
+  static bool _disablePaymentsOverride = false;
+
+  /// Returns true if payments are disabled.
+  static bool get disablePayments => _disablePaymentsEnv || _disablePaymentsOverride;
+
+  /// Sets payments disabled at runtime.
+  static void setDisablePayments(bool value) {
+    _disablePaymentsOverride = value;
+  }
+
+  /// Notifier for kill-switch state changes (allows UI to react).
+  static final ValueNotifier<int> killSwitchNotifier = ValueNotifier(0);
+
+  /// Triggers UI refresh for kill-switch state changes.
+  static void notifyKillSwitchChanged() {
+    killSwitchNotifier.value++;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PR-G2: Environment Badge Widget
+// PR-H1: Extended with Maintenance Mode Gate
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Wraps a child widget with an environment badge overlay.
+/// Wraps a child widget with an environment badge overlay and kill-switch gates.
 ///
 /// Shows a small "DEV" or "STAGING" badge in the top-left corner
 /// for non-production environments. In production, no badge is shown.
+///
+/// **PR-H1:** Also handles maintenance mode gate (highest priority).
+/// When [AppConfig.maintenanceMode] is true, shows [MaintenanceScreen].
 ///
 /// Usage:
 /// ```dart
@@ -296,50 +367,206 @@ class EnvBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // No badge in production
-    if (AppConfig.isProd) {
-      return child;
-    }
+    return ValueListenableBuilder<int>(
+      valueListenable: AppConfig.killSwitchNotifier,
+      builder: (context, _, __) {
+        // PR-H1: Maintenance mode gate (highest priority)
+        if (AppConfig.maintenanceMode) {
+          return const MaintenanceScreen();
+        }
 
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Stack(
-        children: [
-          child,
-          // Badge overlay
-          Positioned(
-            top: 0,
-            left: 0,
-            child: SafeArea(
-              child: IgnorePointer(
-                child: Container(
-                  margin: const EdgeInsets.only(left: 4, top: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppConfig.env.badgeColor,
-                    borderRadius: BorderRadius.circular(4),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 2,
-                        offset: Offset(0, 1),
+        // No badge in production
+        if (AppConfig.isProd) {
+          return child;
+        }
+
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Stack(
+            children: [
+              child,
+              // Badge overlay
+              Positioned(
+                top: 0,
+                left: 0,
+                child: SafeArea(
+                  child: IgnorePointer(
+                    child: Container(
+                      margin: const EdgeInsets.only(left: 4, top: 4),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppConfig.env.badgeColor,
+                        borderRadius: BorderRadius.circular(4),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 2,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Text(
-                    AppConfig.env.label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.none,
+                      child: Text(
+                        AppConfig.env.label,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-H1: Maintenance Screen
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Full-screen maintenance mode UI.
+///
+/// Displayed when [AppConfig.maintenanceMode] is true.
+/// Shows a friendly French message with a retry button.
+class MaintenanceScreen extends StatelessWidget {
+  const MaintenanceScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Maintenance icon
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFEF3C7),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.build_rounded,
+                      size: 64,
+                      color: Color(0xFFD97706),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  // Title
+                  const Text(
+                    'Maintenance en cours',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  // Description
+                  const Text(
+                    'Nous améliorons l\'application pour vous offrir '
+                    'une meilleure expérience. Veuillez réessayer dans '
+                    'quelques minutes.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF64748B),
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 40),
+                  // Retry button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // Re-evaluate kill-switch flags (triggers rebuild)
+                        AppConfig.notifyKillSwitchChanged();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Réessayer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3B82F6),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-H1: KillSwitch Helper
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Helper class for checking kill-switch states and displaying messages.
+///
+/// Usage:
+/// ```dart
+/// void onLoginPressed() {
+///   if (KillSwitch.isAuthBlocked) {
+///     KillSwitch.showAuthDisabledMessage(context);
+///     return;
+///   }
+///   // Proceed with login...
+/// }
+/// ```
+abstract final class KillSwitch {
+  /// Returns true if app is in maintenance mode.
+  static bool get isMaintenance => AppConfig.maintenanceMode;
+
+  /// Returns true if auth actions should be blocked.
+  static bool get isAuthBlocked => AppConfig.disableAuth;
+
+  /// Returns true if payment actions should be blocked.
+  static bool get isPaymentsBlocked => AppConfig.disablePayments;
+
+  /// Shows a snackbar when auth is disabled.
+  static void showAuthDisabledMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('L\'authentification est temporairement désactivée.'),
+        backgroundColor: Color(0xFFF59E0B),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  /// Shows a snackbar when payments are disabled.
+  static void showPaymentsDisabledMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Les paiements sont temporairement désactivés.'),
+        backgroundColor: Color(0xFFF59E0B),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
