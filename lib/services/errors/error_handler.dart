@@ -426,14 +426,16 @@ abstract final class ErrorHandler {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CUSTOM ERROR WIDGET (for ErrorWidget.builder)
+// PR-H4: CUSTOM ERROR WIDGET (for ErrorWidget.builder)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Custom error widget shown when a widget build fails in release mode.
 ///
 /// Replaces the default Flutter red error screen with a more
-/// user-friendly UI.
-class AppErrorWidget extends StatelessWidget {
+/// user-friendly UI. Includes a retry button that triggers a rebuild.
+///
+/// **PR-H4:** Full-screen fallback with FR text + retry rebuild (no navigation).
+class AppErrorWidget extends StatefulWidget {
   const AppErrorWidget({
     super.key,
     this.details,
@@ -443,60 +445,112 @@ class AppErrorWidget extends StatelessWidget {
   final FlutterErrorDetails? details;
 
   @override
+  State<AppErrorWidget> createState() => _AppErrorWidgetState();
+}
+
+class _AppErrorWidgetState extends State<AppErrorWidget> {
+  int _retryCount = 0;
+
+  void _handleRetry() {
+    setState(() {
+      _retryCount++;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(WkSpacing.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                size: 64,
-                color: WkStatusColors.cancelled,
-              ),
-              const SizedBox(height: WkSpacing.lg),
-              const Text(
-                'Oups ! Quelque chose s\'est mal passé.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: WkSpacing.sm),
-              const Text(
-                'Essaie de redémarrer l\'application.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
-              ),
-              if (kDebugMode && details != null) ...[
-                const SizedBox(height: WkSpacing.lg),
-                Container(
-                  padding: const EdgeInsets.all(WkSpacing.sm),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(WkRadius.sm),
-                  ),
-                  child: Text(
-                    details!.exception.toString(),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontFamily: 'monospace',
-                      color: Colors.red,
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Error icon
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFEE2E2),
+                      shape: BoxShape.circle,
                     ),
-                    maxLines: 5,
-                    overflow: TextOverflow.ellipsis,
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      size: 64,
+                      color: Color(0xFFDC2626),
+                    ),
                   ),
-                ),
-              ],
-            ],
+                  const SizedBox(height: 32),
+                  // Title (FR)
+                  const Text(
+                    'Une erreur est survenue',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Subtitle (FR)
+                  const Text(
+                    'Veuillez réessayer plus tard.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF64748B),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  // Retry button (rebuild only, no navigation)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _handleRetry,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Réessayer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3B82F6),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Debug info (debug mode only)
+                  if (kDebugMode && widget.details != null) ...[
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Retry #$_retryCount\n${widget.details!.exception}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'monospace',
+                          color: Color(0xFFDC2626),
+                        ),
+                        maxLines: 5,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
       ),
