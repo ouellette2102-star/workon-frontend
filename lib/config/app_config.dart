@@ -2,29 +2,141 @@
 ///
 /// This file contains all environment-specific settings including
 /// backend API URLs for Railway deployment.
+///
+/// **PR-G2:** Added AppEnv enum, safety guards, and environment badge.
 library;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-G2: Environment Enum
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Application environment.
+enum AppEnv {
+  /// Development environment (local/dev backend).
+  dev,
+
+  /// Staging environment (pre-prod testing).
+  staging,
+
+  /// Production environment (live users).
+  prod;
+
+  /// Parses environment from string (case-insensitive).
+  static AppEnv fromName(String name) {
+    switch (name.toLowerCase()) {
+      case 'dev':
+      case 'development':
+        return AppEnv.dev;
+      case 'staging':
+      case 'stage':
+        return AppEnv.staging;
+      case 'prod':
+      case 'production':
+      default:
+        return AppEnv.prod;
+    }
+  }
+
+  /// Short label for badge display.
+  String get label {
+    switch (this) {
+      case AppEnv.dev:
+        return 'DEV';
+      case AppEnv.staging:
+        return 'STAGING';
+      case AppEnv.prod:
+        return '';
+    }
+  }
+
+  /// Badge color.
+  Color get badgeColor {
+    switch (this) {
+      case AppEnv.dev:
+        return const Color(0xFFEF4444); // Red
+      case AppEnv.staging:
+        return const Color(0xFFF59E0B); // Amber
+      case AppEnv.prod:
+        return Colors.transparent;
+    }
+  }
+}
 
 /// Application configuration class providing centralized access
 /// to all environment-specific settings.
 abstract final class AppConfig {
   // ─────────────────────────────────────────────────────────────────────────
+  // PR-G2: Environment Selection (Single Source of Truth)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Environment name from compile-time define.
+  /// Set via: --dart-define=APP_ENV=dev|staging|prod
+  static const String _envName = String.fromEnvironment(
+    'APP_ENV',
+    defaultValue: 'prod',
+  );
+
+  /// Current application environment.
+  static final AppEnv env = AppEnv.fromName(_envName);
+
+  /// Returns `true` if running in production environment.
+  static bool get isProd => env == AppEnv.prod;
+
+  /// Returns `true` if running in development environment.
+  static bool get isDev => env == AppEnv.dev;
+
+  /// Returns `true` if running in staging environment.
+  static bool get isStaging => env == AppEnv.staging;
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Backend API Configuration (Railway)
   // ─────────────────────────────────────────────────────────────────────────
 
   /// Production backend API base URL hosted on Railway.
-  static const String apiBaseUrl =
+  static const String _apiBaseUrlProd =
       'https://workon-backend-production.up.railway.app';
 
-  /// Development/staging backend API base URL.
+  /// Staging backend API base URL.
+  /// NOTE: Points to production until a separate staging backend is deployed.
+  static const String _apiBaseUrlStaging =
+      'https://workon-backend-production.up.railway.app';
+
+  /// Development backend API base URL.
   /// NOTE: Points to production until a separate dev backend is deployed.
-  static const String apiBaseUrlDev =
+  static const String _apiBaseUrlDev =
       'https://workon-backend-production.up.railway.app';
 
-  /// Current active API URL based on environment.
-  static const String activeApiUrl = _isProduction ? apiBaseUrl : apiBaseUrlDev;
+  /// API base URL from compile-time define (overrides env-based selection).
+  /// Set via: --dart-define=API_BASE_URL=https://...
+  static const String _apiBaseUrlOverride = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: '',
+  );
+
+  /// Current active API URL based on environment or explicit override.
+  static String get activeApiUrl {
+    if (_apiBaseUrlOverride.isNotEmpty) {
+      return _apiBaseUrlOverride;
+    }
+    switch (env) {
+      case AppEnv.dev:
+        return _apiBaseUrlDev;
+      case AppEnv.staging:
+        return _apiBaseUrlStaging;
+      case AppEnv.prod:
+        return _apiBaseUrlProd;
+    }
+  }
+
+  // Legacy aliases for backward compatibility
+  static String get apiBaseUrl => _apiBaseUrlProd;
+  static String get apiBaseUrlDev => _apiBaseUrlDev;
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Environment Configuration
+  // Environment Configuration (Legacy - kept for compatibility)
   // ─────────────────────────────────────────────────────────────────────────
 
   /// Flag indicating whether the app is running in production mode.
@@ -35,10 +147,65 @@ abstract final class AppConfig {
   );
 
   /// Returns `true` if running in production environment.
-  static bool get isProduction => _isProduction;
+  static bool get isProduction => _isProduction || isProd;
 
   /// Returns `true` if running in development environment.
-  static bool get isDevelopment => !_isProduction;
+  static bool get isDevelopment => !isProduction;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-G2: Safety Guards
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Known production URL patterns.
+  static const List<String> _prodUrlPatterns = [
+    'workon-backend-production',
+    'workon.app',
+    'railway.app',
+  ];
+
+  /// Known dev/local URL patterns.
+  static const List<String> _devUrlPatterns = [
+    'localhost',
+    '127.0.0.1',
+    '10.0.2.2', // Android emulator localhost
+    'ngrok',
+    '-dev.',
+    '-staging.',
+  ];
+
+  /// Validates environment configuration and asserts safety in debug mode.
+  ///
+  /// Call this early in main() to catch misconfigurations.
+  /// In release mode, this is a no-op (no crashes).
+  static void validateConfiguration() {
+    // Only enforce in debug/profile mode
+    if (kReleaseMode) return;
+
+    final url = activeApiUrl.toLowerCase();
+    final isProdUrl = _prodUrlPatterns.any((p) => url.contains(p));
+    final isDevUrl = _devUrlPatterns.any((p) => url.contains(p));
+
+    // Guard: PROD env with DEV url
+    if (env == AppEnv.prod && isDevUrl) {
+      assert(
+        false,
+        '[AppConfig] SAFETY VIOLATION: APP_ENV=prod but API_BASE_URL points to a dev host ($url). '
+        'This is likely a misconfiguration. Use APP_ENV=dev or fix API_BASE_URL.',
+      );
+    }
+
+    // Guard: DEV/STAGING env with PROD url (warning, not fatal)
+    if (env != AppEnv.prod && isProdUrl && !isDevUrl) {
+      debugPrint(
+        '[AppConfig] ⚠️ WARNING: APP_ENV=${env.name} but API_BASE_URL points to production ($url). '
+        'This may cause unintended side effects on production data.',
+      );
+    }
+
+    // Log current configuration in debug
+    debugPrint('[AppConfig] Environment: ${env.name}');
+    debugPrint('[AppConfig] API URL: $activeApiUrl');
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   // API Endpoints
@@ -107,5 +274,74 @@ abstract final class AppConfig {
 
   /// Merchant display name for Stripe Payment Sheet.
   static const String stripeMerchantName = 'WorkOn';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-G2: Environment Badge Widget
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Wraps a child widget with an environment badge overlay.
+///
+/// Shows a small "DEV" or "STAGING" badge in the top-left corner
+/// for non-production environments. In production, no badge is shown.
+///
+/// Usage:
+/// ```dart
+/// runApp(EnvBadge(child: MyApp()));
+/// ```
+class EnvBadge extends StatelessWidget {
+  const EnvBadge({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    // No badge in production
+    if (AppConfig.isProd) {
+      return child;
+    }
+
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Stack(
+        children: [
+          child,
+          // Badge overlay
+          Positioned(
+            top: 0,
+            left: 0,
+            child: SafeArea(
+              child: IgnorePointer(
+                child: Container(
+                  margin: const EdgeInsets.only(left: 4, top: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppConfig.env.badgeColor,
+                    borderRadius: BorderRadius.circular(4),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 2,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    AppConfig.env.label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 

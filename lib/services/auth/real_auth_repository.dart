@@ -521,5 +521,207 @@ class RealAuthRepository implements AuthRepository {
       throw const AuthException('Échec du rafraîchissement du token');
     }
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F2: Email Change & Account Deletion
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @override
+  Future<void> requestEmailChange({required String newEmail}) async {
+    final uri = ApiClient.buildUri('/auth/change-email');
+
+    try {
+      debugPrint('[RealAuthRepository] POST $uri');
+      final response = await ApiClient.authenticatedPost(
+        uri,
+        body: {'newEmail': newEmail.trim()},
+      );
+
+      debugPrint('[RealAuthRepository] requestEmailChange response: ${response.statusCode}');
+      debugPrint('[RealAuthRepository] requestEmailChange body: ${response.body}');
+
+      switch (response.statusCode) {
+        case 200:
+        case 201:
+          // Success - OTP sent
+          return;
+
+        case 400:
+          final json = _tryParseJson(response.body);
+          final errorCode = json?['errorCode'] as String?;
+          final message = json?['message'] as String? ?? 'Requête invalide';
+          
+          if (errorCode == 'RATE_LIMITED') {
+            throw const AuthException('Veuillez patienter avant de réessayer.');
+          }
+          if (errorCode == 'INVALID_EMAIL') {
+            throw const AuthException('Format d\'email invalide.');
+          }
+          throw AuthException(message);
+
+        case 401:
+          throw const UnauthorizedException();
+
+        case 429:
+          throw const AuthException('Trop de tentatives. Réessayez plus tard.');
+
+        default:
+          if (response.statusCode >= 500) {
+            throw const AuthNetworkException('Erreur serveur');
+          }
+          throw const AuthNetworkException();
+      }
+    } on TimeoutException {
+      debugPrint('[RealAuthRepository] requestEmailChange timeout');
+      throw const AuthNetworkException('Délai de connexion dépassé');
+    } on http.ClientException catch (e) {
+      debugPrint('[RealAuthRepository] requestEmailChange network error: $e');
+      throw const AuthNetworkException();
+    } on Exception catch (e) {
+      if (e is AuthException) rethrow;
+      debugPrint('[RealAuthRepository] requestEmailChange unexpected error: $e');
+      throw const AuthNetworkException();
+    }
+  }
+
+  @override
+  Future<void> verifyEmailOtp({
+    required String newEmail,
+    required String code,
+  }) async {
+    final uri = ApiClient.buildUri('/auth/verify-email-otp');
+
+    try {
+      debugPrint('[RealAuthRepository] POST $uri');
+      final response = await ApiClient.authenticatedPost(
+        uri,
+        body: {
+          'newEmail': newEmail.trim(),
+          'code': code.trim(),
+        },
+      );
+
+      debugPrint('[RealAuthRepository] verifyEmailOtp response: ${response.statusCode}');
+      debugPrint('[RealAuthRepository] verifyEmailOtp body: ${response.body}');
+
+      switch (response.statusCode) {
+        case 200:
+        case 201:
+          // Success - email updated
+          return;
+
+        case 400:
+          final json = _tryParseJson(response.body);
+          final errorCode = json?['errorCode'] as String?;
+          final message = json?['message'] as String?;
+
+          switch (errorCode) {
+            case 'OTP_INVALID':
+              throw const AuthException('Code incorrect. Vérifiez et réessayez.');
+            case 'OTP_EXPIRED':
+              throw const AuthException('Code expiré. Demandez un nouveau code.');
+            case 'OTP_LOCKED':
+              throw const AuthException('Trop de tentatives. Demandez un nouveau code.');
+            case 'OTP_NOT_FOUND':
+              throw const AuthException('Aucune demande de changement trouvée. Recommencez.');
+            case 'EMAIL_IN_USE':
+              throw const AuthException('Cette adresse email est déjà utilisée.');
+            default:
+              throw AuthException(message ?? 'Code invalide');
+          }
+
+        case 401:
+          throw const UnauthorizedException();
+
+        case 429:
+          throw const AuthException('Trop de tentatives. Réessayez plus tard.');
+
+        default:
+          if (response.statusCode >= 500) {
+            throw const AuthNetworkException('Erreur serveur');
+          }
+          throw const AuthNetworkException();
+      }
+    } on TimeoutException {
+      debugPrint('[RealAuthRepository] verifyEmailOtp timeout');
+      throw const AuthNetworkException('Délai de connexion dépassé');
+    } on http.ClientException catch (e) {
+      debugPrint('[RealAuthRepository] verifyEmailOtp network error: $e');
+      throw const AuthNetworkException();
+    } on Exception catch (e) {
+      if (e is AuthException) rethrow;
+      debugPrint('[RealAuthRepository] verifyEmailOtp unexpected error: $e');
+      throw const AuthNetworkException();
+    }
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    final uri = ApiClient.buildUri('/auth/account');
+
+    try {
+      debugPrint('[RealAuthRepository] DELETE $uri');
+      
+      // Use authenticatedDelete with body
+      final response = await ApiClient.client
+          .delete(
+            uri,
+            headers: ApiClient.authHeaders,
+            body: jsonEncode({'confirm': 'DELETE'}),
+          )
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[RealAuthRepository] deleteAccount response: ${response.statusCode}');
+      debugPrint('[RealAuthRepository] deleteAccount body: ${response.body}');
+
+      switch (response.statusCode) {
+        case 200:
+        case 204:
+          // Success - account deleted
+          return;
+
+        case 400:
+          final json = _tryParseJson(response.body);
+          final errorCode = json?['errorCode'] as String?;
+          final message = json?['message'] as String?;
+
+          if (errorCode == 'CONFIRM_REQUIRED') {
+            throw const AuthException('Confirmation requise.');
+          }
+          throw AuthException(message ?? 'Échec de la suppression');
+
+        case 401:
+          throw const UnauthorizedException();
+
+        case 404:
+          throw const AuthException('Compte introuvable.');
+
+        default:
+          if (response.statusCode >= 500) {
+            throw const AuthNetworkException('Erreur serveur');
+          }
+          throw const AuthNetworkException();
+      }
+    } on TimeoutException {
+      debugPrint('[RealAuthRepository] deleteAccount timeout');
+      throw const AuthNetworkException('Délai de connexion dépassé');
+    } on http.ClientException catch (e) {
+      debugPrint('[RealAuthRepository] deleteAccount network error: $e');
+      throw const AuthNetworkException();
+    } on Exception catch (e) {
+      if (e is AuthException) rethrow;
+      debugPrint('[RealAuthRepository] deleteAccount unexpected error: $e');
+      throw const AuthNetworkException();
+    }
+  }
+
+  /// Tries to parse JSON, returns null on failure.
+  Map<String, dynamic>? _tryParseJson(String body) {
+    try {
+      return jsonDecode(body) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
 }
 

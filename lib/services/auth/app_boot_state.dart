@@ -4,6 +4,7 @@
 /// independent of the underlying auth implementation.
 ///
 /// **PR#8:** Initial implementation with AppBootStatus enum and AppBootState class.
+/// **PR-STATE:** Added networkError status for graceful degradation.
 library;
 
 /// Represents the app boot/startup status.
@@ -25,6 +26,12 @@ enum AppBootStatus {
   ///
   /// The app should show login/onboarding UI.
   unauthenticated,
+
+  /// Network error during bootstrap. Tokens preserved.
+  ///
+  /// PR-STATE: App should proceed to home (if tokens exist) and show network banner.
+  /// User can retry when network is available.
+  networkError,
 }
 
 /// Represents the complete app boot state.
@@ -88,6 +95,15 @@ class AppBootState {
         userId = null,
         email = null;
 
+  /// Creates a network error boot state.
+  ///
+  /// PR-STATE: Used when bootstrap failed due to network issues.
+  /// Tokens are preserved; user may still have a valid session.
+  const AppBootState.networkError()
+      : status = AppBootStatus.networkError,
+        userId = null,
+        email = null;
+
   /// The current boot status.
   final AppBootStatus status;
 
@@ -105,6 +121,9 @@ class AppBootState {
 
   /// Returns `true` if the user is not authenticated.
   bool get isUnauthenticated => status == AppBootStatus.unauthenticated;
+
+  /// Returns `true` if bootstrap failed due to network error.
+  bool get isNetworkError => status == AppBootStatus.networkError;
 
   @override
   bool operator ==(Object other) {

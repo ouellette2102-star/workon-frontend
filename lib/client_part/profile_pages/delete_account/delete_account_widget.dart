@@ -6,6 +6,8 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:ui';
 import '/index.dart';
+import '/services/auth/auth_service.dart';
+import '/services/auth/auth_errors.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -316,7 +318,9 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                             ),
                             FFButtonWidget(
                               onPressed: () async {
-                                await _model.pageViewController?.nextPage(
+                                // Skip directly to confirmation page (page 2)
+                                await _model.pageViewController?.animateToPage(
+                                  2,
                                   duration: Duration(milliseconds: 300),
                                   curve: Curves.ease,
                                 );
@@ -1411,7 +1415,73 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                         ),
                         Column(
                           mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // PR-F2: Confirmation text field
+                            Text(
+                              'Pour confirmer, tapez DELETE ci-dessous :',
+                              style: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    fontFamily: 'General Sans',
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            SizedBox(height: 10.0),
+                            Container(
+                              width: double.infinity,
+                              child: TextFormField(
+                                controller: _model.confirmTextController,
+                                focusNode: _model.confirmFocusNode,
+                                autofocus: false,
+                                textCapitalization: TextCapitalization.characters,
+                                textInputAction: TextInputAction.done,
+                                onChanged: (_) => safeSetState(() {}),
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  hintText: 'DELETE',
+                                  hintStyle: FlutterFlowTheme.of(context)
+                                      .labelMedium
+                                      .override(
+                                        fontFamily: 'General Sans',
+                                        color: FlutterFlowTheme.of(context)
+                                            .secondaryText,
+                                        fontSize: 14.0,
+                                        letterSpacing: 0.0,
+                                      ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: FlutterFlowTheme.of(context).error,
+                                      width: 1.0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(14.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: FlutterFlowTheme.of(context).error,
+                                      width: 2.0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(14.0),
+                                  ),
+                                  filled: true,
+                                  fillColor: FlutterFlowTheme.of(context)
+                                      .secondaryBackground,
+                                  contentPadding: EdgeInsetsDirectional.fromSTEB(
+                                      15.0, 20.0, 15.0, 20.0),
+                                ),
+                                style: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .override(
+                                      fontFamily: 'General Sans',
+                                      fontSize: 16.0,
+                                      letterSpacing: 2.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: FlutterFlowTheme.of(context).error,
+                                    ),
+                              ),
+                            ),
+                            SizedBox(height: 10.0),
                             Row(
                               mainAxisSize: MainAxisSize.max,
                               children: [
@@ -1457,31 +1527,9 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                                     text: TextSpan(
                                       children: [
                                         TextSpan(
-                                          text: FFLocalizations.of(context)
-                                              .getText(
-                                            'icu2nk65' /* I agree to MigShop's  */,
-                                          ),
+                                          text: 'Je comprends que cette action est irréversible',
                                           style: TextStyle(),
                                         ),
-                                        TextSpan(
-                                          text: FFLocalizations.of(context)
-                                              .getText(
-                                            'ww0udwxy' /* Terms of Service */,
-                                          ),
-                                          style: TextStyle(
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            decoration:
-                                                TextDecoration.underline,
-                                          ),
-                                          mouseCursor: SystemMouseCursors.click,
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () async {
-                                              context.pushNamed(
-                                                  TermsOfServiceWidget
-                                                      .routeName);
-                                            },
-                                        )
                                       ],
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium
@@ -1495,16 +1543,54 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                                 ),
                               ].divide(SizedBox(width: 10.0)),
                             ),
+                            SizedBox(height: 20.0),
                             FFButtonWidget(
-                              onPressed: () async {
-                                await _model.pageViewController?.nextPage(
-                                  duration: Duration(milliseconds: 300),
-                                  curve: Curves.ease,
-                                );
-                              },
-                              text: FFLocalizations.of(context).getText(
-                                'zln67tg3' /* Delete My Account */,
-                              ),
+                              onPressed: (_model.confirmTextController?.text.trim().toUpperCase() != 'DELETE' || 
+                                         _model.checkboxValue2 != true ||
+                                         _model.isLoading)
+                                  ? null
+                                  : () async {
+                                      safeSetState(() => _model.isLoading = true);
+                                      
+                                      try {
+                                        await AuthService.deleteAccount();
+                                        
+                                        if (!mounted) return;
+                                        
+                                        // Navigate to success page (page 3)
+                                        await _model.pageViewController?.animateToPage(
+                                          3,
+                                          duration: Duration(milliseconds: 300),
+                                          curve: Curves.ease,
+                                        );
+                                      } on AuthException catch (e) {
+                                        if (!mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(e.message),
+                                            backgroundColor: FlutterFlowTheme.of(context).error,
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        if (!mounted) return;
+                                        debugPrint('[DeleteAccount] Error: $e');
+                                        // Navigate to failed page (page 4)
+                                        await _model.pageViewController?.animateToPage(
+                                          4,
+                                          duration: Duration(milliseconds: 300),
+                                          curve: Curves.ease,
+                                        );
+                                      } finally {
+                                        if (mounted) {
+                                          safeSetState(() => _model.isLoading = false);
+                                        }
+                                      }
+                                    },
+                              text: _model.isLoading
+                                  ? 'Suppression en cours...'
+                                  : FFLocalizations.of(context).getText(
+                                      'zln67tg3' /* Delete My Account */,
+                                    ),
                               options: FFButtonOptions(
                                 width: double.infinity,
                                 height: 50.0,
@@ -1512,7 +1598,11 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                                     16.0, 0.0, 16.0, 0.0),
                                 iconPadding: EdgeInsetsDirectional.fromSTEB(
                                     0.0, 0.0, 0.0, 0.0),
-                                color: FlutterFlowTheme.of(context).error,
+                                color: (_model.confirmTextController?.text.trim().toUpperCase() == 'DELETE' && 
+                                       _model.checkboxValue2 == true &&
+                                       !_model.isLoading)
+                                    ? FlutterFlowTheme.of(context).error
+                                    : FlutterFlowTheme.of(context).secondaryText,
                                 textStyle: FlutterFlowTheme.of(context)
                                     .titleSmall
                                     .override(
@@ -1524,7 +1614,7 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                                 borderRadius: BorderRadius.circular(30.0),
                               ),
                             ),
-                          ].divide(SizedBox(height: 10.0)),
+                          ],
                         ),
                       ]
                           .divide(SizedBox(height: 30.0))
@@ -1608,7 +1698,8 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                       ),
                       FFButtonWidget(
                         onPressed: () async {
-                          context.pushNamed(HomeWidget.routeName);
+                          // Navigate to onboarding/login since account is deleted
+                          context.goNamed(OnboardingWidget.routeName);
                         },
                         text: FFLocalizations.of(context).getText(
                           '5pzwozrr' /* OK */,

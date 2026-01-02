@@ -90,6 +90,34 @@ abstract class AuthRepository {
   /// - [UnauthorizedException] if refresh token is invalid or expired.
   /// - [AuthNetworkException] if connection fails.
   Future<AuthTokens> refreshTokens({required String refreshToken});
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F2: Email Change & Account Deletion
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Requests email change by sending OTP to the new email address.
+  ///
+  /// Throws:
+  /// - [AuthException] if email is invalid or rate limited.
+  /// - [AuthNetworkException] if connection fails.
+  Future<void> requestEmailChange({required String newEmail});
+
+  /// Verifies the OTP code and updates the user's email.
+  ///
+  /// Throws:
+  /// - [AuthException] with errorCode: OTP_INVALID, OTP_EXPIRED, OTP_LOCKED, EMAIL_IN_USE
+  /// - [AuthNetworkException] if connection fails.
+  Future<void> verifyEmailOtp({
+    required String newEmail,
+    required String code,
+  });
+
+  /// Permanently deletes the user's account (GDPR-compliant).
+  ///
+  /// Throws:
+  /// - [AuthException] if confirmation is missing.
+  /// - [AuthNetworkException] if connection fails.
+  Future<void> deleteAccount();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -271,6 +299,48 @@ class MockAuthRepository implements AuthRepository {
       refreshToken: 'mock_refreshed_refresh_token_${DateTime.now().millisecondsSinceEpoch}',
       expiresAt: DateTime.now().add(const Duration(hours: 1)),
     );
+  }
+
+  @override
+  Future<void> requestEmailChange({required String newEmail}) async {
+    // Simulate network latency
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    // Mock validation
+    if (newEmail.isEmpty || !newEmail.contains('@')) {
+      throw const AuthException('Format d\'email invalide');
+    }
+
+    // Mock: always succeeds (OTP "sent")
+  }
+
+  @override
+  Future<void> verifyEmailOtp({
+    required String newEmail,
+    required String code,
+  }) async {
+    // Simulate network latency
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    // Mock validation
+    if (code.length != 6) {
+      throw const AuthException('Le code OTP doit contenir 6 chiffres');
+    }
+
+    // Mock: reject specific test code
+    if (code == '000000') {
+      throw const AuthException('Code invalide ou expiré');
+    }
+
+    // Mock: always succeeds
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    // Simulate network latency
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    // Mock: always succeeds
   }
 
   /// Extracts a display name from an email address.

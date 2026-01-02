@@ -4,6 +4,7 @@
 /// for the app's initialization state.
 ///
 /// **PR#8:** Initial implementation with AppBootState management.
+/// **PR-STATE:** Uses cached bootstrap result to avoid double bootstrap.
 library;
 
 import 'package:flutter/foundation.dart';
@@ -94,9 +95,10 @@ class AppStartupController {
   ///
   /// This method:
   /// 1. Sets boot state to loading
-  /// 2. Calls [AuthBootstrap.initialize] to check session
-  /// 3. Subscribes to [AuthService.stateListenable] for ongoing updates
-  /// 4. Maps [AuthState] to [AppBootState]
+  /// 2. Uses cached [BootstrapResult] if available (PR-STATE)
+  /// 3. Otherwise calls [AuthBootstrap.bootstrapAuth]
+  /// 4. Subscribes to [AuthService.stateListenable] for ongoing updates
+  /// 5. Maps [AuthState]/[BootstrapResult] to [AppBootState]
   ///
   /// **Never throws** - all exceptions result in unauthenticated state.
   ///
@@ -122,14 +124,36 @@ class AppStartupController {
       // Subscribe to auth state changes first
       _subscribeToAuthState();
 
-      // Run the bootstrap initialization
-      await AuthBootstrap.initialize();
+      // PR-STATE: Use cached bootstrap result if available
+      // This prevents double API calls during startup
+      final cachedResult = AuthBootstrap.lastResult;
+      if (cachedResult != null) {
+        debugPrint('[AppStartupController] Using cached bootstrap result: $cachedResult');
+        _applyBootstrapResult(cachedResult);
+        return;
+      }
 
-      // After bootstrap, sync state from AuthService
-      _syncFromAuthState(AuthService.state);
+      // Fallback: run bootstrap (should rarely happen if main() calls bootstrapAuth first)
+      debugPrint('[AppStartupController] No cached result, running bootstrap...');
+      final result = await AuthBootstrap.bootstrapAuth();
+      _applyBootstrapResult(result);
     } catch (_) {
       // On any error, set unauthenticated
       _bootState.value = const AppBootState.unauthenticated();
+    }
+  }
+
+  /// PR-STATE: Applies a [BootstrapResult] to the boot state.
+  void _applyBootstrapResult(BootstrapResult result) {
+    switch (result) {
+      case BootstrapResult.authenticated:
+        _syncFromAuthState(AuthService.state);
+      case BootstrapResult.unauthenticated:
+        _bootState.value = const AppBootState.unauthenticated();
+      case BootstrapResult.networkError:
+        // PR-STATE: Network error - show network error state
+        // Tokens are preserved; user may still have a valid session
+        _bootState.value = const AppBootState.networkError();
     }
   }
 
