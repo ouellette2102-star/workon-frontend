@@ -20,6 +20,7 @@ import '/services/missions/mission_models.dart';
 import '/client_part/my_applications/my_applications_widget.dart';
 import '/client_part/employer_missions/employer_missions_widget.dart';
 import '/client_part/employer_missions/mission_applications_widget.dart';
+import '/client_part/payments/transactions_widget.dart';
 import '/client_part/saved/saved_missions_page.dart';
 
 export 'package:go_router/go_router.dart';
@@ -537,6 +538,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               missionTitle: missionTitle,
             );
           },
+        ),
+        // PR-06: Transactions history route
+        FFRoute(
+          name: TransactionsWidget.routeName,
+          path: TransactionsWidget.routePath,
+          builder: (context, params) => TransactionsWidget(),
         ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
