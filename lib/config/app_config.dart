@@ -136,6 +136,23 @@ abstract final class AppConfig {
     }
   }
 
+  /// PR-12: Returns true if API configuration is invalid.
+  /// Checks for empty or malformed API URL.
+  static bool get isMisconfigured {
+    final url = activeApiUrl;
+    if (url.isEmpty) {
+      debugPrint('[AppConfig] ❌ MISCONFIGURED: API URL is empty');
+      return true;
+    }
+    // Basic URL validation
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.hasScheme || !uri.hasAuthority) {
+      debugPrint('[AppConfig] ❌ MISCONFIGURED: Invalid API URL: $url');
+      return true;
+    }
+    return false;
+  }
+
   // Legacy aliases for backward compatibility
   static String get apiBaseUrl => _apiBaseUrlProd;
   static String get apiBaseUrlDev => _apiBaseUrlDev;
@@ -183,7 +200,12 @@ abstract final class AppConfig {
   /// Call this early in main() to catch misconfigurations.
   /// In release mode, this is a no-op (no crashes).
   static void validateConfiguration() {
-    // Only enforce in debug/profile mode
+    // PR-12: Log misconfiguration status (always, for diagnostics)
+    if (isMisconfigured) {
+      debugPrint('[AppConfig] ❌ CRITICAL: App is misconfigured - blocking UI');
+    }
+
+    // Only enforce strict checks in debug/profile mode
     if (kReleaseMode) return;
 
     final url = activeApiUrl.toLowerCase();
@@ -477,7 +499,12 @@ class EnvBadge extends StatelessWidget {
     return ValueListenableBuilder<int>(
       valueListenable: AppConfig.killSwitchNotifier,
       builder: (context, _, __) {
-        // PR-H2: Forced update gate (highest priority)
+        // PR-12: Misconfiguration gate (highest priority - prevents crashes)
+        if (AppConfig.isMisconfigured) {
+          return const MisconfigurationScreen();
+        }
+
+        // PR-H2: Forced update gate
         if (AppConfig.isUpdateRequired) {
           return const ForcedUpdateScreen();
         }
@@ -607,6 +634,103 @@ class MaintenanceScreen extends StatelessWidget {
                     child: ElevatedButton.icon(
                       onPressed: () {
                         // Re-evaluate kill-switch flags (triggers rebuild)
+                        AppConfig.notifyKillSwitchChanged();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Réessayer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3B82F6),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-12: Misconfiguration Screen
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Full-screen misconfiguration UI.
+///
+/// Displayed when [AppConfig.isMisconfigured] is true.
+/// Shows a friendly French message explaining the app is misconfigured.
+/// This prevents crashes when API URL is missing or invalid.
+class MisconfigurationScreen extends StatelessWidget {
+  const MisconfigurationScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Error icon
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFEE2E2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.settings_alert_outlined,
+                      size: 64,
+                      color: Color(0xFFDC2626),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  // Title
+                  const Text(
+                    'Configuration manquante',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  // Description
+                  const Text(
+                    'L\'application n\'est pas correctement configurée. '
+                    'Veuillez contacter le support technique ou '
+                    'réinstaller l\'application.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF64748B),
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 40),
+                  // Retry button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // Re-evaluate (triggers rebuild)
                         AppConfig.notifyKillSwitchChanged();
                       },
                       icon: const Icon(Icons.refresh),
