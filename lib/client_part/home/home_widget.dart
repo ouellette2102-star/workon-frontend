@@ -6,6 +6,7 @@ import '/client_part/components_client/service_item/service_item_widget.dart';
 import '/client_part/create_mission/create_mission_widget.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
 import '/client_part/my_applications/my_applications_widget.dart';
+import '/client_part/employer_missions/employer_missions_widget.dart';
 import '/client_part/saved/saved_missions_page.dart';
 import '/services/offers/offers_service.dart';
 import '/services/user/user_service.dart';
@@ -1362,6 +1363,8 @@ class _HomeWidgetState extends State<HomeWidget> {
   Widget _buildMissionsSection(BuildContext context) {
     final userContext = UserService.context;
     final isWorker = userContext.role == UserRole.worker;
+    final isEmployer = userContext.role == UserRole.employer || 
+        userContext.role == UserRole.residential;
     final state = _model.missionsTabMode == 'my_missions' 
         ? _model.myMissionsState 
         : _model.missionsState;
@@ -1375,6 +1378,11 @@ class _HomeWidgetState extends State<HomeWidget> {
           // PR-F23: Tab toggle for workers (Disponibles / Mes missions)
           if (isWorker) ...[
             _buildMissionsTabToggle(context),
+            SizedBox(height: WkSpacing.md),
+          ],
+          // PR-01: Employer quick access to their missions
+          if (isEmployer) ...[
+            _buildEmployerMissionsButton(context),
             SizedBox(height: WkSpacing.md),
           ],
           // Header
@@ -2670,6 +2678,74 @@ class _HomeWidgetState extends State<HomeWidget> {
           ),
         );
       },
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-01: Employer Missions Button
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-01: Builds the employer missions button.
+  Widget _buildEmployerMissionsButton(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        context.pushNamed(EmployerMissionsWidget.routeName);
+      },
+      borderRadius: BorderRadius.circular(WkRadius.md),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          horizontal: WkSpacing.lg,
+          vertical: WkSpacing.md,
+        ),
+        decoration: BoxDecoration(
+          color: FlutterFlowTheme.of(context).primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(WkRadius.md),
+          border: Border.all(
+            color: FlutterFlowTheme.of(context).primary.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.work_outline,
+              size: WkIconSize.md,
+              color: FlutterFlowTheme.of(context).primary,
+            ),
+            SizedBox(width: WkSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Mes missions',
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily: 'General Sans',
+                          fontWeight: FontWeight.bold,
+                          color: FlutterFlowTheme.of(context).primaryText,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                  Text(
+                    'Gérer vos missions et candidatures',
+                    style: FlutterFlowTheme.of(context).bodySmall.override(
+                          fontFamily: 'General Sans',
+                          color: FlutterFlowTheme.of(context).secondaryText,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              size: WkIconSize.md,
+              color: FlutterFlowTheme.of(context).primary,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
