@@ -24,6 +24,7 @@ import '/client_part/payments/transactions_widget.dart';
 import '/provider_part/jobs/jobs_real_widget.dart';
 import '/provider_part/earnings/earnings_real_widget.dart';
 import '/client_part/profile_pages/notification_settings/notification_settings_real_widget.dart';
+import '/client_part/search_results/search_results_real_widget.dart';
 import '/client_part/saved/saved_missions_page.dart';
 
 export 'package:go_router/go_router.dart';
@@ -568,6 +569,19 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: NotificationSettingsRealWidget.routeName,
           path: NotificationSettingsRealWidget.routePath,
           builder: (context, params) => NotificationSettingsRealWidget(),
+        ),
+        // PR-09: Search results with backend query + filters
+        FFRoute(
+          name: SearchResultsRealWidget.routeName,
+          path: SearchResultsRealWidget.routePath,
+          builder: (context, params) {
+            final initialQuery = params.getParam('query', ParamType.String);
+            final category = params.getParam('category', ParamType.String);
+            return SearchResultsRealWidget(
+              initialQuery: initialQuery,
+              category: category,
+            );
+          },
         ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
