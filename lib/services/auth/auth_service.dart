@@ -156,6 +156,18 @@ abstract final class AuthService {
     _session.value = next;
   }
 
+  /// Sets the in-memory session during bootstrap without extra network calls.
+  ///
+  /// Used by AuthBootstrap after /auth/me validation to ensure
+  /// [hasSession] and [session] are ready before protected API calls.
+  static void setSessionFromBootstrap({
+    required AuthUser user,
+    required AuthTokens tokens,
+  }) {
+    _currentSession = AuthSession(user: user, tokens: tokens);
+    _setSession(AppSession.fromToken(tokens.accessToken));
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // Session State (In-Memory)
   // ─────────────────────────────────────────────────────────────────────────
