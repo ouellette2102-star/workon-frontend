@@ -666,7 +666,7 @@ class _NotificationSettingsRealWidgetState
         context,
         icon: Icons.check_circle_outline,
         message: 'Notifications activées et prêtes à être reçues.',
-        color: WkStatusColors.active,
+        color: FlutterFlowTheme.of(context).primary,
       ));
       cards.add(SizedBox(height: WkSpacing.xl));
     }
