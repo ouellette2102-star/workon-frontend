@@ -7,10 +7,15 @@
 /// - Prevents double redirects when multiple calls fail
 ///
 /// **PR-SESSION:** Initial implementation.
+/// **PR-S2:** Added ConsentGuard for CONSENT_REQUIRED modal handling.
 library;
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '/services/auth/auth_service.dart';
+import '/services/legal/consent_gate.dart';
+import '/services/legal/consent_store.dart';
 import '/client_part/sign_in/sign_in_widget.dart';
 
 /// Centralized session guard for handling unauthorized (401) responses.
@@ -129,3 +134,273 @@ abstract final class SessionGuard {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-S2: Consent Guard
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Handles CONSENT_REQUIRED (403) by showing a modal dialog.
+///
+/// Must be initialized at app startup with a BuildContext.
+///
+/// Usage:
+/// ```dart
+/// // At app startup (e.g., in main.dart or after first frame)
+/// ConsentGuard.initialize(navigatorKey.currentContext!);
+/// ```
+abstract final class ConsentGuard {
+  // ─────────────────────────────────────────────────────────────────────────
+  // State
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Global navigator key for showing dialogs without context.
+  static GlobalKey<NavigatorState>? _navigatorKey;
+
+  /// Whether initialized.
+  static bool get isInitialized => _navigatorKey != null;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Initialization
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Initializes the consent guard with navigator key.
+  ///
+  /// Call this once at app startup, passing your MaterialApp's navigatorKey.
+  ///
+  /// ```dart
+  /// final navigatorKey = GlobalKey<NavigatorState>();
+  ///
+  /// MaterialApp(
+  ///   navigatorKey: navigatorKey,
+  ///   ...
+  /// );
+  ///
+  /// // After first frame
+  /// WidgetsBinding.instance.addPostFrameCallback((_) {
+  ///   ConsentGuard.initialize(navigatorKey);
+  /// });
+  /// ```
+  static void initialize(GlobalKey<NavigatorState> navigatorKey) {
+    _navigatorKey = navigatorKey;
+
+    // Register callback with ConsentGate
+    ConsentGate.setShowModalCallback(_showConsentModal);
+
+    debugPrint('[ConsentGuard] Initialized');
+  }
+
+  /// Resets the guard (for testing).
+  static void reset() {
+    _navigatorKey = null;
+    ConsentGate.reset();
+    debugPrint('[ConsentGuard] Reset');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Modal Display
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Shows the consent modal dialog.
+  ///
+  /// Returns true if user accepted, false if refused/closed.
+  static Future<bool> _showConsentModal() async {
+    final context = _navigatorKey?.currentContext;
+
+    if (context == null) {
+      debugPrint('[ConsentGuard] No valid context, cannot show modal');
+      return false;
+    }
+
+    debugPrint('[ConsentGuard] Showing consent modal...');
+
+    try {
+      final result = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false, // Force user to make a choice
+        builder: (dialogContext) => const _ConsentDialog(),
+      );
+
+      debugPrint('[ConsentGuard] Modal result: $result');
+      return result ?? false;
+    } catch (e) {
+      debugPrint('[ConsentGuard] Modal error: $e');
+      return false;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Consent Dialog Widget
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Modal dialog for consent acceptance.
+///
+/// Shows:
+/// - Title
+/// - Summary of Terms & Privacy
+/// - Links to full documents
+/// - Accept / Decline buttons
+class _ConsentDialog extends StatefulWidget {
+  const _ConsentDialog();
+
+  @override
+  State<_ConsentDialog> createState() => _ConsentDialogState();
+}
+
+class _ConsentDialogState extends State<_ConsentDialog> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text(
+        'Conditions d\'utilisation',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+        ),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Pour continuer à utiliser WorkOn, vous devez accepter nos conditions d\'utilisation et notre politique de confidentialité.',
+              style: TextStyle(fontSize: 14, height: 1.5),
+            ),
+            const SizedBox(height: 16),
+            // Terms link
+            _buildLinkRow(
+              icon: Icons.description_outlined,
+              text: 'Conditions d\'utilisation',
+              onTap: () => _openLegalPage('terms'),
+            ),
+            const SizedBox(height: 8),
+            // Privacy link
+            _buildLinkRow(
+              icon: Icons.privacy_tip_outlined,
+              text: 'Politique de confidentialité',
+              onTap: () => _openLegalPage('privacy'),
+            ),
+            const SizedBox(height: 16),
+            // Version info
+            FutureBuilder<String?>(
+              future: ConsentStore.getTermsVersion(),
+              builder: (context, snapshot) {
+                final version = snapshot.data ?? '—';
+                return Text(
+                  'Version: $version',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        // Decline button
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(false),
+          child: Text(
+            'Refuser',
+            style: TextStyle(
+              color: Colors.grey[600],
+            ),
+          ),
+        ),
+        // Accept button
+        ElevatedButton(
+          onPressed: _isLoading ? null : _handleAccept,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF3B82F6),
+            foregroundColor: Colors.white,
+          ),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : const Text('J\'accepte'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLinkRow({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: const Color(0xFF3B82F6)),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: const TextStyle(
+                color: Color(0xFF3B82F6),
+                decoration: TextDecoration.underline,
+              ),
+            ),
+            const Spacer(),
+            const Icon(
+              Icons.open_in_new,
+              size: 16,
+              color: Color(0xFF3B82F6),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openLegalPage(String type) {
+    // TODO: Navigate to legal pages or open in browser
+    // For now, just log
+    debugPrint('[ConsentDialog] Opening $type page');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          type == 'terms'
+              ? 'Voir les conditions d\'utilisation'
+              : 'Voir la politique de confidentialité',
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _handleAccept() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // The actual backend call will happen in ConsentGate.ensureAccepted()
+      // after we return true from this dialog
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      debugPrint('[ConsentDialog] Accept error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erreur lors de l\'acceptation. Réessaie.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+}
