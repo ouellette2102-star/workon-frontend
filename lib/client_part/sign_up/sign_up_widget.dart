@@ -1,9 +1,13 @@
 import '/client_part/components_client/back_icon_btn/back_icon_btn_widget.dart';
+import '/client_part/profile_pages/privacy_policy/privacy_policy_widget.dart';
+import '/client_part/profile_pages/terms_of_service/terms_of_service_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/analytics/analytics_service.dart';
 import '/services/auth/auth_errors.dart';
 import '/services/auth/auth_service.dart';
+import '/services/legal/consent_store.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:flutter/gestures.dart';
@@ -39,6 +43,9 @@ class _SignUpWidgetState extends State<SignUpWidget> {
 
     _model.passwordTextController ??= TextEditingController();
     _model.passwordFocusNode ??= FocusNode();
+
+    // PR-23: Track sign up started
+    AnalyticsService.track(AnalyticsEvent.signUpStarted);
   }
 
   @override
@@ -320,64 +327,94 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                         ],
                       ),
                     ),
+                    // PR-13: Legal consent checkbox (mandatory)
                     Row(
                       mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Flexible(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Theme(
-                                data: ThemeData(
-                                  checkboxTheme: CheckboxThemeData(
-                                    visualDensity: VisualDensity.compact,
-                                    materialTapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(6.0),
-                                    ),
-                                  ),
-                                  unselectedWidgetColor:
-                                      FlutterFlowTheme.of(context).primary,
-                                ),
-                                child: Checkbox(
-                                  value: _model.checkboxValue ??= false,
-                                  onChanged: (newValue) async {
-                                    safeSetState(
-                                        () => _model.checkboxValue = newValue!);
-                                  },
-                                  side: (FlutterFlowTheme.of(context).primary !=
-                                          null)
-                                      ? BorderSide(
-                                          width: 2,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary!,
-                                        )
-                                      : null,
-                                  activeColor:
-                                      FlutterFlowTheme.of(context).primary,
-                                  checkColor: FlutterFlowTheme.of(context)
-                                      .primaryBackground,
-                                ),
+                        Theme(
+                          data: ThemeData(
+                            checkboxTheme: CheckboxThemeData(
+                              visualDensity: VisualDensity.compact,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6.0),
                               ),
-                              Text(
-                                FFLocalizations.of(context).getText(
-                                  'ln8lnq6s' /* Remember me */,
-                                ),
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      fontFamily: 'General Sans',
-                                      fontSize: 14.0,
-                                      letterSpacing: 0.0,
-                                    ),
-                              ),
-                            ].divide(SizedBox(width: 5.0)),
+                            ),
+                            unselectedWidgetColor:
+                                FlutterFlowTheme.of(context).primary,
+                          ),
+                          child: Checkbox(
+                            value: _model.consentCheckboxValue,
+                            onChanged: (newValue) async {
+                              safeSetState(
+                                  () => _model.consentCheckboxValue = newValue!);
+                            },
+                            side: BorderSide(
+                              width: 2,
+                              color: _model.consentCheckboxValue
+                                  ? FlutterFlowTheme.of(context).primary
+                                  : FlutterFlowTheme.of(context).secondaryText,
+                            ),
+                            activeColor:
+                                FlutterFlowTheme.of(context).primary,
+                            checkColor: FlutterFlowTheme.of(context)
+                                .primaryBackground,
                           ),
                         ),
-                      ].divide(SizedBox(width: 20.0)),
+                        Expanded(
+                          child: RichText(
+                            text: TextSpan(
+                              style: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    fontFamily: 'General Sans',
+                                    fontSize: 13.0,
+                                    letterSpacing: 0.0,
+                                    height: 1.4,
+                                  ),
+                              children: [
+                                TextSpan(
+                                  text: 'J\'accepte les ',
+                                ),
+                                TextSpan(
+                                  text: 'Conditions d\'utilisation',
+                                  style: TextStyle(
+                                    color: FlutterFlowTheme.of(context).primary,
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      context.pushNamed(
+                                          TermsOfServiceWidget.routeName);
+                                    },
+                                ),
+                                TextSpan(
+                                  text: ' et la ',
+                                ),
+                                TextSpan(
+                                  text: 'Politique de confidentialité',
+                                  style: TextStyle(
+                                    color: FlutterFlowTheme.of(context).primary,
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      context.pushNamed(
+                                          PrivacyPolicyWidget.routeName);
+                                    },
+                                ),
+                                TextSpan(
+                                  text: '.',
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     FFButtonWidget(
                       onPressed: _model.isLoading
@@ -400,9 +437,25 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                                 return;
                               }
 
+                              // PR-13: Block signup if consent not given
+                              if (!_model.consentCheckboxValue) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        'Veuillez accepter les conditions d\'utilisation'),
+                                    backgroundColor:
+                                        FlutterFlowTheme.of(context).error,
+                                  ),
+                                );
+                                return;
+                              }
+
                               safeSetState(() => _model.isLoading = true);
 
                               try {
+                                // PR-13: Record consent before registration
+                                await ConsentStore.recordConsent();
+
                                 await AuthService.register(
                                   email: email,
                                   password: password,
@@ -410,6 +463,11 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                                 // Success: AuthGate will redirect to Home
                                 // No manual navigation needed
                               } on EmailAlreadyInUseException {
+                                // PR-23: Track sign up failed
+                                AnalyticsService.track(
+                                  AnalyticsEvent.signUpFailed,
+                                  params: {'reason': 'email_exists'},
+                                );
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -431,6 +489,11 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                                   );
                                 }
                               } on AuthException catch (e) {
+                                // PR-23: Track sign up failed
+                                AnalyticsService.track(
+                                  AnalyticsEvent.signUpFailed,
+                                  params: {'reason': 'auth_error'},
+                                );
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(

@@ -25,8 +25,10 @@ class SignUpModel extends FlutterFlowModel<SignUpWidget> {
   TextEditingController? passwordTextController;
   late bool passwordVisibility;
   String? Function(BuildContext, String?)? passwordTextControllerValidator;
-  // State field(s) for Checkbox widget.
+  // State field(s) for Checkbox widget (Remember me).
   bool? checkboxValue;
+  // PR-13: State field for legal consent checkbox.
+  bool consentCheckboxValue = false;
   // State field(s) for MouseRegion widget.
   bool mouseRegionHovered = false;
   // PR#14: Loading state for auth request

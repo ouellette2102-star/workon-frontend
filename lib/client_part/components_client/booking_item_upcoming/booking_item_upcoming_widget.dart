@@ -1,5 +1,6 @@
 import '/client_part/components_client/confirmation_bookings_b_s/confirmation_bookings_b_s_widget.dart';
 import '/client_part/components_client/menu_booking_item/menu_booking_item_widget.dart';
+import '/components/coming_soon_screen.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -169,9 +170,10 @@ class _BookingItemUpcomingWidgetState extends State<BookingItemUpcomingWidget> {
                                   FFLocalizations.of(context).getText(
                                 '90zf8wyw' /* Back */,
                               ),
+                              // PR-15: CancelBooking is template-only
                               primaryBtnAction: () async {
-                                context
-                                    .pushNamed(CancelBookingWidget.routeName);
+                                Navigator.pop(context);
+                                showComingSoon(context, 'Annulation');
                               },
                               secondaryBtnAction: () async {
                                 Navigator.pop(context);
@@ -215,6 +217,7 @@ class _BookingItemUpcomingWidgetState extends State<BookingItemUpcomingWidget> {
                     context.pushNamed(ChatWidget.routeName);
                   },
                 ),
+                // PR-15: VoiceCall is template-only
                 FlutterFlowIconButton(
                   borderColor: FlutterFlowTheme.of(context).alternate,
                   borderRadius: 30.0,
@@ -225,7 +228,7 @@ class _BookingItemUpcomingWidgetState extends State<BookingItemUpcomingWidget> {
                     size: 22.0,
                   ),
                   onPressed: () async {
-                    context.pushNamed(VoiceCallWidget.routeName);
+                    showComingSoon(context, 'Appels vocaux');
                   },
                 ),
                 FlutterFlowIconButton(

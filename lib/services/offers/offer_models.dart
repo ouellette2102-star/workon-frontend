@@ -3,9 +3,66 @@
 /// Data models for user applications/offers.
 ///
 /// **PR-F16:** Initial implementation.
+/// **PR-02:** Added ApplicantInfo for employer applications view.
 library;
 
 import '../missions/mission_models.dart';
+
+/// PR-02: Applicant/worker info for employer view.
+class ApplicantInfo {
+  final String id;
+  final String? name;
+  final String? email;
+  final String? phone;
+  final String? avatarUrl;
+  final double? rating;
+  final int? reviewCount;
+  final String? bio;
+
+  const ApplicantInfo({
+    required this.id,
+    this.name,
+    this.email,
+    this.phone,
+    this.avatarUrl,
+    this.rating,
+    this.reviewCount,
+    this.bio,
+  });
+
+  factory ApplicantInfo.fromJson(Map<String, dynamic> json) {
+    return ApplicantInfo(
+      id: (json['id'] ?? json['_id'] ?? '').toString(),
+      name: json['name']?.toString() ?? 
+          json['fullName']?.toString() ?? 
+          json['full_name']?.toString() ??
+          json['username']?.toString(),
+      email: json['email']?.toString(),
+      phone: json['phone']?.toString(),
+      avatarUrl: json['avatarUrl']?.toString() ?? 
+          json['avatar_url']?.toString() ??
+          json['profileImage']?.toString(),
+      rating: (json['rating'] as num?)?.toDouble() ?? 
+          (json['avgRating'] as num?)?.toDouble(),
+      reviewCount: json['reviewCount'] as int? ?? 
+          json['review_count'] as int?,
+      bio: json['bio']?.toString() ?? json['description']?.toString(),
+    );
+  }
+
+  /// Returns display name or fallback.
+  String get displayName => name ?? 'Utilisateur';
+
+  /// Returns initials for avatar placeholder.
+  String get initials {
+    if (name == null || name!.isEmpty) return '?';
+    final parts = name!.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name![0].toUpperCase();
+  }
+}
 
 /// Status of an offer/application.
 enum OfferStatus {
@@ -74,6 +131,9 @@ class Offer {
   /// Optional embedded mission data (if backend includes it).
   final Mission? mission;
 
+  /// PR-02: Applicant info (for employer view).
+  final ApplicantInfo? applicant;
+
   const Offer({
     required this.id,
     required this.missionId,
@@ -83,6 +143,7 @@ class Offer {
     required this.createdAt,
     this.updatedAt,
     this.mission,
+    this.applicant,
   });
 
   factory Offer.fromJson(Map<String, dynamic> json) {
@@ -96,6 +157,17 @@ class Offer {
       }
     }
 
+    // PR-02: Parse applicant info if embedded
+    ApplicantInfo? applicant;
+    final userData = json['user'] ?? json['applicant'] ?? json['worker'];
+    if (userData is Map<String, dynamic>) {
+      try {
+        applicant = ApplicantInfo.fromJson(userData);
+      } catch (e) {
+        // Ignore parse errors
+      }
+    }
+
     return Offer(
       id: (json['id'] ?? json['_id'] ?? '').toString(),
       missionId: (json['missionId'] ?? json['mission_id'] ?? 
@@ -106,6 +178,7 @@ class Offer {
       createdAt: _parseDate(json['createdAt'] ?? json['created_at']) ?? DateTime.now(),
       updatedAt: _parseDate(json['updatedAt'] ?? json['updated_at']),
       mission: mission,
+      applicant: applicant,
     );
   }
 

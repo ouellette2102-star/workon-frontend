@@ -18,7 +18,17 @@ import '/index.dart';
 import '/app/auth_gate.dart';
 import '/services/missions/mission_models.dart';
 import '/client_part/my_applications/my_applications_widget.dart';
+import '/client_part/employer_missions/employer_missions_widget.dart';
+import '/client_part/employer_missions/mission_applications_widget.dart';
+import '/client_part/payments/transactions_widget.dart';
+import '/provider_part/jobs/jobs_real_widget.dart';
+import '/provider_part/earnings/earnings_real_widget.dart';
+import '/client_part/profile_pages/notification_settings/notification_settings_real_widget.dart';
+import '/client_part/search_results/search_results_real_widget.dart';
 import '/client_part/saved/saved_missions_page.dart';
+import '/client_part/deep_link_handler/deep_link_handler_widget.dart';
+import '/client_part/deep_link_error/deep_link_error_widget.dart';
+import '/services/deep_linking/deep_link_service.dart';
 
 export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
@@ -516,8 +526,131 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: MyApplicationsWidget.routePath,
           builder: (context, params) => MyApplicationsWidget(),
         ),
+        // PR-01: Employer missions route
+        FFRoute(
+          name: EmployerMissionsWidget.routeName,
+          path: EmployerMissionsWidget.routePath,
+          builder: (context, params) => EmployerMissionsWidget(),
+        ),
+        // PR-02: Mission applications route
+        FFRoute(
+          name: MissionApplicationsWidget.routeName,
+          path: MissionApplicationsWidget.routePath,
+          builder: (context, params) {
+            final missionId = params.getParam('missionId', ParamType.String) ?? '';
+            final extra = params.extra as Map<String, dynamic>?;
+            final missionTitle = extra?['missionTitle'] as String?;
+            return MissionApplicationsWidget(
+              missionId: missionId,
+              missionTitle: missionTitle,
+            );
+          },
+        ),
+        // PR-06: Transactions history route
+        FFRoute(
+          name: TransactionsWidget.routeName,
+          path: TransactionsWidget.routePath,
+          builder: (context, params) => TransactionsWidget(),
+        ),
+        // PR-07: Provider Jobs (real data)
+        FFRoute(
+          name: JobsRealWidget.routeName,
+          path: JobsRealWidget.routePath,
+          builder: (context, params) {
+            final initialTab = params.getParam('initialTab', ParamType.int) ?? 0;
+            return JobsRealWidget(initialTab: initialTab);
+          },
+        ),
+        // PR-07: Provider Earnings (real data)
+        FFRoute(
+          name: EarningsRealWidget.routeName,
+          path: EarningsRealWidget.routePath,
+          builder: (context, params) => EarningsRealWidget(),
+        ),
+        // PR-08: Notification settings with persistence
+        FFRoute(
+          name: NotificationSettingsRealWidget.routeName,
+          path: NotificationSettingsRealWidget.routePath,
+          builder: (context, params) => NotificationSettingsRealWidget(),
+        ),
+        // PR-09: Search results with backend query + filters
+        FFRoute(
+          name: SearchResultsRealWidget.routeName,
+          path: SearchResultsRealWidget.routePath,
+          builder: (context, params) {
+            final initialQuery = params.getParam('query', ParamType.String);
+            final category = params.getParam('category', ParamType.String);
+            return SearchResultsRealWidget(
+              initialQuery: initialQuery,
+              category: category,
+            );
+          },
+        ),
+        // ─────────────────────────────────────────────────────────────────────
+        // PR-21: Deep Link Routes
+        // ─────────────────────────────────────────────────────────────────────
+        
+        // Deep link: workon://mission/{missionId}
+        FFRoute(
+          name: MissionDeepLinkHandler.routeName,
+          path: MissionDeepLinkHandler.routePath,
+          builder: (context, params) {
+            final missionId = params.getParam('missionId', ParamType.String) ?? '';
+            // Save any attribution params
+            _saveAttributionFromParams(params);
+            return MissionDeepLinkHandler(missionId: missionId);
+          },
+        ),
+        // Deep link: workon://profile/{userId}
+        FFRoute(
+          name: ProfileDeepLinkHandler.routeName,
+          path: ProfileDeepLinkHandler.routePath,
+          builder: (context, params) {
+            final userId = params.getParam('userId', ParamType.String) ?? '';
+            // Save any attribution params
+            _saveAttributionFromParams(params);
+            return ProfileDeepLinkHandler(userId: userId);
+          },
+        ),
+        // Deep link: workon://invite?ref=...&utm_source=...
+        FFRoute(
+          name: InviteDeepLinkHandler.routeName,
+          path: InviteDeepLinkHandler.routePath,
+          builder: (context, params) {
+            return InviteDeepLinkHandler(
+              referralCode: params.getParam('ref', ParamType.String),
+              utmSource: params.getParam('utm_source', ParamType.String),
+              utmCampaign: params.getParam('utm_campaign', ParamType.String),
+              utmMedium: params.getParam('utm_medium', ParamType.String),
+            );
+          },
+        ),
+        // Deep link error page
+        FFRoute(
+          name: DeepLinkErrorWidget.routeName,
+          path: DeepLinkErrorWidget.routePath,
+          builder: (context, params) => const DeepLinkErrorWidget(),
+        ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
+
+/// PR-21: Helper to save attribution from route params.
+void _saveAttributionFromParams(FFParameters params) {
+  final utmSource = params.getParam('utm_source', ParamType.String);
+  final utmMedium = params.getParam('utm_medium', ParamType.String);
+  final utmCampaign = params.getParam('utm_campaign', ParamType.String);
+  final ref = params.getParam('ref', ParamType.String);
+  
+  if (utmSource != null || utmCampaign != null || ref != null) {
+    DeepLinkService.saveAttribution(Attribution(
+      utmSource: utmSource,
+      utmMedium: utmMedium,
+      utmCampaign: utmCampaign,
+      referralCode: ref,
+      timestamp: DateTime.now(),
+    ));
+  }
+}
 
 extension NavParamExtensions on Map<String, String?> {
   Map<String, String> get withoutNulls => Map.fromEntries(

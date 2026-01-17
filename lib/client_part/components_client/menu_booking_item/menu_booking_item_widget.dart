@@ -1,3 +1,4 @@
+import '/components/coming_soon_screen.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -107,10 +108,11 @@ class _MenuBookingItemWidgetState extends State<MenuBookingItemWidget> {
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                   ),
+                // PR-15: VoiceCall is template-only, show coming soon
                 if (widget!.bookingStatus == 'pending')
                   FFButtonWidget(
                     onPressed: () async {
-                      context.pushNamed(VoiceCallWidget.routeName);
+                      showComingSoon(context, 'Appels vocaux');
                     },
                     text: FFLocalizations.of(context).getText(
                       'wwju97er' /* Call Provider                 ... */,
@@ -238,10 +240,11 @@ class _MenuBookingItemWidgetState extends State<MenuBookingItemWidget> {
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                   ),
+                // PR-15: RescheduleBooking is template-only, show coming soon
                 if (widget!.bookingStatus == 'pending')
                   FFButtonWidget(
                     onPressed: () async {
-                      context.pushNamed(RescheduleBookingWidget.routeName);
+                      showComingSoon(context, 'Reprogrammation');
                     },
                     text: FFLocalizations.of(context).getText(
                       'hgkjh4gr' /* Reschedule                    ... */,
@@ -271,10 +274,11 @@ class _MenuBookingItemWidgetState extends State<MenuBookingItemWidget> {
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                   ),
+                // PR-15: CancelBooking is template-only, show coming soon
                 if (widget!.bookingStatus == 'pending')
                   FFButtonWidget(
                     onPressed: () async {
-                      context.pushNamed(CancelBookingWidget.routeName);
+                      showComingSoon(context, 'Annulation');
                     },
                     text: FFLocalizations.of(context).getText(
                       'ky6nk278' /* Cancel Booking                ... */,

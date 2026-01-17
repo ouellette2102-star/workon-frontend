@@ -3,8 +3,13 @@ import '/client_part/components_client/invite_friend_item/invite_friend_item_wid
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/analytics/analytics_service.dart';
+import '/services/deep_linking/deep_link_service.dart';
+import '/services/auth/auth_service.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'invite_friends_model.dart';
@@ -92,6 +97,19 @@ class _InviteFriendsWidgetState extends State<InviteFriendsWidget> {
                 mainAxisSize: MainAxisSize.max,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // PR-21: Invite link card
+                  _buildInviteLinkCard(context),
+                  const SizedBox(height: 20),
+                  // Contacts section title
+                  Text(
+                    'Ou invite tes contacts',
+                    style: FlutterFlowTheme.of(context).titleSmall.override(
+                          fontFamily: 'General Sans',
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
                   Wrap(
                     spacing: 0.0,
                     runSpacing: 10.0,
@@ -201,6 +219,172 @@ class _InviteFriendsWidgetState extends State<InviteFriendsWidget> {
           ),
         ),
       ),
+    );
+  }
+
+  /// PR-21: Builds the invite link card with copy/share functionality.
+  Widget _buildInviteLinkCard(BuildContext context) {
+    // Generate invite link with user's referral code
+    final userId = AuthService.currentUser?.id ?? '';
+    final inviteLink = DeepLinkService.generateInviteLink(
+      referralCode: userId.isNotEmpty ? userId.substring(0, 8) : null,
+      utmSource: 'app_share',
+      utmCampaign: 'invite_friends',
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            FlutterFlowTheme.of(context).primary,
+            FlutterFlowTheme.of(context).primary.withOpacity(0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Icon and title row
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.card_giftcard,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Partage WorkOn',
+                      style: FlutterFlowTheme.of(context).titleMedium.override(
+                            fontFamily: 'General Sans',
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.0,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Invite tes amis et gagne des récompenses!',
+                      style: FlutterFlowTheme.of(context).bodySmall.override(
+                            fontFamily: 'General Sans',
+                            color: Colors.white.withOpacity(0.9),
+                            letterSpacing: 0.0,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Link display
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.link, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    inviteLink,
+                    style: FlutterFlowTheme.of(context).bodySmall.override(
+                          fontFamily: 'General Sans',
+                          color: Colors.white.withOpacity(0.9),
+                          letterSpacing: 0.0,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Action buttons
+          Row(
+            children: [
+              // Copy button
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _copyInviteLink(context, inviteLink),
+                  icon: const Icon(Icons.copy, size: 18),
+                  label: const Text('Copier'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white, width: 1.5),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Share button
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _shareInviteLink(inviteLink),
+                  icon: const Icon(Icons.share, size: 18),
+                  label: const Text('Partager'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: FlutterFlowTheme.of(context).primary,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Copies the invite link to clipboard.
+  void _copyInviteLink(BuildContext context, String link) {
+    Clipboard.setData(ClipboardData(text: link));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Lien copié!'),
+        backgroundColor: FlutterFlowTheme.of(context).success,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  /// Shares the invite link using the system share sheet.
+  void _shareInviteLink(String link) {
+    // PR-23: Track invite shared
+    AnalyticsService.track(AnalyticsEvent.inviteShared);
+    Share.share(
+      'Rejoins-moi sur WorkOn! Trouve des missions près de chez toi ou propose tes services.\n\n$link',
+      subject: 'Invitation WorkOn',
     );
   }
 }

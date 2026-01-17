@@ -19,6 +19,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 
+import '../analytics/analytics_service.dart';
 import '../push/push_service.dart';
 import '../user/user_service.dart';
 import 'app_session.dart';
@@ -155,6 +156,18 @@ abstract final class AuthService {
     _session.value = next;
   }
 
+  /// Sets the in-memory session during bootstrap without extra network calls.
+  ///
+  /// Used by AuthBootstrap after /auth/me validation to ensure
+  /// [hasSession] and [session] are ready before protected API calls.
+  static void setSessionFromBootstrap({
+    required AuthUser user,
+    required AuthTokens tokens,
+  }) {
+    _currentSession = AuthSession(user: user, tokens: tokens);
+    _setSession(AppSession.fromToken(tokens.accessToken));
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // Session State (In-Memory)
   // ─────────────────────────────────────────────────────────────────────────
@@ -240,6 +253,9 @@ abstract final class AuthService {
     UserService.refreshFromBackendIfPossible();
     // PR-F20: Register device for push notifications (fire-and-forget)
     PushService.registerDeviceIfNeeded();
+    // PR-23: Track login success
+    AnalyticsService.setUserId(session.user.id);
+    AnalyticsService.trackLoginSuccess(method: 'email');
     return session.user;
   }
 
@@ -299,6 +315,9 @@ abstract final class AuthService {
     UserService.refreshFromBackendIfPossible();
     // PR-F20: Register device for push notifications (fire-and-forget)
     PushService.registerDeviceIfNeeded();
+    // PR-23: Track sign up completed
+    AnalyticsService.setUserId(session.user.id);
+    AnalyticsService.trackSignUpCompleted(method: 'email');
     return session.user;
   }
 
@@ -358,6 +377,10 @@ abstract final class AuthService {
   /// ```
   static Future<void> logout() async {
     final token = _currentSession?.tokens.accessToken;
+
+    // PR-23: Track logout before clearing session
+    AnalyticsService.track(AnalyticsEvent.logout);
+    AnalyticsService.clearUserId();
 
     // PR-F20: Unregister device from push (fire-and-forget, before clearing session)
     await PushService.unregisterDevice();
@@ -586,6 +609,8 @@ abstract final class AuthService {
       _setSession(AppSession.fromToken(accessToken));
       await UserService.setFromAuth(userId: user.id, email: user.email);
       UserService.refreshFromBackendIfPossible();
+      // PR-22: Register device for push notifications on session restore (fire-and-forget)
+      PushService.registerDeviceIfNeeded();
 
       debugPrint('[AuthService] Session restored for ${user.email}');
       return true;

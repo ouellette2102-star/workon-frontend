@@ -282,7 +282,8 @@ abstract final class AuthBootstrap {
       expiresAt: TokenStorage.getExpiry(),
     );
 
-    // Update AuthService internal state
+    // Update AuthService internal state (session + auth state)
+    AuthService.setSessionFromBootstrap(user: user, tokens: tokens);
     AuthService.setAuthState(AuthState.authenticated(
       userId: user.id,
       email: user.email,

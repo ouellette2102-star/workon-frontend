@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -13,9 +15,11 @@ import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
 import 'flutter_flow/nav/nav.dart';
 import 'index.dart';
+import '/services/analytics/analytics_service.dart';
 import '/services/auth/auth_bootstrap.dart';
 import '/services/auth/auth_service.dart';
 import '/services/auth/token_refresh_interceptor.dart';
+import '/services/errors/crash_reporting_service.dart';
 import '/services/errors/error_handler.dart';
 import '/services/offers/offers_service.dart';
 import '/services/push/push_service.dart';
@@ -44,6 +48,9 @@ void main() async {
   }
 
   await FlutterFlowTheme.initialize();
+
+  // PR-14: Initialize localization (for locale persistence)
+  await FFLocalizations.initialize();
 
   // PR-5: Initialize Stripe with publishable key
   if (AppConfig.hasStripeKey) {
@@ -78,6 +85,9 @@ void main() async {
     );
   });
 
+  // PR-23: Load saved attribution for analytics
+  await AnalyticsService.loadAttribution();
+
   // PR-BOOT: Uber-grade cold-start bootstrap (before runApp)
   // - Attempts silent refresh if tokens exist
   // - Clears tokens only on auth error (401/403)
@@ -85,16 +95,40 @@ void main() async {
   final bootstrapResult = await AuthBootstrap.bootstrapAuth();
   debugPrint('[main] Bootstrap result: $bootstrapResult');
 
+  // PR-23: Track app open
+  AnalyticsService.trackAppOpen();
+
   final appState = FFAppState(); // Initialize FFAppState
   await appState.initializePersistedState();
 
-  // PR-G2: Wrap with environment badge overlay
-  runApp(EnvBadge(
-    child: ChangeNotifierProvider(
-      create: (context) => appState,
-      child: MyApp(),
-    ),
-  ));
+  // PR-24: Wrap runApp in runZonedGuarded for async error catching
+  _runAppWithErrorBoundary(appState);
+}
+
+/// PR-24: Runs the app with a global error zone.
+///
+/// Catches async errors not caught by Flutter framework.
+void _runAppWithErrorBoundary(FFAppState appState) {
+  // Use runZonedGuarded to catch all async errors
+  runZonedGuarded(
+    () {
+      // PR-G2: Wrap with environment badge overlay
+      runApp(EnvBadge(
+        child: ChangeNotifierProvider(
+          create: (context) => appState,
+          child: MyApp(),
+        ),
+      ));
+    },
+    (error, stackTrace) {
+      // PR-24: Handle uncaught async errors
+      debugPrint('[main] Uncaught async error: $error');
+      debugPrint('[main] Stack: $stackTrace');
+
+      // Record to crash reporting (with sanitization)
+      CrashReportingService.handleZoneError(error, stackTrace);
+    },
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -107,6 +141,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  // PR-14: Default to French, or restored from storage
   Locale? _locale;
 
   ThemeMode _themeMode = FlutterFlowTheme.themeMode;
@@ -135,6 +170,9 @@ class _MyAppState extends State<MyApp> {
     _appStateNotifier = AppStateNotifier.instance;
     _router = createRouter(_appStateNotifier);
 
+    // PR-14: Restore persisted locale (default to French if none)
+    _restoreLocale();
+
     // PR-F20: Set up push service navigator key after router is ready
     WidgetsBinding.instance.addPostFrameCallback((_) {
       PushService.setNavigatorKey(_router.routerDelegate.navigatorKey);
@@ -144,8 +182,25 @@ class _MyAppState extends State<MyApp> {
         () => safeSetState(() => _appStateNotifier.stopShowingSplashImage()));
   }
 
+  // PR-14: Restore locale from storage, default to French
+  void _restoreLocale() {
+    final storedLocale = FFLocalizations.getStoredLocale();
+    if (storedLocale != null) {
+      _locale = storedLocale;
+      debugPrint('[i18n] Restored locale: ${storedLocale.languageCode}');
+    } else {
+      // Default to French
+      _locale = const Locale('fr');
+      debugPrint('[i18n] Default locale: fr');
+    }
+  }
+
+  // PR-14: Set and persist locale
   void setLocale(String language) {
     safeSetState(() => _locale = createLocale(language));
+    // Persist for next app launch
+    FFLocalizations.storeLocale(language);
+    debugPrint('[i18n] Locale changed and persisted: $language');
   }
 
   void setThemeMode(ThemeMode mode) => safeSetState(() {
@@ -158,7 +213,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp.router(
       scaffoldMessengerKey: rootScaffoldMessengerKey, // PR-F17
       debugShowCheckedModeBanner: false,
-      title: 'WorkOnV1',
+      title: 'WorkOn',
       localizationsDelegates: [
         FFLocalizationsDelegate(),
         GlobalMaterialLocalizations.delegate,

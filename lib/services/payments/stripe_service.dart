@@ -113,7 +113,7 @@ abstract final class StripeService {
           style: ThemeMode.system,
           appearance: const PaymentSheetAppearance(
             colors: PaymentSheetAppearanceColors(
-              primary: Color(0xFF40E0D0), // WorkOn primary color
+              primary: Color(0xFFE24A33), // WorkOn red brand color
             ),
           ),
           billingDetails: const BillingDetails(
