@@ -695,7 +695,7 @@ class MisconfigurationScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.settings_alert_outlined,
+                      Icons.settings,
                       size: 64,
                       color: Color(0xFFDC2626),
                     ),

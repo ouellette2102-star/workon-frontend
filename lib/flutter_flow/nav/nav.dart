@@ -538,7 +538,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: MissionApplicationsWidget.routePath,
           builder: (context, params) {
             final missionId = params.getParam('missionId', ParamType.String) ?? '';
-            final extra = params.extra as Map<String, dynamic>?;
+            final extra = params.state.extraMap;
             final missionTitle = extra?['missionTitle'] as String?;
             return MissionApplicationsWidget(
               missionId: missionId,
