@@ -392,7 +392,7 @@ class RealAuthRepository implements AuthRepository {
         return AuthSession.fromJson(data);
       }
 
-      // Try flat token format
+      // Try flat token format (snake_case)
       if (json.containsKey('user') && json.containsKey('access_token')) {
         return AuthSession(
           user: AuthUser.fromJson(json['user'] as Map<String, dynamic>),
@@ -401,6 +401,20 @@ class RealAuthRepository implements AuthRepository {
             refreshToken: json['refresh_token'] as String? ?? '',
             expiresAt: json['expires_at'] != null
                 ? DateTime.parse(json['expires_at'] as String)
+                : null,
+          ),
+        );
+      }
+
+      // Try flat token format (camelCase - NestJS backend format)
+      if (json.containsKey('user') && json.containsKey('accessToken')) {
+        return AuthSession(
+          user: AuthUser.fromJson(json['user'] as Map<String, dynamic>),
+          tokens: AuthTokens(
+            accessToken: json['accessToken'] as String,
+            refreshToken: json['refreshToken'] as String? ?? '',
+            expiresAt: json['expiresAt'] != null
+                ? DateTime.parse(json['expiresAt'] as String)
                 : null,
           ),
         );
