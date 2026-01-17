@@ -50,13 +50,13 @@ abstract final class CrashReportingService {
     // JWT tokens (Bearer xxx)
     RegExp(r'Bearer\s+[A-Za-z0-9\-_=]+\.[A-Za-z0-9\-_=]+\.[A-Za-z0-9\-_.+/=]*'),
     // Generic tokens (token=xxx, accessToken=xxx)
-    RegExp(r'(access_?token|refresh_?token|token|api_?key|secret)["\s:=]+["\']?[A-Za-z0-9\-_./+=]{20,}["\']?', caseSensitive: false),
+    RegExp(r'''(access_?token|refresh_?token|token|api_?key|secret)["\s:=]+["\']?[A-Za-z0-9\-_./+=]{20,}["\']?''', caseSensitive: false),
     // Credit card numbers (16 digits, with or without spaces/dashes)
     RegExp(r'\b(?:\d{4}[-\s]?){3}\d{4}\b'),
     // CVV (3-4 digits after card number context)
-    RegExp(r'\b(cvv|cvc|cvv2|cvc2)["\s:=]+["\']?\d{3,4}["\']?', caseSensitive: false),
+    RegExp(r'''\b(cvv|cvc|cvv2|cvc2)["\s:=]+["\']?\d{3,4}["\']?''', caseSensitive: false),
     // Password fields
-    RegExp(r'(password|passwd|pwd)["\s:=]+["\'][^"\']{1,100}["\']', caseSensitive: false),
+    RegExp(r'''(password|passwd|pwd)["\s:=]+["\'][^"\']{1,100}["\']''', caseSensitive: false),
     // Email addresses (partial redaction)
     RegExp(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'),
     // Phone numbers
@@ -173,7 +173,7 @@ abstract final class CrashReportingService {
     recordError(
       details.exception,
       stackTrace: details.stack,
-      context: details.context?.toStringShort(),
+      context: details.context?.toString(),
       fatal: false,
     );
   }
