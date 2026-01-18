@@ -38,8 +38,8 @@ abstract final class PushConfig {
   /// 2. Adding GoogleService-Info.plist (iOS)
   /// 3. Adding firebase_messaging to pubspec.yaml
   ///
-  /// **Default:** `false` (safe for development)
-  static const bool enabled = false;
+  /// **PR-F26:** Enabled for FCM integration.
+  static const bool enabled = true;
 
   /// Whether to show foreground notifications as snackbars.
   static const bool showForegroundSnackbar = true;

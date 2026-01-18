@@ -2,6 +2,7 @@
 ///
 /// **PR-F20:** Initial implementation.
 /// **PR-22:** Added retry/backoff, improved token management.
+/// **PR-F26:** Enabled Firebase Cloud Messaging integration.
 ///
 /// This service manages:
 /// - FCM token retrieval and registration
@@ -26,6 +27,8 @@ library;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -55,6 +58,9 @@ enum PushStatus {
   
   /// Push disabled by configuration.
   disabled,
+  
+  /// Firebase not configured (missing google-services.json).
+  firebaseNotConfigured,
 }
 
 /// Service that manages push notifications.
@@ -68,6 +74,9 @@ abstract final class PushService {
 
   /// Whether the service has been initialized.
   static bool _initialized = false;
+  
+  /// Whether Firebase is available.
+  static bool _firebaseAvailable = false;
 
   /// Navigator key for navigation from notifications.
   static GlobalKey<NavigatorState>? _navigatorKey;
@@ -149,9 +158,22 @@ abstract final class PushService {
         debugPrint('[PushService] Restored token from storage');
       }
 
-      // TODO(PR-F20): When Firebase is configured, uncomment:
-      // await Firebase.initializeApp();
-      // await _setupFCM();
+      // PR-F26: Initialize Firebase
+      try {
+        await Firebase.initializeApp();
+        _firebaseAvailable = true;
+        debugPrint('[PushService] Firebase initialized');
+        
+        // Setup FCM
+        await _setupFCM();
+      } catch (e) {
+        // Firebase not configured (missing google-services.json)
+        debugPrint('[PushService] Firebase not available: $e');
+        _firebaseAvailable = false;
+        _status.value = PushStatus.firebaseNotConfigured;
+        _initialized = true;
+        return true; // Still "success" - just without push
+      }
 
       _initialized = true;
       
@@ -162,12 +184,90 @@ abstract final class PushService {
         _status.value = PushStatus.tokenUnavailable;
       }
       
-      debugPrint('[PushService] Initialized (Firebase not configured yet)');
+      debugPrint('[PushService] Initialized with FCM');
       return true;
     } catch (e) {
       debugPrint('[PushService] Initialization failed: $e');
       _status.value = PushStatus.tokenUnavailable;
       return false;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Firebase Setup (PR-F26)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Sets up Firebase Cloud Messaging.
+  static Future<void> _setupFCM() async {
+    final messaging = FirebaseMessaging.instance;
+
+    // Request permissions (iOS)
+    if (Platform.isIOS) {
+      final settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      debugPrint('[PushService] iOS permission: ${settings.authorizationStatus}');
+      
+      if (settings.authorizationStatus != AuthorizationStatus.authorized) {
+        _status.value = PushStatus.tokenUnavailable;
+        return;
+      }
+    }
+
+    // Get FCM token
+    try {
+      _fcmToken = await messaging.getToken();
+      
+      if (_fcmToken != null) {
+        await NotificationPrefs.setDeviceToken(_fcmToken!);
+        _status.value = PushStatus.ready;
+        // Log partial token for debugging (never full token in prod)
+        final tokenPreview = _fcmToken!.length > 20 
+            ? '${_fcmToken!.substring(0, 20)}...' 
+            : _fcmToken;
+        debugPrint('[PushService] FCM token retrieved: $tokenPreview');
+      } else {
+        _status.value = PushStatus.tokenUnavailable;
+        debugPrint('[PushService] FCM token unavailable');
+      }
+    } catch (e) {
+      debugPrint('[PushService] Error getting FCM token: $e');
+      _status.value = PushStatus.tokenUnavailable;
+    }
+
+    // Listen for token refresh
+    messaging.onTokenRefresh.listen((newToken) {
+      debugPrint('[PushService] FCM token refreshed');
+      updateToken(newToken);
+    });
+
+    // Handle foreground messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('[PushService] Foreground message received');
+      final data = {
+        ...message.data,
+        'title': message.notification?.title,
+        'body': message.notification?.body,
+      };
+      handleForegroundNotification(data);
+    });
+
+    // Handle background/terminated tap
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('[PushService] Notification opened app');
+      handleNotificationTap(message.data);
+    });
+
+    // Check if app was opened from notification
+    final initialMessage = await messaging.getInitialMessage();
+    if (initialMessage != null) {
+      debugPrint('[PushService] App opened from notification');
+      // Delay to ensure navigation is ready
+      Future.delayed(const Duration(milliseconds: 500), () {
+        handleNotificationTap(initialMessage.data);
+      });
     }
   }
 
@@ -194,6 +294,11 @@ abstract final class PushService {
       debugPrint('[PushService] registerDevice: push disabled by config');
       return true;
     }
+    
+    if (!_firebaseAvailable) {
+      debugPrint('[PushService] registerDevice: Firebase not available');
+      return true; // Not an error, just not configured
+    }
 
     if (!AuthService.hasSession) {
       debugPrint('[PushService] registerDevice: no session');
@@ -209,9 +314,18 @@ abstract final class PushService {
       return true;
     }
 
-    // Get token (from Firebase when configured)
-    // TODO(PR-F20): When Firebase is configured, get real token:
-    // final token = await FirebaseMessaging.instance.getToken();
+    // PR-F26: Get fresh token from Firebase if needed
+    if (_fcmToken == null || _fcmToken!.isEmpty) {
+      try {
+        _fcmToken = await FirebaseMessaging.instance.getToken();
+        if (_fcmToken != null) {
+          await NotificationPrefs.setDeviceToken(_fcmToken!);
+        }
+      } catch (e) {
+        debugPrint('[PushService] Error refreshing FCM token: $e');
+      }
+    }
+
     final token = _fcmToken;
 
     if (token == null || token.isEmpty) {
@@ -254,7 +368,7 @@ abstract final class PushService {
     _retryCount++;
     final delay = _baseRetryDelay * (1 << (_retryCount - 1)); // Exponential backoff
     
-    debugPrint('[PushService] Scheduling retry ${_retryCount}/$_maxRetries in ${delay}s');
+    debugPrint('[PushService] Scheduling retry $_retryCount/$_maxRetries in ${delay}s');
     _status.value = PushStatus.pendingRegistration;
 
     _retryTimer?.cancel();
@@ -520,73 +634,6 @@ abstract final class PushService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Firebase Setup (uncomment when Firebase is configured)
-  // ─────────────────────────────────────────────────────────────────────────
-
-  /*
-  /// Sets up Firebase Cloud Messaging.
-  static Future<void> _setupFCM() async {
-    final messaging = FirebaseMessaging.instance;
-
-    // Request permissions (iOS)
-    if (Platform.isIOS) {
-      final settings = await messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      debugPrint('[PushService] iOS permission: ${settings.authorizationStatus}');
-      
-      if (settings.authorizationStatus != AuthorizationStatus.authorized) {
-        _status.value = PushStatus.tokenUnavailable;
-        return;
-      }
-    }
-
-    // Get FCM token
-    _fcmToken = await messaging.getToken();
-    
-    if (_fcmToken != null) {
-      await NotificationPrefs.setDeviceToken(_fcmToken!);
-      _status.value = PushStatus.ready;
-      debugPrint('[PushService] FCM token retrieved');
-    } else {
-      _status.value = PushStatus.tokenUnavailable;
-      debugPrint('[PushService] FCM token unavailable');
-    }
-
-    // Listen for token refresh
-    messaging.onTokenRefresh.listen((newToken) {
-      updateToken(newToken);
-    });
-
-    // Handle foreground messages
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      final data = {
-        ...message.data,
-        'title': message.notification?.title,
-        'body': message.notification?.body,
-      };
-      handleForegroundNotification(data);
-    });
-
-    // Handle background/terminated tap
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      handleNotificationTap(message.data);
-    });
-
-    // Check if app was opened from notification
-    final initialMessage = await messaging.getInitialMessage();
-    if (initialMessage != null) {
-      // Delay to ensure navigation is ready
-      Future.delayed(const Duration(milliseconds: 500), () {
-        handleNotificationTap(initialMessage.data);
-      });
-    }
-  }
-  */
-
-  // ─────────────────────────────────────────────────────────────────────────
   // Cleanup
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -594,6 +641,7 @@ abstract final class PushService {
   @visibleForTesting
   static void reset() {
     _initialized = false;
+    _firebaseAvailable = false;
     _fcmToken = null;
     _retryCount = 0;
     _retryTimer?.cancel();
