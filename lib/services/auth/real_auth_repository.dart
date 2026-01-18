@@ -272,13 +272,14 @@ class RealAuthRepository implements AuthRepository {
 
     try {
       debugPrint('[RealAuthRepository] POST $uri');
+      // PR-F2: Backend expects {token, newPassword} where token is the JWT from email
+      // The 'code' parameter IS the token received via forgot-password email
       final response = await ApiClient.client
           .post(
             uri,
             headers: ApiClient.defaultHeaders,
             body: jsonEncode({
-              'email': email.trim(),
-              'code': code.trim(),
+              'token': code.trim(),
               'newPassword': newPassword,
             }),
           )
