@@ -110,8 +110,9 @@ abstract final class AppConfig {
       'https://workon-backend-production.up.railway.app';
 
   /// Development backend API base URL.
-  /// Android emulator: use 10.0.2.2 to reach host machine localhost.
-  static const String _apiBaseUrlDev = 'http://10.0.2.2:3001';
+  /// NOTE: Points to production until a separate dev backend is deployed.
+  static const String _apiBaseUrlDev =
+      'https://workon-backend-production.up.railway.app';
 
   /// API base URL from compile-time define (overrides env-based selection).
   /// Set via: --dart-define=API_BASE_URL=https://...

@@ -18,68 +18,21 @@ class MessagesApi {
 
   /// Fetches all conversations for the current user.
   ///
-  /// Calls `GET /conversations` with Bearer token.
+  /// **PR-4:** Cette fonctionnalité n'est pas disponible via l'API backend.
+  /// Le chat est accessible uniquement depuis une mission (via missionId).
+  /// Retourne une liste vide - l'UI affichera un état informatif.
   Future<List<Conversation>> getConversations() async {
-    if (!AuthService.hasSession) {
-      debugPrint('[MessagesApi] getConversations: no session');
-      throw const MessagesApiException('Pas de session active');
-    }
-
-    final token = AuthService.session.token;
-    if (token == null || token.isEmpty) {
-      debugPrint('[MessagesApi] getConversations: no token');
-      throw const MessagesApiException('Token non disponible');
-    }
-
-    final uri = ApiClient.buildUri('/conversations');
-    final headers = {
-      ...ApiClient.defaultHeaders,
-      'Authorization': 'Bearer $token',
-    };
-
-    try {
-      debugPrint('[MessagesApi] GET $uri');
-      final response = await ApiClient.client
-          .get(uri, headers: headers)
-          .timeout(ApiClient.connectionTimeout);
-
-      debugPrint('[MessagesApi] getConversations: ${response.statusCode}');
-
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        throw const MessagesApiException('Session expirée');
-      }
-
-      if (response.statusCode >= 500) {
-        throw MessagesApiException('Erreur serveur: ${response.statusCode}');
-      }
-
-      if (response.statusCode != 200) {
-        throw MessagesApiException('Erreur: ${response.statusCode}');
-      }
-
-      final body = jsonDecode(response.body);
-      final List<dynamic> data = body is List
-          ? body
-          : (body['conversations'] ?? body['data'] ?? []);
-
-      return data
-          .map((json) => Conversation.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on TimeoutException {
-      debugPrint('[MessagesApi] getConversations: timeout');
-      throw const MessagesApiException('Connexion timeout');
-    } on MessagesApiException {
-      rethrow;
-    } catch (e) {
-      debugPrint('[MessagesApi] getConversations: error: $e');
-      throw MessagesApiException('Erreur réseau: $e');
-    }
+    debugPrint('[MessagesApi] getConversations: feature non disponible - '
+        'accès chat via mission uniquement');
+    // Retourne liste vide - pas d'endpoint backend pour lister les conversations
+    return [];
   }
 
-  /// Fetches messages for a conversation.
+  /// Fetches messages for a mission thread.
   ///
-  /// Calls `GET /conversations/{id}/messages` with Bearer token.
-  Future<List<Message>> getMessages(String conversationId) async {
+  /// **PR-4:** Aligned to backend endpoint `GET /messages/thread/:missionId`.
+  /// [missionId] is the mission ID (previously called conversationId).
+  Future<List<Message>> getMessages(String missionId) async {
     if (!AuthService.hasSession) {
       debugPrint('[MessagesApi] getMessages: no session');
       throw const MessagesApiException('Pas de session active');
@@ -91,7 +44,7 @@ class MessagesApi {
       throw const MessagesApiException('Token non disponible');
     }
 
-    final uri = ApiClient.buildUri('/conversations/$conversationId/messages');
+    final uri = ApiClient.buildUri('/messages/thread/$missionId');
     final headers = {
       ...ApiClient.defaultHeaders,
       'Authorization': 'Bearer $token',
@@ -110,7 +63,7 @@ class MessagesApi {
       }
 
       if (response.statusCode == 404) {
-        throw const MessagesApiException('Conversation introuvable');
+        throw const MessagesApiException('Mission introuvable');
       }
 
       if (response.statusCode >= 500) {
@@ -139,10 +92,12 @@ class MessagesApi {
     }
   }
 
-  /// Sends a message in a conversation.
+  /// Sends a message in a mission thread.
   ///
-  /// Calls `POST /conversations/{id}/messages` with Bearer token.
-  Future<Message> sendMessage(String conversationId, String text) async {
+  /// **PR-4:** Aligned to backend endpoint `POST /messages`.
+  /// [missionId] is the mission ID (previously called conversationId).
+  /// [content] is the message text.
+  Future<Message> sendMessage(String missionId, String content) async {
     if (!AuthService.hasSession) {
       debugPrint('[MessagesApi] sendMessage: no session');
       throw const MessagesApiException('Pas de session active');
@@ -154,7 +109,7 @@ class MessagesApi {
       throw const MessagesApiException('Token non disponible');
     }
 
-    final uri = ApiClient.buildUri('/conversations/$conversationId/messages');
+    final uri = ApiClient.buildUri('/messages');
     final headers = {
       ...ApiClient.defaultHeaders,
       'Authorization': 'Bearer $token',
@@ -166,7 +121,10 @@ class MessagesApi {
           .post(
             uri,
             headers: headers,
-            body: jsonEncode({'text': text}),
+            body: jsonEncode({
+              'missionId': missionId,
+              'content': content,
+            }),
           )
           .timeout(ApiClient.connectionTimeout);
 
@@ -177,7 +135,7 @@ class MessagesApi {
       }
 
       if (response.statusCode == 404) {
-        throw const MessagesApiException('Conversation introuvable');
+        throw const MessagesApiException('Mission introuvable');
       }
 
       if (response.statusCode >= 500) {

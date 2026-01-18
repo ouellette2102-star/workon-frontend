@@ -175,10 +175,13 @@ abstract final class WkCopy {
   // ─── PR-F19: Messaging ───
   static const String messages = 'Messages';
   static const String emptyConversations = 'Aucune conversation';
-  static const String emptyConversationsHint = 'Postule à une mission pour démarrer une conversation !';
+  // PR-4: Updated hint - chat accessible from mission detail only
+  static const String emptyConversationsHint = 'Accède au chat depuis le détail d\'une mission pour discuter avec le client ou le prestataire.';
   static const String loadingConversations = 'Chargement des conversations…';
   static const String errorConversations = 'Impossible de charger les conversations.';
   static const String errorMessages = 'Impossible de charger les messages.';
+  // PR-4: New hint for direct mission navigation
+  static const String goToMissions = 'Voir les missions';
   static const String errorSendMessage = 'Impossible d\'envoyer le message.';
   static const String typeMessage = 'Écris ton message…';
   static const String send = 'Envoyer';
