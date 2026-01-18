@@ -46,6 +46,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Inject google-services.json (Android)
+        run: |
+          mkdir -p android/app
+          echo "${{ secrets.ANDROID_GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
