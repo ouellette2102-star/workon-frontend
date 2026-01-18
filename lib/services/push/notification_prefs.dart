@@ -37,6 +37,12 @@ class NotificationPrefs {
   /// Whether device is currently registered.
   static const String keyDeviceRegistered = '${_keyPrefix}device_registered';
 
+  /// Backend device record ID (UUID) for DELETE calls.
+  static const String keyDeviceRecordId = '${_keyPrefix}device_record_id';
+
+  /// Stable device identifier (vendor ID or generated UUID).
+  static const String keyStoredDeviceId = '${_keyPrefix}stored_device_id';
+
   static SharedPreferences? _prefs;
 
   /// Initializes the preferences store.
@@ -116,6 +122,46 @@ class NotificationPrefs {
       await prefs.remove(keyDeviceToken);
     } else {
       await prefs.setString(keyDeviceToken, token);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F25: Device record ID (for DELETE calls)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Gets the stored device record ID (backend UUID).
+  static Future<String?> getDeviceRecordId() async {
+    final prefs = await _ensurePrefs();
+    return prefs.getString(keyDeviceRecordId);
+  }
+
+  /// Stores the device record ID returned by backend.
+  static Future<void> setDeviceRecordId(String? recordId) async {
+    final prefs = await _ensurePrefs();
+    if (recordId == null) {
+      await prefs.remove(keyDeviceRecordId);
+    } else {
+      await prefs.setString(keyDeviceRecordId, recordId);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-F25: Stable device identifier
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Gets the stored stable device ID (vendor ID or generated).
+  static Future<String?> getStoredDeviceId() async {
+    final prefs = await _ensurePrefs();
+    return prefs.getString(keyStoredDeviceId);
+  }
+
+  /// Stores a stable device ID for consistent registration.
+  static Future<void> setStoredDeviceId(String? deviceId) async {
+    final prefs = await _ensurePrefs();
+    if (deviceId == null) {
+      await prefs.remove(keyStoredDeviceId);
+    } else {
+      await prefs.setString(keyStoredDeviceId, deviceId);
     }
   }
 
