@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "workon-placeholder",
-    "storage_bucket": "workon-placeholder.appspot.com"
+    "project_number": "616267256012",
+    "project_id": "workonv1",
+    "storage_bucket": "workonv1.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:616267256012:android:41f23b456249112d763269",
         "android_client_info": {
           "package_name": "com.workon.workon"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "PLACEHOLDER_API_KEY_REPLACE_WITH_REAL_ONE"
+          "current_key": "AIzaSyC8a1QkFbS0Of0AqdEkwQTuGL1XWOPP76U"
         }
       ],
       "services": {
@@ -27,4 +27,3 @@
   ],
   "configuration_version": "1"
 }
-
