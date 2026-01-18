@@ -410,7 +410,7 @@ class OffersApi {
 
   /// PR-03: Accepts an offer/application (employer action).
   ///
-  /// Calls `PATCH /api/v1/offers/:offerId` with `{ status: 'accepted' }`.
+  /// PR-F1: Calls `PATCH /api/v1/offers/:offerId/accept` (no body).
   ///
   /// This assigns the worker to the mission and updates the offer status.
   ///
@@ -429,18 +429,17 @@ class OffersApi {
       throw const UnauthorizedException();
     }
 
-    final uri = ApiClient.buildUri('/offers/$offerId');
+    // PR-F1: Use dedicated /accept endpoint
+    final uri = ApiClient.buildUri('/offers/$offerId/accept');
     final headers = {
       ...ApiClient.defaultHeaders,
       'Authorization': 'Bearer $token',
     };
 
-    final body = jsonEncode({'status': 'accepted'});
-
     try {
       debugPrint('[OffersApi] PATCH $uri');
       final response = await ApiClient.client
-          .patch(uri, headers: headers, body: body)
+          .patch(uri, headers: headers)
           .timeout(ApiClient.connectionTimeout);
 
       debugPrint('[OffersApi] acceptOffer response: ${response.statusCode}');
@@ -487,7 +486,7 @@ class OffersApi {
 
   /// PR-03: Rejects an offer/application (employer action).
   ///
-  /// Calls `PATCH /api/v1/offers/:offerId` with `{ status: 'rejected' }`.
+  /// PR-F1: Calls `PATCH /api/v1/offers/:offerId/reject` (no body).
   ///
   /// Throws:
   /// - [UnauthorizedException] if not authenticated
@@ -504,18 +503,17 @@ class OffersApi {
       throw const UnauthorizedException();
     }
 
-    final uri = ApiClient.buildUri('/offers/$offerId');
+    // PR-F1: Use dedicated /reject endpoint
+    final uri = ApiClient.buildUri('/offers/$offerId/reject');
     final headers = {
       ...ApiClient.defaultHeaders,
       'Authorization': 'Bearer $token',
     };
 
-    final body = jsonEncode({'status': 'rejected'});
-
     try {
       debugPrint('[OffersApi] PATCH $uri');
       final response = await ApiClient.client
-          .patch(uri, headers: headers, body: body)
+          .patch(uri, headers: headers)
           .timeout(ApiClient.connectionTimeout);
 
       debugPrint('[OffersApi] rejectOffer response: ${response.statusCode}');
