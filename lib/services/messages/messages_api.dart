@@ -159,6 +159,53 @@ class MessagesApi {
       throw MessagesApiException('Erreur réseau: $e');
     }
   }
+
+  /// PR-F3: Gets the count of unread messages for the current user.
+  ///
+  /// Calls `GET /messages/unread-count` with Bearer token.
+  /// Returns 0 if no unread messages or on error (graceful degradation).
+  Future<int> getUnreadCount() async {
+    if (!AuthService.hasSession) {
+      debugPrint('[MessagesApi] getUnreadCount: no session');
+      return 0;
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      debugPrint('[MessagesApi] getUnreadCount: no token');
+      return 0;
+    }
+
+    final uri = ApiClient.buildUri('/messages/unread-count');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      debugPrint('[MessagesApi] GET $uri');
+      final response = await ApiClient.client
+          .get(uri, headers: headers)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[MessagesApi] getUnreadCount: ${response.statusCode}');
+
+      if (response.statusCode != 200) {
+        debugPrint('[MessagesApi] getUnreadCount: non-200, returning 0');
+        return 0;
+      }
+
+      final body = jsonDecode(response.body);
+      final count = body['count'] ?? body['unreadCount'] ?? 0;
+      return count is int ? count : int.tryParse(count.toString()) ?? 0;
+    } on TimeoutException {
+      debugPrint('[MessagesApi] getUnreadCount: timeout');
+      return 0;
+    } catch (e) {
+      debugPrint('[MessagesApi] getUnreadCount: error: $e');
+      return 0;
+    }
+  }
 }
 
 /// Exception thrown by [MessagesApi] operations.
