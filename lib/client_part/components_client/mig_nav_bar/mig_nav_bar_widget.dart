@@ -6,6 +6,8 @@ import 'dart:ui';
 import '/index.dart';
 // PR-15: Import EmployerMissionsWidget for Missions tab
 import '/client_part/employer_missions/employer_missions_widget.dart';
+// PR-DISCOVERY: Import SwipeDiscoveryPage for central discovery access
+import '/client_part/discovery/swipe_discovery_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -241,18 +243,20 @@ class _MigNavBarWidgetState extends State<MigNavBarWidget> {
                         ],
                         borderRadius: BorderRadius.circular(16.0),
                       ),
+                      // PR-DISCOVERY: Central button now opens Discovery (Swipe)
+                      // This makes discovery the heart of the app (Tinder-style)
                       child: FlutterFlowIconButton(
                         borderRadius: 16.0,
                         buttonSize: 45.0,
                         fillColor: FlutterFlowTheme.of(context).primary,
                         icon: Icon(
-                          FFIcons.kadd,
+                          Icons.swipe, // Discovery icon
                           color: FlutterFlowTheme.of(context).info,
                           size: 24.0,
                         ),
                         onPressed: () async {
                           context.pushNamed(
-                            SelectServicesWidget.routeName,
+                            SwipeDiscoveryPage.routeName,
                             extra: <String, dynamic>{
                               kTransitionInfoKey: TransitionInfo(
                                 hasTransition: true,

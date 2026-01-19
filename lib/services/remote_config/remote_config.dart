@@ -29,6 +29,8 @@ class RemoteConfigSnapshot {
     this.minAppVersion,
     this.storeUrlIos,
     this.storeUrlAndroid,
+    this.discoverySwipe,
+    this.discoveryMap,
   });
 
   final bool? maintenanceMode;
@@ -37,6 +39,8 @@ class RemoteConfigSnapshot {
   final String? minAppVersion;
   final String? storeUrlIos;
   final String? storeUrlAndroid;
+  final bool? discoverySwipe;
+  final bool? discoveryMap;
 
   /// Parses JSON map into a snapshot.
   /// Unknown/invalid fields are ignored (fail-open).
@@ -48,6 +52,8 @@ class RemoteConfigSnapshot {
       minAppVersion: _parseString(json['minAppVersion']),
       storeUrlIos: _parseString(json['storeUrlIos']),
       storeUrlAndroid: _parseString(json['storeUrlAndroid']),
+      discoverySwipe: _parseBool(json['discoverySwipe']),
+      discoveryMap: _parseBool(json['discoveryMap']),
     );
   }
 

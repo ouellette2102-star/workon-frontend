@@ -35,6 +35,7 @@ import 'package:flutter/material.dart';
 import '../../flutter_flow/flutter_flow_util.dart';
 import '../../index.dart';
 import '../auth/auth_service.dart';
+import '../messages/messages_service.dart';
 import 'notification_prefs.dart';
 import 'push_api.dart';
 import 'push_config.dart';
@@ -496,15 +497,27 @@ abstract final class PushService {
   /// Handles a foreground notification.
   ///
   /// Shows a snackbar if configured.
+  /// PR-PUSH: Suppresses notification if user is already in the same chat.
   static void handleForegroundNotification(Map<String, dynamic> data) {
     debugPrint('[PushService] Foreground notification: ${data.keys}');
 
     if (!PushConfig.showForegroundSnackbar) return;
 
-    final title = data['title']?.toString() ?? 'Nouveau message';
-    final body = data['body']?.toString() ?? '';
+    final type = data['type']?.toString();
     final conversationId = data['conversationId']?.toString();
     final missionId = data['missionId']?.toString();
+
+    // PR-PUSH: Suppress chat notification if user is already in this chat
+    if (type == 'message' && conversationId != null) {
+      final currentChat = MessagesService.currentConversationId;
+      if (currentChat != null && currentChat == conversationId) {
+        debugPrint('[PushService] Suppressed: already in chat $conversationId');
+        return;
+      }
+    }
+
+    final title = data['title']?.toString() ?? 'Nouveau message';
+    final body = data['body']?.toString() ?? '';
 
     _showNotificationSnackbar(
       title: title,

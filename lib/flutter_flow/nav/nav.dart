@@ -18,6 +18,7 @@ import '/index.dart';
 import '/app/auth_gate.dart';
 import '/services/missions/mission_models.dart';
 import '/client_part/my_applications/my_applications_widget.dart';
+import '/client_part/worker_assignments/worker_assignments_widget.dart';
 import '/client_part/employer_missions/employer_missions_widget.dart';
 import '/client_part/employer_missions/mission_applications_widget.dart';
 import '/client_part/payments/transactions_widget.dart';
@@ -29,6 +30,9 @@ import '/client_part/saved/saved_missions_page.dart';
 import '/client_part/deep_link_handler/deep_link_handler_widget.dart';
 import '/client_part/deep_link_error/deep_link_error_widget.dart';
 import '/services/deep_linking/deep_link_service.dart';
+// PR-DISCOVERY: Discovery feature imports
+import '/client_part/discovery/swipe_discovery_page.dart';
+import '/client_part/discovery/map_discovery_page.dart';
 
 export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
@@ -260,10 +264,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: ProviderPublicProfileWidget.routePath,
           builder: (context, params) => ProviderPublicProfileWidget(),
         ),
+        // PR-BOOKING: Redirect legacy /bookings to functional /employerMissions
         FFRoute(
           name: BookingsWidget.routeName,
           path: BookingsWidget.routePath,
-          builder: (context, params) => BookingsWidget(),
+          builder: (context, params) => EmployerMissionsWidget(),
         ),
         FFRoute(
           name: BookingDetailsWidget.routeName,
@@ -520,11 +525,29 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: SavedMissionsPage.routePath,
           builder: (context, params) => SavedMissionsPage(),
         ),
+        // PR-DISCOVERY: Swipe discovery route
+        FFRoute(
+          name: SwipeDiscoveryPage.routeName,
+          path: SwipeDiscoveryPage.routePath,
+          builder: (context, params) => const SwipeDiscoveryPage(),
+        ),
+        // PR-DISCOVERY: Map discovery route
+        FFRoute(
+          name: MapDiscoveryPage.routeName,
+          path: MapDiscoveryPage.routePath,
+          builder: (context, params) => const MapDiscoveryPage(),
+        ),
         // PR-F16: My applications route
         FFRoute(
           name: MyApplicationsWidget.routeName,
           path: MyApplicationsWidget.routePath,
           builder: (context, params) => MyApplicationsWidget(),
+        ),
+        // PR-BOOKING: Worker assignments route ("My Bookings" for workers)
+        FFRoute(
+          name: WorkerAssignmentsWidget.routeName,
+          path: WorkerAssignmentsWidget.routePath,
+          builder: (context, params) => WorkerAssignmentsWidget(),
         ),
         // PR-01: Employer missions route
         FFRoute(
@@ -539,7 +562,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) {
             final missionId = params.getParam('missionId', ParamType.String) ?? '';
             final extra = params.state.extraMap;
-            final missionTitle = extra?['missionTitle'] as String?;
+            final missionTitle = extra['missionTitle'] as String?;
             return MissionApplicationsWidget(
               missionId: missionId,
               missionTitle: missionTitle,
