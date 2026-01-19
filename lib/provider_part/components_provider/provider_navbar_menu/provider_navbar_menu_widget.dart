@@ -149,9 +149,10 @@ class _ProviderNavbarMenuWidgetState extends State<ProviderNavbarMenuWidget> {
               borderRadius: BorderRadius.circular(14.0),
             ),
           ),
+          // PR-JOBS-LIST: Fixed navigation to JobsRealWidget
           FFButtonWidget(
             onPressed: () async {
-              context.pushNamed(MessagesProviderWidget.routeName);
+              context.pushNamed(JobsRealWidget.routeName);
             },
             text: FFLocalizations.of(context).getText(
               '12l3wux4' /* My Jobs                       ... */,

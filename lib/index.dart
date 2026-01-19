@@ -87,6 +87,8 @@ export '/provider_part/job_requests/job_requests_widget.dart'
 export '/provider_part/messages_provider/messages_provider_widget.dart'
     show MessagesProviderWidget;
 export '/provider_part/jobs/jobs_widget.dart' show JobsWidget;
+// PR-JOBS-LIST: Export real jobs widget for provider navigation
+export '/provider_part/jobs/jobs_real_widget.dart' show JobsRealWidget;
 export '/provider_part/request_details/request_details_widget.dart'
     show RequestDetailsWidget;
 export '/provider_part/job_details/job_details_widget.dart'
