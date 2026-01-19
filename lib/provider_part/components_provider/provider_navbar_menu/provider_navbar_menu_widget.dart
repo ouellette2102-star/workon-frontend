@@ -210,9 +210,10 @@ class _ProviderNavbarMenuWidgetState extends State<ProviderNavbarMenuWidget> {
               borderRadius: BorderRadius.circular(14.0),
             ),
           ),
+          // PR-EARNINGS: Navigate to real earnings widget (backend connected)
           FFButtonWidget(
             onPressed: () async {
-              context.pushNamed(EarningsWidget.routeName);
+              context.pushNamed(EarningsRealWidget.routeName);
             },
             text: FFLocalizations.of(context).getText(
               'tmijg8br' /* Earnings                      ... */,

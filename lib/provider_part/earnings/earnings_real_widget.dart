@@ -4,14 +4,15 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/provider_part/components_provider/drawer_content/drawer_content_widget.dart';
 import '/provider_part/components_provider/message_btn/message_btn_widget.dart';
-import '/services/missions/mission_models.dart';
-import '/services/missions/missions_api.dart';
+import '/services/earnings/earnings_api.dart';
+import '/services/earnings/earnings_models.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-/// PR-07: Real Earnings widget for providers.
+/// PR-EARNINGS: Real Earnings widget for providers.
 ///
-/// Shows earnings summary based on completed missions.
-/// Note: No dedicated earnings endpoint exists yet - shows placeholder.
+/// Shows earnings summary and history from backend API.
+/// NO client-side calculation - backend is source of truth.
 class EarningsRealWidget extends StatefulWidget {
   const EarningsRealWidget({super.key});
 
@@ -24,19 +25,23 @@ class EarningsRealWidget extends StatefulWidget {
 
 class _EarningsRealWidgetState extends State<EarningsRealWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  final _api = MissionsApi();
+  final _api = EarningsApi();
 
-  List<Mission> _completedMissions = [];
+  EarningsSummary _summary = EarningsSummary.empty();
+  List<EarningTransaction> _transactions = [];
   bool _isLoading = true;
   String? _errorMessage;
+  String? _nextCursor;
+  bool _hasMore = true;
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
-    _loadEarnings();
+    _loadData();
   }
 
-  Future<void> _loadEarnings() async {
+  Future<void> _loadData() async {
     if (!mounted) return;
 
     setState(() {
@@ -45,37 +50,80 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
     });
 
     try {
-      // Use my-assignments and filter for completed/paid missions
-      final missions = await _api.fetchMyAssignments();
+      // Load summary and first page of history in parallel
+      final results = await Future.wait([
+        _api.fetchSummary(),
+        _api.fetchHistory(limit: 20),
+      ]);
 
       if (!mounted) return;
 
+      final summary = results[0] as EarningsSummary;
+      final historyResponse = results[1] as EarningsHistoryResponse;
+
       setState(() {
-        _completedMissions = missions
-            .where((m) =>
-                m.status == MissionStatus.completed ||
-                m.status == MissionStatus.paid)
-            .toList();
+        _summary = summary;
+        _transactions = historyResponse.transactions;
+        _nextCursor = historyResponse.nextCursor;
+        _hasMore = historyResponse.nextCursor != null;
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('[EarningsReal] Error loading earnings: $e');
+      debugPrint('[EarningsReal] Error loading data: $e');
       if (!mounted) return;
 
       setState(() {
         _isLoading = false;
-        _errorMessage = e is MissionsApiException
+        _errorMessage = e is EarningsApiException
             ? e.message
             : WkCopy.errorGeneric;
       });
     }
   }
 
-  double get _totalEarnings {
-    return _completedMissions.fold(0.0, (sum, m) => sum + m.price);
-  }
+  Future<void> _loadMore() async {
+    if (_isLoadingMore || !_hasMore || _nextCursor == null) return;
 
-  int get _completedCount => _completedMissions.length;
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final historyResponse = await _api.fetchHistory(
+        cursor: _nextCursor,
+        limit: 20,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _transactions.addAll(historyResponse.transactions);
+        _nextCursor = historyResponse.nextCursor;
+        _hasMore = historyResponse.nextCursor != null;
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      debugPrint('[EarningsReal] Error loading more: $e');
+      if (!mounted) return;
+
+      setState(() {
+        _isLoadingMore = false;
+      });
+
+      // Show snackbar for pagination error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du chargement'),
+            action: SnackBarAction(
+              label: 'Réessayer',
+              onPressed: _loadMore,
+            ),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +177,7 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
               children: [
                 IconButton(
                   icon: Icon(Icons.refresh),
-                  onPressed: _loadEarnings,
+                  onPressed: _loadData,
                 ),
                 MessageBtnWidget(),
               ],
@@ -195,7 +243,7 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
             ),
             SizedBox(height: WkSpacing.xl),
             ElevatedButton.icon(
-              onPressed: _loadEarnings,
+              onPressed: _loadData,
               icon: const Icon(Icons.refresh),
               label: Text(WkCopy.retry),
               style: ElevatedButton.styleFrom(
@@ -210,47 +258,107 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
   }
 
   Widget _buildContent(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(WkSpacing.pagePadding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Total earnings card
-          _buildTotalCard(context),
-          SizedBox(height: WkSpacing.xl),
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      color: FlutterFlowTheme.of(context).primary,
+      child: CustomScrollView(
+        slivers: [
+          // Summary cards
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(WkSpacing.pagePadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Main balance card
+                  _buildMainBalanceCard(context),
+                  SizedBox(height: WkSpacing.lg),
 
-          // Stats
-          _buildStatsRow(context),
-          SizedBox(height: WkSpacing.xl),
+                  // Stats row
+                  _buildStatsRow(context),
+                  SizedBox(height: WkSpacing.lg),
 
-          // Note about detailed earnings
-          _buildInfoCard(context),
-          SizedBox(height: WkSpacing.xl),
+                  // Commission info
+                  _buildCommissionInfo(context),
+                  SizedBox(height: WkSpacing.xl),
 
-          // Completed missions list
-          Text(
-            'Missions terminées',
-            style: FlutterFlowTheme.of(context).titleMedium.override(
-                  fontFamily: 'General Sans',
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.0,
-                ),
+                  // History header
+                  Text(
+                    'Historique des revenus',
+                    style: FlutterFlowTheme.of(context).titleMedium.override(
+                          fontFamily: 'General Sans',
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                  SizedBox(height: WkSpacing.sm),
+                  Text(
+                    '${_summary.completedMissionsCount + _summary.paidMissionsCount} missions',
+                    style: FlutterFlowTheme.of(context).bodySmall.override(
+                          fontFamily: 'General Sans',
+                          color: FlutterFlowTheme.of(context).secondaryText,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          SizedBox(height: WkSpacing.md),
 
-          if (_completedMissions.isEmpty)
-            _buildEmptyMissions(context)
+          // Transactions list or empty state
+          if (_transactions.isEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: WkSpacing.pagePadding),
+                child: _buildEmptyState(context),
+              ),
+            )
           else
-            ..._completedMissions.map((m) => Padding(
-                  padding: EdgeInsets.only(bottom: WkSpacing.md),
-                  child: _buildMissionCard(context, m),
-                )),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  if (index == _transactions.length) {
+                    // Loading more indicator or load more button
+                    if (_hasMore) {
+                      if (_isLoadingMore) {
+                        return Padding(
+                          padding: EdgeInsets.all(WkSpacing.lg),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: FlutterFlowTheme.of(context).primary,
+                            ),
+                          ),
+                        );
+                      } else {
+                        // Auto-load when reaching end
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _loadMore();
+                        });
+                        return SizedBox(height: WkSpacing.lg);
+                      }
+                    }
+                    return SizedBox(height: WkSpacing.xl);
+                  }
+
+                  final transaction = _transactions[index];
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: WkSpacing.pagePadding,
+                      vertical: WkSpacing.sm,
+                    ),
+                    child: _buildTransactionCard(context, transaction),
+                  );
+                },
+                childCount: _transactions.length + 1, // +1 for loading/spacer
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildTotalCard(BuildContext context) {
+  Widget _buildMainBalanceCard(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(WkSpacing.xl),
@@ -269,7 +377,7 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Total des revenus',
+            'Total des revenus (net)',
             style: FlutterFlowTheme.of(context).bodyMedium.override(
                   fontFamily: 'General Sans',
                   color: Colors.white.withOpacity(0.8),
@@ -278,7 +386,7 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
           ),
           SizedBox(height: WkSpacing.sm),
           Text(
-            '\$${_totalEarnings.toStringAsFixed(2)}',
+            '\$${_summary.totalLifetimeNet.toStringAsFixed(2)}',
             style: FlutterFlowTheme.of(context).displaySmall.override(
                   fontFamily: 'General Sans',
                   color: Colors.white,
@@ -286,17 +394,65 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
                   letterSpacing: 0.0,
                 ),
           ),
-          SizedBox(height: WkSpacing.sm),
-          Text(
-            'Basé sur ${_completedCount} mission${_completedCount > 1 ? 's' : ''} terminée${_completedCount > 1 ? 's' : ''}',
-            style: FlutterFlowTheme.of(context).bodySmall.override(
-                  fontFamily: 'General Sans',
-                  color: Colors.white.withOpacity(0.7),
-                  letterSpacing: 0.0,
-                ),
+          SizedBox(height: WkSpacing.md),
+          Divider(color: Colors.white.withOpacity(0.3), height: 1),
+          SizedBox(height: WkSpacing.md),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildBalanceItem(
+                context,
+                label: 'Disponible',
+                amount: _summary.totalAvailable,
+                color: Colors.white,
+              ),
+              _buildBalanceItem(
+                context,
+                label: 'En attente',
+                amount: _summary.totalPending,
+                color: Colors.white.withOpacity(0.8),
+              ),
+              _buildBalanceItem(
+                context,
+                label: 'Déjà payé',
+                amount: _summary.totalPaid,
+                color: Colors.white.withOpacity(0.7),
+              ),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBalanceItem(
+    BuildContext context, {
+    required String label,
+    required double amount,
+    required Color color,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: FlutterFlowTheme.of(context).bodySmall.override(
+                fontFamily: 'General Sans',
+                color: color.withOpacity(0.8),
+                letterSpacing: 0.0,
+              ),
+        ),
+        SizedBox(height: WkSpacing.xs),
+        Text(
+          '\$${amount.toStringAsFixed(2)}',
+          style: FlutterFlowTheme.of(context).titleSmall.override(
+                fontFamily: 'General Sans',
+                color: color,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.0,
+              ),
+        ),
+      ],
     );
   }
 
@@ -308,7 +464,7 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
             context,
             icon: Icons.check_circle_outline,
             label: 'Terminées',
-            value: '$_completedCount',
+            value: '${_summary.completedMissionsCount}',
             color: WkStatusColors.completed,
           ),
         ),
@@ -316,11 +472,9 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
         Expanded(
           child: _buildStatCard(
             context,
-            icon: Icons.attach_money,
-            label: 'Moyenne',
-            value: _completedCount > 0
-                ? '\$${(_totalEarnings / _completedCount).toStringAsFixed(0)}'
-                : '-',
+            icon: Icons.paid_outlined,
+            label: 'Payées',
+            value: '${_summary.paidMissionsCount}',
             color: FlutterFlowTheme.of(context).primary,
           ),
         ),
@@ -367,30 +521,31 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
     );
   }
 
-  Widget _buildInfoCard(BuildContext context) {
+  Widget _buildCommissionInfo(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(WkSpacing.lg),
+      padding: EdgeInsets.all(WkSpacing.md),
       decoration: BoxDecoration(
-        color: FlutterFlowTheme.of(context).primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(WkRadius.md),
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(WkRadius.sm),
         border: Border.all(
-          color: FlutterFlowTheme.of(context).primary.withOpacity(0.3),
+          color: FlutterFlowTheme.of(context).alternate,
         ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.info_outline,
-            color: FlutterFlowTheme.of(context).primary,
+            color: FlutterFlowTheme.of(context).secondaryText,
+            size: 20,
           ),
-          SizedBox(width: WkSpacing.md),
+          SizedBox(width: WkSpacing.sm),
           Expanded(
             child: Text(
-              'Les statistiques détaillées et les options de retrait seront disponibles prochainement.',
+              'Commission plateforme : ${_summary.commissionPercent}%',
               style: FlutterFlowTheme.of(context).bodySmall.override(
                     fontFamily: 'General Sans',
-                    color: FlutterFlowTheme.of(context).primary,
+                    color: FlutterFlowTheme.of(context).secondaryText,
                     letterSpacing: 0.0,
                   ),
             ),
@@ -400,7 +555,7 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
     );
   }
 
-  Widget _buildEmptyMissions(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(WkSpacing.xl),
@@ -411,16 +566,16 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
       child: Column(
         children: [
           Icon(
-            Icons.work_off_outlined,
+            Icons.account_balance_wallet_outlined,
             size: 48,
             color: FlutterFlowTheme.of(context).secondaryText,
           ),
           SizedBox(height: WkSpacing.md),
           Text(
-            'Aucune mission terminée',
+            'Aucun revenu',
             style: FlutterFlowTheme.of(context).bodyMedium.override(
                   fontFamily: 'General Sans',
-                  color: FlutterFlowTheme.of(context).secondaryText,
+                  fontWeight: FontWeight.w600,
                   letterSpacing: 0.0,
                 ),
           ),
@@ -439,35 +594,26 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
     );
   }
 
-  Widget _buildMissionCard(BuildContext context, Mission mission) {
+  Widget _buildTransactionCard(BuildContext context, EarningTransaction transaction) {
+    final statusColor = _getStatusColor(transaction.status);
+    final dateFormatted = DateFormat('dd MMM yyyy', 'fr_FR').format(transaction.date);
+
     return Container(
       padding: EdgeInsets.all(WkSpacing.lg),
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
         borderRadius: BorderRadius.circular(WkRadius.md),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: WkStatusColors.completed.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(WkRadius.sm),
-            ),
-            child: Icon(
-              Icons.check_circle,
-              color: WkStatusColors.completed,
-              size: 24,
-            ),
-          ),
-          SizedBox(width: WkSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  mission.title,
+          // Header: title + status
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  transaction.missionTitle,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily: 'General Sans',
                         fontWeight: FontWeight.w600,
@@ -476,29 +622,115 @@ class _EarningsRealWidgetState extends State<EarningsRealWidget> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  mission.city,
+              ),
+              SizedBox(width: WkSpacing.sm),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: WkSpacing.sm,
+                  vertical: WkSpacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(WkRadius.xs),
+                ),
+                child: Text(
+                  transaction.status.displayName,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: WkSpacing.xs),
+
+          // Client + Date
+          Row(
+            children: [
+              Icon(
+                Icons.person_outline,
+                size: 14,
+                color: FlutterFlowTheme.of(context).secondaryText,
+              ),
+              SizedBox(width: WkSpacing.xs),
+              Expanded(
+                child: Text(
+                  transaction.clientName,
                   style: FlutterFlowTheme.of(context).bodySmall.override(
                         fontFamily: 'General Sans',
                         color: FlutterFlowTheme.of(context).secondaryText,
                         letterSpacing: 0.0,
                       ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
+              ),
+              Text(
+                dateFormatted,
+                style: FlutterFlowTheme.of(context).bodySmall.override(
+                      fontFamily: 'General Sans',
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ],
           ),
-          Text(
-            '\$${mission.price.toStringAsFixed(0)}',
-            style: FlutterFlowTheme.of(context).titleMedium.override(
-                  fontFamily: 'General Sans',
-                  color: WkStatusColors.completed,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.0,
-                ),
+          SizedBox(height: WkSpacing.md),
+
+          // Amounts row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Gross - Commission = Net
+              Row(
+                children: [
+                  Text(
+                    '\$${transaction.grossAmount.toStringAsFixed(0)}',
+                    style: FlutterFlowTheme.of(context).bodySmall.override(
+                          fontFamily: 'General Sans',
+                          color: FlutterFlowTheme.of(context).secondaryText,
+                          decoration: TextDecoration.lineThrough,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                  SizedBox(width: WkSpacing.xs),
+                  Text(
+                    '- \$${transaction.commissionAmount.toStringAsFixed(0)}',
+                    style: FlutterFlowTheme.of(context).bodySmall.override(
+                          fontFamily: 'General Sans',
+                          color: WkStatusColors.cancelled,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                ],
+              ),
+              // Net amount
+              Text(
+                '\$${transaction.netAmount.toStringAsFixed(2)}',
+                style: FlutterFlowTheme.of(context).titleMedium.override(
+                      fontFamily: 'General Sans',
+                      color: WkStatusColors.completed,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
-}
 
+  Color _getStatusColor(EarningStatus status) {
+    switch (status) {
+      case EarningStatus.paid:
+        return WkStatusColors.completed;
+      case EarningStatus.available:
+        return WkStatusColors.inProgress;
+      case EarningStatus.pending:
+        return WkStatusColors.assigned;
+    }
+  }
+}
