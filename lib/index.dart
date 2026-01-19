@@ -94,6 +94,8 @@ export '/provider_part/request_details/request_details_widget.dart'
 export '/provider_part/job_details/job_details_widget.dart'
     show JobDetailsWidget;
 export '/provider_part/earnings/earnings_widget.dart' show EarningsWidget;
+// PR-EARNINGS: Export real earnings widget connected to backend
+export '/provider_part/earnings/earnings_real_widget.dart' show EarningsRealWidget;
 export '/provider_part/notifications_provider/notifications_provider_widget.dart'
     show NotificationsProviderWidget;
 export '/provider_part/transactions_provider/transactions_provider_widget.dart'
