@@ -140,3 +140,5 @@ export '/client_part/booking_pages/choose_payment_method/choose_payment_method_w
     show ChoosePaymentMethodWidget;
 export '/client_part/mission_detail/mission_detail_widget.dart'
     show MissionDetailWidget;
+export '/client_part/worker_assignments/worker_assignments_widget.dart'
+    show WorkerAssignmentsWidget;

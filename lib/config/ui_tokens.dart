@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 
 /// Standard spacing values used across the app.
 abstract final class WkSpacing {
+  static const double xxs = 2.0;
   static const double xs = 4.0;
   static const double sm = 8.0;
   static const double md = 12.0;
@@ -230,9 +231,12 @@ abstract final class WkStatusColors {
   static const Color open = Color(0xFF10B981); // Emerald green
   static const Color assigned = Color(0xFF3B82F6); // Blue
   static const Color inProgress = Color(0xFFF59E0B); // Amber
+  static const Color active = Color(0xFFF59E0B); // Alias for inProgress (Amber)
+  static const Color upcoming = Color(0xFF3B82F6); // Alias for assigned (Blue)
   static const Color completed = Color(0xFF6B7280); // Gray
   static const Color paid = Color(0xFF059669); // PR-6: Success green for paid
   static const Color cancelled = Color(0xFFEF4444); // Red
+  static const Color error = Color(0xFFEF4444); // Alias for cancelled (Red)
   static const Color unknown = Color(0xFF9CA3AF); // Light gray
 }
 

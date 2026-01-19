@@ -10,6 +10,10 @@ import '/services/missions/missions_service.dart';
 import '/services/offers/offers_service.dart';
 import '/services/auth/auth_service.dart';
 import '/services/saved/saved_missions_store.dart';
+// PR-CHAT: Import ChatWidget for mission chat access
+import '/client_part/chat/chat_widget.dart';
+// PR-BOOKING: Import StripeService for payment flow
+import '/services/payments/stripe_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
@@ -68,6 +72,9 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
   // PR-04: Employer lifecycle actions
   bool _isStarting = false;
   bool _isCompleting = false;
+
+  // PR-BOOKING: Payment state
+  bool _isPaying = false;
 
   @override
   void initState() {
@@ -714,6 +721,13 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
           ],
           SizedBox(height: WkSpacing.md),
 
+          // PR-CHAT: Chat button for assigned/in-progress missions
+          if (mission.status != MissionStatus.open &&
+              mission.status != MissionStatus.cancelled) ...[
+            _buildChatButton(context, mission),
+            SizedBox(height: WkSpacing.md),
+          ],
+
           // Secondary actions row: Share + Save
           Row(
             children: [
@@ -988,7 +1002,73 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
         mission.status == MissionStatus.cancelled;
 
     if (isTerminal) {
-      // Mission is in final state - show completed message
+      // PR-BOOKING: If completed but not paid, show Pay button
+      if (mission.status == MissionStatus.completed) {
+        return Column(
+          children: [
+            // Status message
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(WkSpacing.md),
+              decoration: BoxDecoration(
+                color: WkStatusColors.completed.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(WkRadius.sm),
+                border: Border.all(
+                  color: WkStatusColors.completed.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: WkStatusColors.completed,
+                  ),
+                  SizedBox(width: WkSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'Mission terminée. Procédez au paiement.',
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            fontFamily: 'General Sans',
+                            color: WkStatusColors.completed,
+                            letterSpacing: 0.0,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: WkSpacing.md),
+            // Pay button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isPaying ? null : () => _handlePayMission(mission),
+                icon: _isPaying
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Icon(Icons.payment),
+                label: Text(_isPaying ? 'Paiement en cours...' : 'Payer ${mission.price.toStringAsFixed(0)} \$'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: WkSpacing.lg),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(WkRadius.lg),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+
+      // Mission already paid or cancelled - show final message
       return Container(
         width: double.infinity,
         padding: EdgeInsets.all(WkSpacing.md),
@@ -1010,7 +1090,9 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
               child: Text(
                 mission.status == MissionStatus.paid
                     ? 'Cette mission a été payée.'
-                    : 'Cette mission est terminée.',
+                    : mission.status == MissionStatus.cancelled
+                        ? 'Cette mission a été annulée.'
+                        : 'Cette mission est terminée.',
                 style: FlutterFlowTheme.of(context).bodyMedium.override(
                       fontFamily: 'General Sans',
                       color: WkStatusColors.completed,
@@ -1115,7 +1197,49 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
               ),
             ),
           ),
-      ],
+          ],
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-CHAT: Chat Button for Mission Communication
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-CHAT: Builds the chat button to communicate about the mission.
+  ///
+  /// Opens the chat screen with the mission ID as conversation ID.
+  /// Only shown for assigned/in-progress/completed missions.
+  Widget _buildChatButton(BuildContext context, Mission mission) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => _openChat(mission),
+        icon: Icon(Icons.chat_bubble_outline),
+        label: Text('Contacter'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: FlutterFlowTheme.of(context).primary,
+          side: BorderSide(
+            color: FlutterFlowTheme.of(context).primary,
+            width: 1.5,
+          ),
+          padding: EdgeInsets.symmetric(vertical: WkSpacing.lg),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(WkRadius.lg),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// PR-CHAT: Opens chat screen for this mission.
+  void _openChat(Mission mission) {
+    debugPrint('[MissionDetail] Opening chat for mission: ${mission.id}');
+    context.pushNamed(
+      ChatWidget.routeName,
+      queryParameters: {
+        'conversationId': mission.id,
+        'participantName': 'Client', // Mission model doesn't have clientName
+      },
     );
   }
 
@@ -1194,6 +1318,62 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
           ? e.message
           : 'Erreur lors de la finalisation';
       _showSnackbar(message, isError: true);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-BOOKING: Payment Handler
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-BOOKING: Handles the payment flow for completed missions.
+  ///
+  /// Uses Stripe Payment Sheet to process payment.
+  Future<void> _handlePayMission(Mission mission) async {
+    if (_isPaying) return;
+
+    debugPrint('[MissionDetail] Starting payment for mission: ${mission.id}');
+
+    setState(() {
+      _isPaying = true;
+    });
+
+    try {
+      final result = await StripeService.payForMission(missionId: mission.id);
+
+      if (!mounted) return;
+
+      switch (result) {
+        case PaymentSheetSuccess():
+          debugPrint('[MissionDetail] Payment succeeded');
+          // Refresh mission to get updated status (paid)
+          await _loadMission();
+          _showSnackbar('Paiement réussi !', isSuccess: true);
+          break;
+
+        case PaymentSheetCancelled():
+          debugPrint('[MissionDetail] Payment cancelled by user');
+          _showSnackbar('Paiement annulé');
+          break;
+
+        case PaymentSheetError(:final message, :final isAuthError):
+          debugPrint('[MissionDetail] Payment error: $message (auth: $isAuthError)');
+          if (isAuthError) {
+            _showSnackbar('Session expirée. Reconnectez-vous.', isError: true);
+          } else {
+            _showSnackbar(message, isError: true);
+          }
+          break;
+      }
+    } catch (e) {
+      debugPrint('[MissionDetail] Payment exception: $e');
+      if (!mounted) return;
+      _showSnackbar('Erreur de paiement. Réessayez.', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPaying = false;
+        });
+      }
     }
   }
 

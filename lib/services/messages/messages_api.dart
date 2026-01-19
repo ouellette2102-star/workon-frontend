@@ -16,16 +16,64 @@ import 'message_models.dart';
 class MessagesApi {
   const MessagesApi();
 
-  /// Fetches all conversations for the current user.
+  /// PR-INBOX: Fetches all conversations for the current user.
   ///
-  /// **PR-4:** Cette fonctionnalité n'est pas disponible via l'API backend.
-  /// Le chat est accessible uniquement depuis une mission (via missionId).
-  /// Retourne une liste vide - l'UI affichera un état informatif.
+  /// Calls `GET /messages/conversations` with Bearer token.
+  /// Returns conversations sorted by most recent message first.
   Future<List<Conversation>> getConversations() async {
-    debugPrint('[MessagesApi] getConversations: feature non disponible - '
-        'accès chat via mission uniquement');
-    // Retourne liste vide - pas d'endpoint backend pour lister les conversations
-    return [];
+    if (!AuthService.hasSession) {
+      debugPrint('[MessagesApi] getConversations: no session');
+      throw const MessagesApiException('Pas de session active');
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      debugPrint('[MessagesApi] getConversations: no token');
+      throw const MessagesApiException('Token non disponible');
+    }
+
+    final uri = ApiClient.buildUri('/messages/conversations');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      debugPrint('[MessagesApi] GET $uri');
+      final response = await ApiClient.client
+          .get(uri, headers: headers)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[MessagesApi] getConversations: ${response.statusCode}');
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw const MessagesApiException('Session expirée');
+      }
+
+      if (response.statusCode >= 500) {
+        throw MessagesApiException('Erreur serveur: ${response.statusCode}');
+      }
+
+      if (response.statusCode != 200) {
+        throw MessagesApiException('Erreur: ${response.statusCode}');
+      }
+
+      final body = jsonDecode(response.body);
+      final List<dynamic> data =
+          body is List ? body : (body['conversations'] ?? body['data'] ?? []);
+
+      return data
+          .map((json) => Conversation.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on TimeoutException {
+      debugPrint('[MessagesApi] getConversations: timeout');
+      throw const MessagesApiException('Connexion timeout');
+    } on MessagesApiException {
+      rethrow;
+    } catch (e) {
+      debugPrint('[MessagesApi] getConversations: error: $e');
+      throw MessagesApiException('Erreur réseau: $e');
+    }
   }
 
   /// Fetches messages for a mission thread.

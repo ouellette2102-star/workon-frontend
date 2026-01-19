@@ -6,6 +6,7 @@ import '/client_part/components_client/service_item/service_item_widget.dart';
 import '/client_part/create_mission/create_mission_widget.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
 import '/client_part/my_applications/my_applications_widget.dart';
+import '/client_part/worker_assignments/worker_assignments_widget.dart';
 import '/client_part/employer_missions/employer_missions_widget.dart';
 import '/client_part/saved/saved_missions_page.dart';
 import '/services/offers/offers_service.dart';
@@ -31,6 +32,9 @@ import '/client_part/payments/pay_button.dart';
 import '/client_part/payments/payment_receipt_screen.dart';
 import '/services/analytics/analytics_service.dart';
 import '/services/payments/stripe_service.dart';
+import '/config/app_config.dart';
+import '/client_part/discovery/swipe_discovery_page.dart';
+import '/client_part/discovery/map_discovery_page.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart'
@@ -225,27 +229,41 @@ class _HomeWidgetState extends State<HomeWidget> {
               Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  Stack(
-                    alignment: AlignmentDirectional(1.0, -1.0),
-                    children: [
-                      Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 12.0, 0.0),
-                        child: Container(
-                          width: 8.0,
-                          height: 8.0,
-                          decoration: BoxDecoration(
-                            color: FlutterFlowTheme.of(context).error,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              width: 2.0,
+                  // PR-NAV: Notifications icon with badge
+                  GestureDetector(
+                    onTap: () {
+                      context.pushNamed(NotificationsWidget.routeName);
+                    },
+                    child: Stack(
+                      alignment: AlignmentDirectional(1.0, -1.0),
+                      children: [
+                        Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 8.0, 8.0),
+                          child: Icon(
+                            Icons.notifications_outlined,
+                            color: FlutterFlowTheme.of(context).primaryText,
+                            size: 26.0,
+                          ),
+                        ),
+                        Positioned(
+                          top: 6.0,
+                          right: 6.0,
+                          child: Container(
+                            width: 10.0,
+                            height: 10.0,
+                            decoration: BoxDecoration(
+                              color: FlutterFlowTheme.of(context).error,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: FlutterFlowTheme.of(context)
+                                    .primaryBackground,
+                                width: 2.0,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ].divide(SizedBox(width: 5.0)),
               ),
@@ -1412,11 +1430,25 @@ class _HomeWidgetState extends State<HomeWidget> {
                   if (_model.missionsTabMode == 'available')
                     _buildApplicationsButton(context),
                   if (_model.missionsTabMode == 'available')
+                    SizedBox(width: WkSpacing.xs),
+                  // PR-BOOKING: My assignments button (only in available tab)
+                  if (_model.missionsTabMode == 'available')
+                    _buildAssignmentsButton(context),
+                  if (_model.missionsTabMode == 'available')
                     SizedBox(width: WkSpacing.sm),
                   // PR-F11: Saved missions button (only in available tab)
                   if (_model.missionsTabMode == 'available')
                     _buildSavedButton(context),
                   if (_model.missionsTabMode == 'available')
+                    SizedBox(width: WkSpacing.sm),
+                  // PR-DISCOVERY: Discovery buttons
+                  if (_model.missionsTabMode == 'available' && AppConfig.discoverySwipe)
+                    _buildDiscoverySwipeButton(context),
+                  if (_model.missionsTabMode == 'available' && AppConfig.discoverySwipe)
+                    SizedBox(width: WkSpacing.xs),
+                  if (_model.missionsTabMode == 'available' && AppConfig.discoveryMap)
+                    _buildDiscoveryMapButton(context),
+                  if (_model.missionsTabMode == 'available' && (AppConfig.discoverySwipe || AppConfig.discoveryMap))
                     SizedBox(width: WkSpacing.sm),
                   if (state.hasMissions && _model.missionsTabMode == 'available')
                     _buildViewToggle(context),
@@ -2713,6 +2745,99 @@ class _HomeWidgetState extends State<HomeWidget> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // PR-DISCOVERY: Discovery Buttons
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-DISCOVERY: Builds the Swipe discovery button.
+  Widget _buildDiscoverySwipeButton(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        context.pushNamed(SwipeDiscoveryPage.routeName);
+      },
+      borderRadius: BorderRadius.circular(WkRadius.xxl),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: WkSpacing.sm,
+          vertical: WkSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              FlutterFlowTheme.of(context).primary,
+              FlutterFlowTheme.of(context).primary.withOpacity(0.8),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(WkRadius.xxl),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.swipe,
+              size: WkIconSize.sm,
+              color: Colors.white,
+            ),
+            SizedBox(width: WkSpacing.xxs),
+            Text(
+              'Swipe',
+              style: FlutterFlowTheme.of(context).bodySmall.override(
+                    fontFamily: 'General Sans',
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.0,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// PR-DISCOVERY: Builds the Map discovery button.
+  Widget _buildDiscoveryMapButton(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        context.pushNamed(MapDiscoveryPage.routeName);
+      },
+      borderRadius: BorderRadius.circular(WkRadius.xxl),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: WkSpacing.sm,
+          vertical: WkSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          color: FlutterFlowTheme.of(context).secondaryBackground,
+          borderRadius: BorderRadius.circular(WkRadius.xxl),
+          border: Border.all(
+            color: FlutterFlowTheme.of(context).primary,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.map_outlined,
+              size: WkIconSize.sm,
+              color: FlutterFlowTheme.of(context).primary,
+            ),
+            SizedBox(width: WkSpacing.xxs),
+            Text(
+              'Carte',
+              style: FlutterFlowTheme.of(context).bodySmall.override(
+                    fontFamily: 'General Sans',
+                    color: FlutterFlowTheme.of(context).primary,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.0,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // PR-01: Employer Missions Button
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -2839,6 +2964,55 @@ class _HomeWidgetState extends State<HomeWidget> {
           ),
         );
       },
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-BOOKING: My Assignments Button (Worker Bookings)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-BOOKING: Builds the my assignments button for workers.
+  /// Shows missions where the worker has been accepted and assigned.
+  Widget _buildAssignmentsButton(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        context.pushNamed(WorkerAssignmentsWidget.routeName);
+      },
+      borderRadius: BorderRadius.circular(WkRadius.xxl),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: WkSpacing.md,
+          vertical: WkSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: WkStatusColors.active.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(WkRadius.xxl),
+          border: Border.all(
+            color: WkStatusColors.active,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.assignment_turned_in_outlined,
+              size: WkIconSize.sm,
+              color: WkStatusColors.active,
+            ),
+            SizedBox(width: WkSpacing.xs),
+            Text(
+              'Mes missions',
+              style: FlutterFlowTheme.of(context).bodySmall.override(
+                    fontFamily: 'General Sans',
+                    color: WkStatusColors.active,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.0,
+                  ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

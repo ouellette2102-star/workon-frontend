@@ -110,9 +110,9 @@ abstract final class AppConfig {
       'https://workon-backend-production.up.railway.app';
 
   /// Development backend API base URL.
-  /// NOTE: Points to production until a separate dev backend is deployed.
+  /// Points to local backend via Android emulator host IP.
   static const String _apiBaseUrlDev =
-      'https://workon-backend-production.up.railway.app';
+      'http://10.0.2.2:3001';
 
   /// API base URL from compile-time define (overrides env-based selection).
   /// Set via: --dart-define=API_BASE_URL=https://...
@@ -383,6 +383,54 @@ abstract final class AppConfig {
   /// Triggers UI refresh for kill-switch state changes.
   static void notifyKillSwitchChanged() {
     killSwitchNotifier.value++;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PR-DISCOVERY: Discovery Feature Flags
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Discovery Swipe feature flag.
+  /// Set via: --dart-define=DISCOVERY_SWIPE=true
+  /// Default: true (enabled)
+  static const bool _discoverySwipeEnv = bool.fromEnvironment(
+    'DISCOVERY_SWIPE',
+    defaultValue: true,
+  );
+
+  static bool _discoverySwipeOverride = true;
+
+  /// Returns true if Discovery Swipe is enabled.
+  static bool get discoverySwipe {
+    final remote = RemoteConfig.current?.discoverySwipe;
+    if (remote != null) return remote;
+    return _discoverySwipeEnv && _discoverySwipeOverride;
+  }
+
+  /// Sets Discovery Swipe enabled at runtime.
+  static void setDiscoverySwipe(bool value) {
+    _discoverySwipeOverride = value;
+  }
+
+  /// Discovery Map feature flag.
+  /// Set via: --dart-define=DISCOVERY_MAP=true
+  /// Default: true (enabled)
+  static const bool _discoveryMapEnv = bool.fromEnvironment(
+    'DISCOVERY_MAP',
+    defaultValue: true,
+  );
+
+  static bool _discoveryMapOverride = true;
+
+  /// Returns true if Discovery Map is enabled.
+  static bool get discoveryMap {
+    final remote = RemoteConfig.current?.discoveryMap;
+    if (remote != null) return remote;
+    return _discoveryMapEnv && _discoveryMapOverride;
+  }
+
+  /// Sets Discovery Map enabled at runtime.
+  static void setDiscoveryMap(bool value) {
+    _discoveryMapOverride = value;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
