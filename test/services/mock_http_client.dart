@@ -8,6 +8,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 /// Mock implementation of http.Client for testing.
 class MockHttpClient extends Mock implements http.Client {}
@@ -111,9 +112,10 @@ extension MockHttpClientSetup on MockHttpClient {
 }
 
 /// URL matcher for mocktail.
-Matcher<Uri> _matchesUrl(String pattern) {
-  return predicate<Uri>(
-    (uri) => uri.toString().contains(pattern),
+/// Returns a Matcher that checks if a Uri contains the given pattern.
+Matcher _matchesUrl(String pattern) {
+  return predicate(
+    (dynamic uri) => uri is Uri && uri.toString().contains(pattern),
     'URL contains "$pattern"',
   );
 }
