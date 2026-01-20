@@ -372,7 +372,6 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                                     fontFamily: 'General Sans',
                                     fontSize: 13.0,
                                     letterSpacing: 0.0,
-
                                   ),
                               children: [
                                 TextSpan(

@@ -118,3 +118,4 @@ Ces TODOs sont documentés et intentionnels:
 *Dernière mise à jour: 2026-01-18*
 *Généré par audit PROMPT 3*
 
+
