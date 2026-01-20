@@ -33,6 +33,8 @@ import '/services/deep_linking/deep_link_service.dart';
 // PR-DISCOVERY: Discovery feature imports
 import '/client_part/discovery/swipe_discovery_page.dart';
 import '/client_part/discovery/map_discovery_page.dart';
+// PR-V1-01: Legal consent
+import '/client_part/legal/legal_consent_widget.dart';
 
 export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
@@ -91,6 +93,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: HomeWidget.routeName,
           path: HomeWidget.routePath,
           builder: (context, params) => HomeWidget(),
+        ),
+        // PR-V1-01: Legal consent route
+        FFRoute(
+          name: LegalConsentWidget.routeName,
+          path: LegalConsentWidget.routePath,
+          builder: (context, params) => const LegalConsentWidget(),
         ),
         FFRoute(
           name: SignUpWidget.routeName,

@@ -146,3 +146,9 @@ export '/client_part/mission_detail/mission_detail_widget.dart'
     show MissionDetailWidget;
 export '/client_part/worker_assignments/worker_assignments_widget.dart'
     show WorkerAssignmentsWidget;
+
+// PR-V1-01: Legal consent screen for store compliance
+export '/client_part/legal/legal_consent_widget.dart'
+    show LegalConsentWidget;
+export '/client_part/legal/legal_consent_gate.dart'
+    show LegalConsentGate, LegalConsentModal;

@@ -162,3 +162,4 @@ flutter build ios --release \
 *Dernière mise à jour: 2026-01-18*
 *Version: 1.1.0+2*
 
+

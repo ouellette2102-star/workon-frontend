@@ -21,9 +21,12 @@ import '/services/auth/auth_service.dart';
 import '/services/auth/token_refresh_interceptor.dart';
 import '/services/errors/crash_reporting_service.dart';
 import '/services/errors/error_handler.dart';
+import '/services/legal/consent_gate.dart';
+import '/services/legal/consent_store.dart';
 import '/services/offers/offers_service.dart';
 import '/services/push/push_service.dart';
 import '/services/saved/saved_missions_store.dart';
+import '/client_part/legal/legal_consent_gate.dart';
 
 /// Global key for showing snackbars from anywhere.
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -69,6 +72,9 @@ void main() async {
 
   // PR-F20: Initialize push service
   await PushService.initialize();
+
+  // PR-V1-01: Initialize consent store
+  await ConsentStore.initialize();
 
   // PR-F17: Set up token refresh interceptor callbacks
   TokenRefreshInterceptor.setLogoutCallback(() async {
@@ -176,6 +182,13 @@ class _MyAppState extends State<MyApp> {
     // PR-F20: Set up push service navigator key after router is ready
     WidgetsBinding.instance.addPostFrameCallback((_) {
       PushService.setNavigatorKey(_router.routerDelegate.navigatorKey);
+      
+      // PR-V1-01: Register consent modal callback for API interceptor
+      ConsentGate.setShowModalCallback(() async {
+        final context = _router.routerDelegate.navigatorKey.currentContext;
+        if (context == null) return false;
+        return await LegalConsentModal.show(context);
+      });
     });
 
     Future.delayed(Duration(milliseconds: 1000),

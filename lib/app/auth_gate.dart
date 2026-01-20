@@ -10,6 +10,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '/client_part/home/home_widget.dart';
+import '/client_part/legal/legal_consent_gate.dart';
 import '/client_part/onboarding/onboarding_widget.dart';
 import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -86,7 +87,10 @@ class _AuthGateState extends State<AuthGate> {
             return _buildLoadingScreen(context);
 
           case AppBootStatus.authenticated:
-            return const HomeWidget();
+            // PR-V1-01: Wrap with LegalConsentGate to ensure consent before access
+            return const LegalConsentGate(
+              child: HomeWidget(),
+            );
 
           case AppBootStatus.unauthenticated:
             return const OnboardingWidget();
@@ -122,7 +126,10 @@ class _AuthGateState extends State<AuthGate> {
           );
         }
       });
-      return const HomeWidget();
+      // PR-V1-01: Wrap with LegalConsentGate
+      return const LegalConsentGate(
+        child: HomeWidget(),
+      );
     }
 
     // No tokens - show dedicated error screen with retry CTA
