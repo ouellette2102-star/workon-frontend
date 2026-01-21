@@ -102,7 +102,7 @@ abstract final class AppConfig {
 
   /// Production backend API base URL hosted on Railway.
   static const String _apiBaseUrlProd =
-      'https://workon-backend-production.up.railway.app';
+      'https://workon-backend-production-8908.up.railway.app';
 
   /// Staging backend API base URL.
   /// NOTE: Points to production until a separate staging backend is deployed.
