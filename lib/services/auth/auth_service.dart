@@ -55,9 +55,8 @@ import 'token_storage.dart';
 ///
 /// ## Repository Pattern
 ///
-/// This service delegates to an [AuthRepository] implementation:
-/// - [RealAuthRepository]: Default, connects to Railway backend
-/// - [MockAuthRepository]: For testing, returns mock data
+/// This service delegates to [RealAuthRepository] which connects to the
+/// Railway backend. For testing, use [initialize] to inject a mock.
 abstract final class AuthService {
   // ─────────────────────────────────────────────────────────────────────────
   // Repository (Dependency Injection Point)
@@ -65,24 +64,13 @@ abstract final class AuthService {
 
   /// The repository used for authentication operations.
   ///
-  /// Defaults to [RealAuthRepository] (PR#5).
-  /// Use [initialize] to switch to [MockAuthRepository] for testing.
+  /// Defaults to [RealAuthRepository] which connects to Railway backend.
   static AuthRepository _repository = RealAuthRepository();
 
   /// Initializes the AuthService with a custom repository.
   ///
-  /// Call this at app startup to inject dependencies:
-  /// ```dart
-  /// // For production (PR#5+):
-  /// AuthService.initialize(
-  ///   repository: RealAuthRepository(apiClient: ApiClient),
-  /// );
-  ///
-  /// // For testing:
-  /// AuthService.initialize(
-  ///   repository: MockAuthRepository(),
-  /// );
-  /// ```
+  /// Primarily used for testing to inject a mock implementation.
+  /// Production code uses the default [RealAuthRepository].
   static void initialize({AuthRepository? repository}) {
     if (repository != null) {
       _repository = repository;
@@ -638,18 +626,6 @@ abstract final class AuthService {
   /// Use after testing to restore production state.
   static Future<void> resetRepository() async {
     _repository = RealAuthRepository();
-    _currentSession = null;
-    setAuthState(const AuthState.unknown());
-    UserService.reset(); // PR#10
-    _setSession(const AppSession.none()); // PR#11
-    await TokenStorage.clearToken(); // PR-F04
-  }
-
-  /// Switches to mock repository for testing.
-  ///
-  /// Call this in test setup to avoid real API calls.
-  static Future<void> useMockRepository() async {
-    _repository = MockAuthRepository();
     _currentSession = null;
     setAuthState(const AuthState.unknown());
     UserService.reset(); // PR#10
