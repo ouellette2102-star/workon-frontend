@@ -158,7 +158,7 @@ class PushApi {
     }
 
     // Try to get from platform
-    // TODO(PR-F25): Use device_info_plus when available
+    // NOTE (Post-MVP/PR-F25): Use device_info_plus for real device ID
     // For now, generate a stable ID based on platform
     try {
       if (Platform.isIOS) {
@@ -193,7 +193,7 @@ class PushApi {
 
   /// Gets the app version string.
   Future<String?> _getAppVersion() async {
-    // TODO(PR-F25): Use package_info_plus when available
+    // NOTE (Post-MVP/PR-F25): Use package_info_plus for real version
     return '1.0.0'; // Fallback version
   }
 }

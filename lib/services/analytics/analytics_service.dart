@@ -182,7 +182,7 @@ abstract final class AnalyticsService {
     _userId = userId;
     _log('User ID set: ${userId != null ? '${userId.substring(0, 8)}...' : 'null'}');
     
-    // TODO: When Firebase is configured:
+    // NOTE (Post-MVP): When Firebase is configured:
     // FirebaseAnalytics.instance.setUserId(id: userId);
   }
 
@@ -270,13 +270,13 @@ abstract final class AnalyticsService {
       // Log to console
       _log('📊 ${event.name} $finalParams');
 
-      // TODO: When Firebase Analytics is configured:
+      // NOTE (Post-MVP): When Firebase Analytics is configured:
       // FirebaseAnalytics.instance.logEvent(
       //   name: event.name,
       //   parameters: finalParams.map((k, v) => MapEntry(k, v?.toString())),
       // );
 
-      // TODO: When Amplitude is configured:
+      // NOTE (Post-MVP): When Amplitude is configured:
       // Amplitude.getInstance().logEvent(event.name, eventProperties: finalParams);
 
     } catch (e) {
@@ -323,7 +323,7 @@ abstract final class AnalyticsService {
     try {
       _log('📱 Screen: $screenName');
 
-      // TODO: When Firebase is configured:
+      // NOTE (Post-MVP): When Firebase is configured:
       // FirebaseAnalytics.instance.setCurrentScreen(
       //   screenName: screenName,
       //   screenClassOverride: screenClass,
@@ -348,7 +348,7 @@ abstract final class AnalyticsService {
     try {
       _log('👤 Property: $name = $value');
 
-      // TODO: When Firebase is configured:
+      // NOTE (Post-MVP): When Firebase is configured:
       // FirebaseAnalytics.instance.setUserProperty(name: name, value: value);
 
     } catch (e) {

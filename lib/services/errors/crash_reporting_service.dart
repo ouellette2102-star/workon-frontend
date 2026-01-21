@@ -82,7 +82,7 @@ abstract final class CrashReportingService {
     _userId = userId;
     _log('User ID set: ${userId != null ? '${userId.substring(0, 8)}...' : 'null'}');
     
-    // TODO: When Crashlytics is configured:
+    // NOTE (Post-MVP): When Crashlytics is configured:
     // FirebaseCrashlytics.instance.setUserIdentifier(userId ?? '');
   }
 
@@ -96,7 +96,7 @@ abstract final class CrashReportingService {
   static void setCustomKey(String key, String value) {
     _customKeys[key] = _sanitize(value);
     
-    // TODO: When Crashlytics is configured:
+    // NOTE (Post-MVP): When Crashlytics is configured:
     // FirebaseCrashlytics.instance.setCustomKey(key, value);
   }
 
@@ -152,7 +152,7 @@ abstract final class CrashReportingService {
         debugPrint('[CrashReporting] Stack:\n$sanitizedStack');
       }
 
-      // TODO: When Crashlytics is configured:
+      // NOTE (Post-MVP): When Crashlytics is configured:
       // FirebaseCrashlytics.instance.recordError(
       //   error,
       //   stackTrace,
@@ -208,7 +208,7 @@ abstract final class CrashReportingService {
       final sanitizedMessage = _sanitize(message);
       debugPrint('[CrashReporting] 📍 ${category != null ? '[$category] ' : ''}$sanitizedMessage');
 
-      // TODO: When Crashlytics is configured:
+      // NOTE (Post-MVP): When Crashlytics is configured:
       // FirebaseCrashlytics.instance.log(sanitizedMessage);
 
     } catch (e) {

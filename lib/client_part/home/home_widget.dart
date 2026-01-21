@@ -2359,7 +2359,7 @@ class _HomeWidgetState extends State<HomeWidget> {
           duration: const Duration(seconds: 3),
         ),
       );
-      // TODO: navigate to login if pattern exists
+      // NOTE (Post-MVP): Consider auto-redirect to login on specific error patterns
     } on MissionsApiException catch (e) {
       if (!mounted) return;
       debugPrint('[Home] Accept mission error: ${e.message}');
