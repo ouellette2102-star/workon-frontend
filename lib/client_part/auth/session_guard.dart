@@ -13,6 +13,8 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '/flutter_flow/flutter_flow_util.dart';
+import '/index.dart';
 import '/services/auth/auth_service.dart';
 import '/services/legal/consent_gate.dart';
 import '/services/legal/consent_store.dart';
@@ -367,20 +369,13 @@ class _ConsentDialogState extends State<_ConsentDialog> {
   }
 
   void _openLegalPage(String type) {
-    // TODO: Navigate to legal pages or open in browser
-    // For now, just log
     debugPrint('[ConsentDialog] Opening $type page');
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          type == 'terms'
-              ? 'Voir les conditions d\'utilisation'
-              : 'Voir la politique de confidentialité',
-        ),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    if (type == 'terms') {
+      context.pushNamed(TermsOfServiceWidget.routeName);
+    } else {
+      context.pushNamed(PrivacyPolicyWidget.routeName);
+    }
   }
 
   Future<void> _handleAccept() async {

@@ -92,7 +92,7 @@ abstract final class UserService {
 
     try {
       // Resolve role (currently defaults to worker)
-      // TODO(PR#XX): Implement actual role resolution from backend
+      // NOTE (Post-MVP): Implement actual role resolution from backend
       final role = await _resolveRole(userId);
 
       // Set ready state with resolved role
