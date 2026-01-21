@@ -4466,7 +4466,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'aoo8kcis': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -4533,7 +4533,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'mw1xxalv': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -4601,7 +4601,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'ld2megwf': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -4669,7 +4669,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'wwq3nwcl': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -4735,7 +4735,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '6ruqhgmo': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -4781,7 +4781,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'pxvm12kj': {
       'en':
-          'All rights in the Services and AI technology are owned by [Your Company Name] or its licensors. You retain ownership of your input and may use AI-generated content as permitted by law, but we do not guarantee exclusivity or copyright ownership over the output.',
+          'All rights in the Services and AI technology are owned by WorkOn Inc. or its licensors. You retain ownership of your input and may use AI-generated content as permitted by law, but we do not guarantee exclusivity or copyright ownership over the output.',
       'ar':
           'جميع الحقوق المتعلقة بالخدمات وتقنية الذكاء الاصطناعي مملوكة لشركة [اسم شركتك] أو الجهات المرخصة لها. تحتفظ بملكية مدخلاتك، ويحق لك استخدام المحتوى المُنشأ بواسطة الذكاء الاصطناعي وفقًا لما يسمح به القانون، لكننا لا نضمن الحصرية أو حقوق الطبع والنشر للمخرجات.',
       'de':
@@ -4797,13 +4797,13 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'pt':
           'Todos os direitos sobre os Serviços e a tecnologia de IA são de propriedade da [Nome da sua Empresa] ou de seus licenciadores. Você mantém a propriedade de suas contribuições e pode usar o conteúdo gerado por IA conforme permitido por lei, mas não garantimos exclusividade ou propriedade de direitos autorais sobre o resultado.',
       'ru':
-          'Все права на Услуги и технологию ИИ принадлежат [Your Company Name] или ее лицензиарам. Вы сохраняете право собственности на свой ввод и можете использовать контент, созданный ИИ, в соответствии с законом, но мы не гарантируем исключительность или авторские права на вывод.',
+          'Все права на Услуги и технологию ИИ принадлежат WorkOn Inc. или ее лицензиарам. Вы сохраняете право собственности на свой ввод и можете использовать контент, созданный ИИ, в соответствии с законом, но мы не гарантируем исключительность или авторские права на вывод.',
       'zh_Hans':
           '服务和人工智能技术的所有权利均归[您的公司名称]或其许可方所有。您保留对您输入内容的所有权，并可在法律允许的范围内使用人工智能生成的内容，但我们不保证对输出内容的独家性或版权所有权。',
     },
     'mwvis8yx': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -4888,7 +4888,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '0i9ka9be': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -4955,7 +4955,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'oyw2egma': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -5001,7 +5001,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'wq9kusw0': {
       'en':
-          'To the fullest extent permitted by law, [Your Company Name] shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Services.',
+          'To the fullest extent permitted by law, WorkOn Inc. shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Services.',
       'ar':
           'إلى أقصى حد يسمح به القانون، لن تكون [اسم شركتك] مسؤولة عن أي أضرار غير مباشرة أو عرضية أو تبعية ناجمة عن استخدامك للخدمات.',
       'de':
@@ -5022,7 +5022,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'qlxwz32d': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -5088,7 +5088,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '5f83vk8o': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -5155,7 +5155,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'wwv3zz8u': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -5201,7 +5201,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '9wr7bsde': {
       'en':
-          'If you have any questions about these Terms, contact us at [Your Email Address].',
+          'If you have any questions about these Terms, contact us at ouellette2102@gmail.com.',
       'ar':
           'إذا كانت لديك أي أسئلة حول هذه الشروط، اتصل بنا على [عنوان بريدك الإلكتروني].',
       'de':
@@ -5221,7 +5221,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'v6jr25aj': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -6307,7 +6307,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'lfnfvkbm': {
       'en':
-          'At [Your Company or App Name] (“we”, “our”, or “us”), we value your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our AI-powered services, including our website, mobile application, or APIs (“Services”).',
+          'At WorkOn (“we”, “our”, or “us”), we value your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our services, including our website, mobile application, or APIs (“Services”).',
       'ar':
           'في [اسم شركتك أو تطبيقك] («نحن» أو «لنا»)، نُقدّر خصوصيتك. توضح سياسة الخصوصية هذه كيفية جمع بياناتك الشخصية واستخدامها وتخزينها وحمايتها عند استخدامك لخدماتنا المدعومة بالذكاء الاصطناعي، بما في ذلك موقعنا الإلكتروني أو تطبيق الهاتف المحمول أو واجهات برمجة التطبيقات («الخدمات»).',
       'de':
@@ -6323,7 +6323,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'pt':
           'Na [Sua Empresa ou Nome do Aplicativo] (“nós”, “nosso(a)” ou “nos”), valorizamos sua privacidade. Esta Política de Privacidade explica como coletamos, usamos, armazenamos e protegemos seus dados pessoais quando você utiliza nossos serviços com tecnologia de IA, incluindo nosso site, aplicativo móvel ou APIs (“Serviços”).',
       'ru':
-          'В [Your Company or App Name] («мы», «наш» или «нас») мы ценим вашу конфиденциальность. В этой Политике конфиденциальности объясняется, как мы собираем, используем, храним и защищаем ваши персональные данные, когда вы используете наши службы на базе искусственного интеллекта, включая наш веб-сайт, мобильное приложение или API («Сервисы»).',
+          'В WorkOn («мы», «наш» или «нас») мы ценим вашу конфиденциальность. В этой Политике конфиденциальности объясняется, как мы собираем, используем, храним и защищаем ваши персональные данные, когда вы используете наши службы на базе искусственного интеллекта, включая наш веб-сайт, мобильное приложение или API («Сервисы»).',
       'zh_Hans':
           '在 [您的公司或应用名称]（以下简称“我们”），我们重视您的隐私。本隐私政策解释了当您使用我们基于 AI 的服务（包括我们的网站、移动应用程序或 API，以下简称“服务”）时，我们如何收集、使用、存储和保护您的个人数据。',
     },
@@ -6375,7 +6375,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '5izh85mz': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -6443,7 +6443,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'g9f1jzga': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -6511,7 +6511,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '2g09nviv': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -6579,7 +6579,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'b2oerymz': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -6625,7 +6625,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'nk64dvft': {
       'en':
-          'Depending on your location, you may have the right to:\n\nAccess the personal data we hold about you\n\nRequest correction or deletion of your data\n\nObject to or restrict our processing\n\nWithdraw consent at any time\n\nTo exercise these rights, contact us at [Your Support Email].',
+          'Depending on your location, you may have the right to:\n\nAccess the personal data we hold about you\n\nRequest correction or deletion of your data\n\nObject to or restrict our processing\n\nWithdraw consent at any time\n\nTo exercise these rights, contact us at ouellette2102@gmail.com.',
       'ar':
           'اعتمادًا على موقعك، قد يكون لديك الحق في:\n\nالوصول إلى البيانات الشخصية التي نحتفظ بها عنك\n\nطلب تصحيح أو حذف بياناتك\n\nالاعتراض على معالجتنا أو تقييدها\n\nسحب الموافقة في أي وقت\n\nلممارسة هذه الحقوق، اتصل بنا على [بريدك الإلكتروني للدعم].',
       'de':
@@ -6637,7 +6637,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'hi':
           'आपके स्थान के आधार पर, आपके पास निम्न का अधिकार हो सकता है:\n\nहमारे पास आपके बारे में मौजूद व्यक्तिगत डेटा तक पहुंच\n\nआपके डेटा में सुधार या विलोपन का अनुरोध\n\nहमारे प्रसंस्करण पर आपत्ति या प्रतिबंध\n\nकिसी भी समय सहमति वापस लेना\n\nइन अधिकारों का प्रयोग करने के लिए, हमसे [आपका समर्थन ईमेल] पर संपर्क करें।',
       'ja':
-          'お住まいの地域によっては、次の権利を有する場合があります。\n\n当社が保有するお客様の個人データにアクセスする\n\nお客様のデータの修正または削除を要求する\n\n当社による処理に異議を唱える、または制限する\n\nいつでも同意を撤回する\n\nこれらの権利を行使するには、[Your Support Email] までご連絡ください。',
+          'お住まいの地域によっては、次の権利を有する場合があります。\n\n当社が保有するお客様の個人データにアクセスする\n\nお客様のデータの修正または削除を要求する\n\n当社による処理に異議を唱える、または制限する\n\nいつでも同意を撤回する\n\nこれらの権利を行使するには、ouellette2102@gmail.com までご連絡ください。',
       'pt':
           'Dependendo da sua localização, você pode ter o direito de:\n\nAcessar os dados pessoais que temos sobre você\n\nSolicitar correção ou exclusão dos seus dados\n\nOpor-se ou restringir nosso processamento\n\nRevogar o consentimento a qualquer momento\n\nPara exercer esses direitos, entre em contato conosco em [Seu e-mail de suporte].',
       'ru':
@@ -6647,7 +6647,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'ztk1ouc6': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -6714,7 +6714,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'e5fi8v3e': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -6781,7 +6781,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'ou06esgk': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -6848,7 +6848,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '6zuuumbo': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -6894,7 +6894,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'feom04va': {
       'en':
-          'If you have any questions or concerns about this Privacy Policy, contact us at:\n📧 [Your Email Address]',
+          'If you have any questions or concerns about this Privacy Policy, contact us at:\n📧 ouellette2102@gmail.com',
       'ar':
           'إذا كانت لديك أي أسئلة أو مخاوف بشأن سياسة الخصوصية هذه، فاتصل بنا على:\n📧 [عنوان بريدك الإلكتروني]',
       'de':
@@ -6915,7 +6915,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'mxnye851': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -6997,7 +6997,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'g9oy7lmm': {
       'en':
-          'At [Your Company or App Name] (“we”, “our”, or “us”), we value your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our AI-powered services, including our website, mobile application, or APIs (“Services”).',
+          'At WorkOn (“we”, “our”, or “us”), we value your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our services, including our website, mobile application, or APIs (“Services”).',
       'ar':
           'في [اسم شركتك أو تطبيقك] («نحن» أو «لنا»)، نُقدّر خصوصيتك. توضح سياسة الخصوصية هذه كيفية جمع بياناتك الشخصية واستخدامها وتخزينها وحمايتها عند استخدامك لخدماتنا المدعومة بالذكاء الاصطناعي، بما في ذلك موقعنا الإلكتروني أو تطبيق الهاتف المحمول أو واجهات برمجة التطبيقات («الخدمات»).',
       'de':
@@ -7013,7 +7013,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'pt':
           'Na [Sua Empresa ou Nome do Aplicativo] (“nós”, “nosso(a)” ou “nos”), valorizamos sua privacidade. Esta Política de Privacidade explica como coletamos, usamos, armazenamos e protegemos seus dados pessoais quando você utiliza nossos serviços com tecnologia de IA, incluindo nosso site, aplicativo móvel ou APIs (“Serviços”).',
       'ru':
-          'В [Your Company or App Name] («мы», «наш» или «нас») мы ценим вашу конфиденциальность. В этой Политике конфиденциальности объясняется, как мы собираем, используем, храним и защищаем ваши персональные данные, когда вы используете наши службы на базе искусственного интеллекта, включая наш веб-сайт, мобильное приложение или API («Сервисы»).',
+          'В WorkOn («мы», «наш» или «нас») мы ценим вашу конфиденциальность. В этой Политике конфиденциальности объясняется, как мы собираем, используем, храним и защищаем ваши персональные данные, когда вы используете наши службы на базе искусственного интеллекта, включая наш веб-сайт, мобильное приложение или API («Сервисы»).',
       'zh_Hans':
           '在 [您的公司或应用名称]（以下简称“我们”），我们重视您的隐私。本隐私政策解释了当您使用我们基于 AI 的服务（包括我们的网站、移动应用程序或 API，以下简称“服务”）时，我们如何收集、使用、存储和保护您的个人数据。',
     },
@@ -7065,7 +7065,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'a9dvsn5r': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -7133,7 +7133,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'aq7rfgzb': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -7201,7 +7201,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'pid7x55h': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -7269,7 +7269,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'p023twxj': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -7315,7 +7315,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'wevllldv': {
       'en':
-          'Depending on your location, you may have the right to:\n\nAccess the personal data we hold about you\n\nRequest correction or deletion of your data\n\nObject to or restrict our processing\n\nWithdraw consent at any time\n\nTo exercise these rights, contact us at [Your Support Email].',
+          'Depending on your location, you may have the right to:\n\nAccess the personal data we hold about you\n\nRequest correction or deletion of your data\n\nObject to or restrict our processing\n\nWithdraw consent at any time\n\nTo exercise these rights, contact us at ouellette2102@gmail.com.',
       'ar':
           'اعتمادًا على موقعك، قد يكون لديك الحق في:\n\nالوصول إلى البيانات الشخصية التي نحتفظ بها عنك\n\nطلب تصحيح أو حذف بياناتك\n\nالاعتراض على معالجتنا أو تقييدها\n\nسحب الموافقة في أي وقت\n\nلممارسة هذه الحقوق، اتصل بنا على [بريدك الإلكتروني للدعم].',
       'de':
@@ -7327,7 +7327,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'hi':
           'आपके स्थान के आधार पर, आपके पास निम्न का अधिकार हो सकता है:\n\nहमारे पास आपके बारे में मौजूद व्यक्तिगत डेटा तक पहुंच\n\nआपके डेटा में सुधार या विलोपन का अनुरोध\n\nहमारे प्रसंस्करण पर आपत्ति या प्रतिबंध\n\nकिसी भी समय सहमति वापस लेना\n\nइन अधिकारों का प्रयोग करने के लिए, हमसे [आपका समर्थन ईमेल] पर संपर्क करें।',
       'ja':
-          'お住まいの地域によっては、次の権利を有する場合があります。\n\n当社が保有するお客様の個人データにアクセスする\n\nお客様のデータの修正または削除を要求する\n\n当社による処理に異議を唱える、または制限する\n\nいつでも同意を撤回する\n\nこれらの権利を行使するには、[Your Support Email] までご連絡ください。',
+          'お住まいの地域によっては、次の権利を有する場合があります。\n\n当社が保有するお客様の個人データにアクセスする\n\nお客様のデータの修正または削除を要求する\n\n当社による処理に異議を唱える、または制限する\n\nいつでも同意を撤回する\n\nこれらの権利を行使するには、ouellette2102@gmail.com までご連絡ください。',
       'pt':
           'Dependendo da sua localização, você pode ter o direito de:\n\nAcessar os dados pessoais que temos sobre você\n\nSolicitar correção ou exclusão dos seus dados\n\nOpor-se ou restringir nosso processamento\n\nRevogar o consentimento a qualquer momento\n\nPara exercer esses direitos, entre em contato conosco em [Seu e-mail de suporte].',
       'ru':
@@ -7337,7 +7337,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'l1hdhcmd': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -7404,7 +7404,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'js5ql44u': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -7471,7 +7471,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'emjyza45': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -7538,7 +7538,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'ay3xp0wd': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -7584,7 +7584,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'q6gfadnb': {
       'en':
-          'If you have any questions or concerns about this Privacy Policy, contact us at:\n📧 [Your Email Address]',
+          'If you have any questions or concerns about this Privacy Policy, contact us at:\n📧 ouellette2102@gmail.com',
       'ar':
           'إذا كانت لديك أي أسئلة أو مخاوف بشأن سياسة الخصوصية هذه، فاتصل بنا على:\n📧 [عنوان بريدك الإلكتروني]',
       'de':
@@ -7605,7 +7605,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'w9ac0b7z': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -22546,7 +22546,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'tmrcjler': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -22613,7 +22613,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '0x4lhzn9': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -22681,7 +22681,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'uqkgdj3w': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -22749,7 +22749,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'qub8m9nm': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -22815,7 +22815,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'uv739hu1': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -22861,7 +22861,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'xklzaxk1': {
       'en':
-          'All rights in the Services and AI technology are owned by [Your Company Name] or its licensors. You retain ownership of your input and may use AI-generated content as permitted by law, but we do not guarantee exclusivity or copyright ownership over the output.',
+          'All rights in the Services and AI technology are owned by WorkOn Inc. or its licensors. You retain ownership of your input and may use AI-generated content as permitted by law, but we do not guarantee exclusivity or copyright ownership over the output.',
       'ar':
           'جميع الحقوق المتعلقة بالخدمات وتقنية الذكاء الاصطناعي مملوكة لشركة [اسم شركتك] أو الجهات المرخصة لها. تحتفظ بملكية مدخلاتك، ويحق لك استخدام المحتوى المُنشأ بواسطة الذكاء الاصطناعي وفقًا لما يسمح به القانون، لكننا لا نضمن الحصرية أو حقوق الطبع والنشر للمخرجات.',
       'de':
@@ -22877,13 +22877,13 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'pt':
           'Todos os direitos sobre os Serviços e a tecnologia de IA são de propriedade da [Nome da sua Empresa] ou de seus licenciadores. Você mantém a propriedade de suas contribuições e pode usar o conteúdo gerado por IA conforme permitido por lei, mas não garantimos exclusividade ou propriedade de direitos autorais sobre o resultado.',
       'ru':
-          'Все права на Услуги и технологию ИИ принадлежат [Your Company Name] или ее лицензиарам. Вы сохраняете право собственности на свой ввод и можете использовать контент, созданный ИИ, в соответствии с законом, но мы не гарантируем исключительность или авторские права на вывод.',
+          'Все права на Услуги и технологию ИИ принадлежат WorkOn Inc. или ее лицензиарам. Вы сохраняете право собственности на свой ввод и можете использовать контент, созданный ИИ, в соответствии с законом, но мы не гарантируем исключительность или авторские права на вывод.',
       'zh_Hans':
           '服务和人工智能技术的所有权利均归[您的公司名称]或其许可方所有。您保留对您输入内容的所有权，并可在法律允许的范围内使用人工智能生成的内容，但我们不保证对输出内容的独家性或版权所有权。',
     },
     'fu3u28tm': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -22968,7 +22968,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '4raps9hs': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23035,7 +23035,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'tzr3t78e': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23081,7 +23081,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'xr9kfjpb': {
       'en':
-          'To the fullest extent permitted by law, [Your Company Name] shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Services.',
+          'To the fullest extent permitted by law, WorkOn Inc. shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Services.',
       'ar':
           'إلى أقصى حد يسمح به القانون، لن تكون [اسم شركتك] مسؤولة عن أي أضرار غير مباشرة أو عرضية أو تبعية ناجمة عن استخدامك للخدمات.',
       'de':
@@ -23102,7 +23102,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '1h1l58na': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23168,7 +23168,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'd14hkalk': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23235,7 +23235,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'wlf6jz1j': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23281,7 +23281,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '991hey33': {
       'en':
-          'If you have any questions about these Terms, contact us at [Your Email Address].',
+          'If you have any questions about these Terms, contact us at ouellette2102@gmail.com.',
       'ar':
           'إذا كانت لديك أي أسئلة حول هذه الشروط، اتصل بنا على [عنوان بريدك الإلكتروني].',
       'de':
@@ -23301,7 +23301,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'agxbzqh4': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23410,7 +23410,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'r8uc71cf': {
       'en':
-          'At [Your Company or App Name] (“we”, “our”, or “us”), we value your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our AI-powered services, including our website, mobile application, or APIs (“Services”).',
+          'At WorkOn (“we”, “our”, or “us”), we value your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our services, including our website, mobile application, or APIs (“Services”).',
       'ar':
           'في [اسم شركتك أو تطبيقك] («نحن» أو «لنا»)، نُقدّر خصوصيتك. توضح سياسة الخصوصية هذه كيفية جمع بياناتك الشخصية واستخدامها وتخزينها وحمايتها عند استخدامك لخدماتنا المدعومة بالذكاء الاصطناعي، بما في ذلك موقعنا الإلكتروني أو تطبيق الهاتف المحمول أو واجهات برمجة التطبيقات («الخدمات»).',
       'de':
@@ -23426,7 +23426,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'pt':
           'Na [Sua Empresa ou Nome do Aplicativo] (“nós”, “nosso(a)” ou “nos”), valorizamos sua privacidade. Esta Política de Privacidade explica como coletamos, usamos, armazenamos e protegemos seus dados pessoais quando você utiliza nossos serviços com tecnologia de IA, incluindo nosso site, aplicativo móvel ou APIs (“Serviços”).',
       'ru':
-          'В [Your Company or App Name] («мы», «наш» или «нас») мы ценим вашу конфиденциальность. В этой Политике конфиденциальности объясняется, как мы собираем, используем, храним и защищаем ваши персональные данные, когда вы используете наши службы на базе искусственного интеллекта, включая наш веб-сайт, мобильное приложение или API («Сервисы»).',
+          'В WorkOn («мы», «наш» или «нас») мы ценим вашу конфиденциальность. В этой Политике конфиденциальности объясняется, как мы собираем, используем, храним и защищаем ваши персональные данные, когда вы используете наши службы на базе искусственного интеллекта, включая наш веб-сайт, мобильное приложение или API («Сервисы»).',
       'zh_Hans':
           '在 [您的公司或应用名称]（以下简称“我们”），我们重视您的隐私。本隐私政策解释了当您使用我们基于 AI 的服务（包括我们的网站、移动应用程序或 API，以下简称“服务”）时，我们如何收集、使用、存储和保护您的个人数据。',
     },
@@ -23478,7 +23478,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '2lr4lqwb': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23546,7 +23546,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'oputk12s': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23614,7 +23614,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '9ikblt86': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23682,7 +23682,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '2ihyu7uh': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23728,7 +23728,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'lfbcckbr': {
       'en':
-          'Depending on your location, you may have the right to:\n\nAccess the personal data we hold about you\n\nRequest correction or deletion of your data\n\nObject to or restrict our processing\n\nWithdraw consent at any time\n\nTo exercise these rights, contact us at [Your Support Email].',
+          'Depending on your location, you may have the right to:\n\nAccess the personal data we hold about you\n\nRequest correction or deletion of your data\n\nObject to or restrict our processing\n\nWithdraw consent at any time\n\nTo exercise these rights, contact us at ouellette2102@gmail.com.',
       'ar':
           'بناءً على موقعك، قد يحق لك:\n\nالوصول إلى بياناتك الشخصية التي نحتفظ بها\n\nطلب تصحيح أو حذف بياناتك\n\nالاعتراض على معالجتنا أو تقييدها\n\nسحب الموافقة في أي وقت\n\nلممارسة هذه الحقوق، تواصل معنا عبر [بريدك الإلكتروني المخصص للدعم].',
       'de':
@@ -23750,7 +23750,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '9ylro0c5': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23817,7 +23817,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '9ls5m3nr': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23884,7 +23884,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'di5niy3a': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23951,7 +23951,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'n326fnxt': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -23997,7 +23997,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '8g7lqorj': {
       'en':
-          'If you have any questions or concerns about this Privacy Policy, contact us at:\n📧 [Your Email Address]',
+          'If you have any questions or concerns about this Privacy Policy, contact us at:\n📧 ouellette2102@gmail.com',
       'ar':
           'إذا كانت لديك أي أسئلة أو استفسارات بخصوص سياسة الخصوصية هذه، يُرجى التواصل معنا عبر:\n📧 [عنوان بريدك الإلكتروني]',
       'de':
@@ -24017,7 +24017,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'tugz634j': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -24099,7 +24099,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'i9s0h7t3': {
       'en':
-          'At [Your Company or App Name] (“we”, “our”, or “us”), we value your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our AI-powered services, including our website, mobile application, or APIs (“Services”).',
+          'At WorkOn (“we”, “our”, or “us”), we value your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our services, including our website, mobile application, or APIs (“Services”).',
       'ar':
           'في [اسم شركتك أو تطبيقك] («نحن» أو «لنا»)، نُقدّر خصوصيتك. توضح سياسة الخصوصية هذه كيفية جمع بياناتك الشخصية واستخدامها وتخزينها وحمايتها عند استخدامك لخدماتنا المدعومة بالذكاء الاصطناعي، بما في ذلك موقعنا الإلكتروني أو تطبيق الهاتف المحمول أو واجهات برمجة التطبيقات («الخدمات»).',
       'de':
@@ -24115,7 +24115,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'pt':
           'Na [Sua Empresa ou Nome do Aplicativo] (“nós”, “nosso(a)” ou “nos”), valorizamos sua privacidade. Esta Política de Privacidade explica como coletamos, usamos, armazenamos e protegemos seus dados pessoais quando você utiliza nossos serviços com tecnologia de IA, incluindo nosso site, aplicativo móvel ou APIs (“Serviços”).',
       'ru':
-          'В [Your Company or App Name] («мы», «наш» или «нас») мы ценим вашу конфиденциальность. В этой Политике конфиденциальности объясняется, как мы собираем, используем, храним и защищаем ваши персональные данные, когда вы используете наши службы на базе искусственного интеллекта, включая наш веб-сайт, мобильное приложение или API («Сервисы»).',
+          'В WorkOn («мы», «наш» или «нас») мы ценим вашу конфиденциальность. В этой Политике конфиденциальности объясняется, как мы собираем, используем, храним и защищаем ваши персональные данные, когда вы используете наши службы на базе искусственного интеллекта, включая наш веб-сайт, мобильное приложение или API («Сервисы»).',
       'zh_Hans':
           '在 [您的公司或应用名称]（以下简称“我们”），我们重视您的隐私。本隐私政策解释了当您使用我们基于 AI 的服务（包括我们的网站、移动应用程序或 API，以下简称“服务”）时，我们如何收集、使用、存储和保护您的个人数据。',
     },
@@ -24167,7 +24167,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     't6dte4ro': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -24235,7 +24235,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'gs8cepm1': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -24303,7 +24303,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'ul6vogrr': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -24371,7 +24371,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'waidrr3w': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -24417,7 +24417,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'pghmg5u6': {
       'en':
-          'Depending on your location, you may have the right to:\n\nAccess the personal data we hold about you\n\nRequest correction or deletion of your data\n\nObject to or restrict our processing\n\nWithdraw consent at any time\n\nTo exercise these rights, contact us at [Your Support Email].',
+          'Depending on your location, you may have the right to:\n\nAccess the personal data we hold about you\n\nRequest correction or deletion of your data\n\nObject to or restrict our processing\n\nWithdraw consent at any time\n\nTo exercise these rights, contact us at ouellette2102@gmail.com.',
       'ar':
           'بناءً على موقعك، قد يحق لك:\n\nالوصول إلى بياناتك الشخصية التي نحتفظ بها\n\nطلب تصحيح أو حذف بياناتك\n\nالاعتراض على معالجتنا أو تقييدها\n\nسحب الموافقة في أي وقت\n\nلممارسة هذه الحقوق، تواصل معنا عبر [بريدك الإلكتروني المخصص للدعم].',
       'de':
@@ -24439,7 +24439,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'gjvbm293': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -24506,7 +24506,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'umlh4232': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -24573,7 +24573,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'kko4pqun': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -24640,7 +24640,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'tt1qnr8h': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
@@ -24686,7 +24686,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '82ml6o4w': {
       'en':
-          'If you have any questions or concerns about this Privacy Policy, contact us at:\n📧 [Your Email Address]',
+          'If you have any questions or concerns about this Privacy Policy, contact us at:\n📧 ouellette2102@gmail.com',
       'ar':
           'إذا كانت لديك أي أسئلة أو استفسارات بخصوص سياسة الخصوصية هذه، يُرجى التواصل معنا عبر:\n📧 [عنوان بريدك الإلكتروني]',
       'de':
@@ -24706,7 +24706,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'y33an423': {
       'en':
-          'Welcome to [Your App Name], an AI-powered [describe app, e.g., \"content generation platform\", \"chat assistant\", etc.]. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
+          'Welcome to WorkOn, a marketplace platform connecting freelancers with clients for on-demand services. These Terms of Use (\"Terms\") govern your access to and use of our services, including our website, mobile application, and APIs (\"Services\").',
       'ar':
           'مرحبًا بك في [اسم تطبيقك]، وهو تطبيق يعمل بالذكاء الاصطناعي [صف التطبيق، على سبيل المثال، \"منصة إنشاء محتوى\"، \"مساعد دردشة\"، إلخ]. تُنظّم شروط الاستخدام هذه (\"الشروط\") وصولك إلى خدماتنا واستخدامك لها، بما في ذلك موقعنا الإلكتروني وتطبيق الهاتف المحمول وواجهات برمجة التطبيقات (\"الخدمات\").',
       'de':
