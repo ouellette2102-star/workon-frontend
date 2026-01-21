@@ -54,3 +54,9 @@ app.*.map.json
 
 # Generated files
 swagger.json
+
+# Android Release Signing (DO NOT COMMIT)
+android/key.properties
+android/app/*.jks
+*.jks
+*.keystore
