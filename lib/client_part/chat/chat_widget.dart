@@ -1,4 +1,5 @@
 import '/client_part/components_client/back_icon_btn/back_icon_btn_widget.dart';
+import '/components/coming_soon_screen.dart';
 import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -227,6 +228,7 @@ class _ChatWidgetState extends State<ChatWidget> {
               Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
+                  // PR-15: VoiceCall is template-only, show coming soon
                   FlutterFlowIconButton(
                     borderRadius: 30.0,
                     buttonSize: 40.0,
@@ -236,7 +238,7 @@ class _ChatWidgetState extends State<ChatWidget> {
                       size: 24.0,
                     ),
                     onPressed: () async {
-                      context.pushNamed(VoiceCallWidget.routeName);
+                      showComingSoon(context, 'Appels vocaux');
                     },
                   ),
                   FlutterFlowIconButton(

@@ -49,6 +49,8 @@ class _MessagesWidgetState extends State<MessagesWidget> {
   }
 
   /// PR-F19: Load conversations from API.
+  /// PR-4: getConversations returns empty list (no backend endpoint).
+  /// Chat is accessible only from mission detail.
   Future<void> _loadConversations() async {
     setState(() {
       _isLoading = true;
@@ -62,6 +64,7 @@ class _MessagesWidgetState extends State<MessagesWidget> {
         _isLoading = false;
         if (result.isSuccess) {
           _conversations = result.data ?? [];
+          // PR-4: No error state - empty list is expected behavior
         } else {
           _error = result.errorMessage ?? WkCopy.errorConversations;
         }
@@ -217,6 +220,8 @@ class _MessagesWidgetState extends State<MessagesWidget> {
                             ),
                           )
                         : _conversations.isEmpty
+                            // PR-4: Empty state is the expected behavior
+                            // Chat is accessible from mission detail only
                             ? Center(
                                 child: Padding(
                                   padding: const EdgeInsets.all(20),
@@ -248,7 +253,7 @@ class _MessagesWidgetState extends State<MessagesWidget> {
                                         onPressed: () {
                                           context.pushNamed(HomeWidget.routeName);
                                         },
-                                        text: WkCopy.exploreMissions,
+                                        text: WkCopy.goToMissions,
                                         options: FFButtonOptions(
                                           height: 44,
                                           padding: const EdgeInsetsDirectional.fromSTEB(24, 0, 24, 0),

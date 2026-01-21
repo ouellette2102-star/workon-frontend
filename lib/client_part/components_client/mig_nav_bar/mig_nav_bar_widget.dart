@@ -4,6 +4,10 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:ui';
 import '/index.dart';
+// PR-15: Import EmployerMissionsWidget for Missions tab
+import '/client_part/employer_missions/employer_missions_widget.dart';
+// PR-DISCOVERY: Import SwipeDiscoveryPage for central discovery access
+import '/client_part/discovery/swipe_discovery_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -167,6 +171,7 @@ class _MigNavBarWidgetState extends State<MigNavBarWidget> {
                 ),
               ),
             ),
+            // PR-15: Replace Bookings (dead-end) with Missions (functional)
             Expanded(
               child: InkWell(
                 splashColor: Colors.transparent,
@@ -175,7 +180,7 @@ class _MigNavBarWidgetState extends State<MigNavBarWidget> {
                 highlightColor: Colors.transparent,
                 onTap: () async {
                   context.pushNamed(
-                    BookingsWidget.routeName,
+                    EmployerMissionsWidget.routeName,
                     extra: <String, dynamic>{
                       kTransitionInfoKey: TransitionInfo(
                         hasTransition: true,
@@ -187,89 +192,33 @@ class _MigNavBarWidgetState extends State<MigNavBarWidget> {
                 },
                 child: Container(
                   decoration: BoxDecoration(),
-                  child: InkWell(
-                    splashColor: Colors.transparent,
-                    focusColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    onTap: () async {
-                      context.pushNamed(
-                        BookingsWidget.routeName,
-                        extra: <String, dynamic>{
-                          kTransitionInfoKey: TransitionInfo(
-                            hasTransition: true,
-                            transitionType: PageTransitionType.fade,
-                            duration: Duration(milliseconds: 0),
-                          ),
-                        },
-                      );
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        InkWell(
-                          splashColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          onTap: () async {
-                            context.pushNamed(
-                              BookingsWidget.routeName,
-                              extra: <String, dynamic>{
-                                kTransitionInfoKey: TransitionInfo(
-                                  hasTransition: true,
-                                  transitionType: PageTransitionType.fade,
-                                  duration: Duration(milliseconds: 0),
-                                ),
-                              },
-                            );
-                          },
-                          child: Icon(
-                            FFIcons.kdocumentText10,
-                            color: widget!.activePage == 'bookings'
-                                ? FlutterFlowTheme.of(context).primary
-                                : FlutterFlowTheme.of(context).secondaryText,
-                            size: 26.0,
-                          ),
-                        ),
-                        InkWell(
-                          splashColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          onTap: () async {
-                            context.pushNamed(
-                              BookingsWidget.routeName,
-                              extra: <String, dynamic>{
-                                kTransitionInfoKey: TransitionInfo(
-                                  hasTransition: true,
-                                  transitionType: PageTransitionType.fade,
-                                  duration: Duration(milliseconds: 0),
-                                ),
-                              },
-                            );
-                          },
-                          child: Text(
-                            FFLocalizations.of(context).getText(
-                              'q6hgqv5y' /* Bookings */,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        FFIcons.kdocumentText10,
+                        color: widget!.activePage == 'missions'
+                            ? FlutterFlowTheme.of(context).primary
+                            : FlutterFlowTheme.of(context).secondaryText,
+                        size: 26.0,
+                      ),
+                      Text(
+                        'Missions',
+                        maxLines: 1,
+                        style: FlutterFlowTheme.of(context)
+                            .bodyMedium
+                            .override(
+                              fontFamily: 'General Sans',
+                              color: widget!.activePage == 'missions'
+                                  ? FlutterFlowTheme.of(context).primary
+                                  : FlutterFlowTheme.of(context)
+                                      .secondaryText,
+                              fontSize: 12.0,
+                              letterSpacing: 0.0,
+                              fontWeight: FontWeight.w500,
                             ),
-                            maxLines: 1,
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  fontFamily: 'General Sans',
-                                  color: widget!.activePage == 'bookings'
-                                      ? FlutterFlowTheme.of(context).primary
-                                      : FlutterFlowTheme.of(context)
-                                          .secondaryText,
-                                  fontSize: 12.0,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
-                        ),
-                      ].divide(SizedBox(height: 5.0)),
-                    ),
+                      ),
+                    ].divide(SizedBox(height: 5.0)),
                   ),
                 ),
               ),
@@ -294,18 +243,20 @@ class _MigNavBarWidgetState extends State<MigNavBarWidget> {
                         ],
                         borderRadius: BorderRadius.circular(16.0),
                       ),
+                      // PR-DISCOVERY: Central button now opens Discovery (Swipe)
+                      // This makes discovery the heart of the app (Tinder-style)
                       child: FlutterFlowIconButton(
                         borderRadius: 16.0,
                         buttonSize: 45.0,
                         fillColor: FlutterFlowTheme.of(context).primary,
                         icon: Icon(
-                          FFIcons.kadd,
+                          Icons.swipe, // Discovery icon
                           color: FlutterFlowTheme.of(context).info,
                           size: 24.0,
                         ),
                         onPressed: () async {
                           context.pushNamed(
-                            SelectServicesWidget.routeName,
+                            SwipeDiscoveryPage.routeName,
                             extra: <String, dynamic>{
                               kTransitionInfoKey: TransitionInfo(
                                 hasTransition: true,

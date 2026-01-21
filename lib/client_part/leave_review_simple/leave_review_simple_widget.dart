@@ -32,7 +32,7 @@ class LeaveReviewSimpleWidget extends StatefulWidget {
   final String? toUserAvatar;
 
   /// Mission ID for context (optional).
-  /// TODO(PR-future): Enforce missionId when backend supports it.
+  /// NOTE (Post-MVP): Enforce missionId when backend supports it.
   final String? missionId;
 
   /// Mission title for display (optional).

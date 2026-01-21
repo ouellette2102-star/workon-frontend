@@ -99,10 +99,15 @@ class Message {
   });
 
   /// Creates a Message from JSON.
+  ///
+  /// **PR-4:** Handles both `conversationId` and `missionId` from backend.
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
       id: json['id']?.toString() ?? '',
-      conversationId: json['conversationId']?.toString() ?? '',
+      // PR-4: Backend uses missionId, Flutter uses conversationId (same concept)
+      conversationId: json['conversationId']?.toString() ??
+          json['missionId']?.toString() ??
+          '',
       senderId: json['senderId']?.toString() ??
           json['authorId']?.toString() ??
           json['userId']?.toString() ??

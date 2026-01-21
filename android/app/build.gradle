@@ -2,6 +2,7 @@ plugins {
    id "com.android.application"
    id "kotlin-android"
    id "dev.flutter.flutter-gradle-plugin"
+   // Note: Google Services plugin applied conditionally at end of file
 }
 
 def localProperties = new Properties()
@@ -29,7 +30,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.migambi.sparkly"
+    namespace "com.workon.workon"
     compileSdkVersion 35
     
 
@@ -54,7 +55,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.migambi.sparkly"
+        applicationId "com.workon.workon"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
@@ -87,4 +88,23 @@ flutter {
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0"
+}
+
+// ============================================================
+// Google Services Plugin - Conditional Application
+// ============================================================
+// Apply the plugin ONLY if google-services.json exists.
+// This allows CI builds to succeed without Firebase credentials
+// while local/production builds get full Firebase functionality.
+//
+// - LOCAL (dev): google-services.json present → Firebase enabled
+// - CI (GitHub Actions): file absent → Firebase disabled, build succeeds
+// - PRODUCTION: file injected via secrets → Firebase enabled
+// ============================================================
+def googleServicesFile = file('google-services.json')
+if (googleServicesFile.exists()) {
+    apply plugin: 'com.google.gms.google-services'
+    println "✓ Google Services plugin applied (google-services.json found)"
+} else {
+    println "⚠ Google Services plugin SKIPPED (google-services.json not found)"
 }

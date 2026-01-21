@@ -87,11 +87,15 @@ export '/provider_part/job_requests/job_requests_widget.dart'
 export '/provider_part/messages_provider/messages_provider_widget.dart'
     show MessagesProviderWidget;
 export '/provider_part/jobs/jobs_widget.dart' show JobsWidget;
+// PR-JOBS-LIST: Export real jobs widget for provider navigation
+export '/provider_part/jobs/jobs_real_widget.dart' show JobsRealWidget;
 export '/provider_part/request_details/request_details_widget.dart'
     show RequestDetailsWidget;
 export '/provider_part/job_details/job_details_widget.dart'
     show JobDetailsWidget;
 export '/provider_part/earnings/earnings_widget.dart' show EarningsWidget;
+// PR-EARNINGS: Export real earnings widget connected to backend
+export '/provider_part/earnings/earnings_real_widget.dart' show EarningsRealWidget;
 export '/provider_part/notifications_provider/notifications_provider_widget.dart'
     show NotificationsProviderWidget;
 export '/provider_part/transactions_provider/transactions_provider_widget.dart'
@@ -140,3 +144,11 @@ export '/client_part/booking_pages/choose_payment_method/choose_payment_method_w
     show ChoosePaymentMethodWidget;
 export '/client_part/mission_detail/mission_detail_widget.dart'
     show MissionDetailWidget;
+export '/client_part/worker_assignments/worker_assignments_widget.dart'
+    show WorkerAssignmentsWidget;
+
+// PR-V1-01: Legal consent screen for store compliance
+export '/client_part/legal/legal_consent_widget.dart'
+    show LegalConsentWidget;
+export '/client_part/legal/legal_consent_gate.dart'
+    show LegalConsentGate, LegalConsentModal;

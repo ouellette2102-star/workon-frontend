@@ -323,6 +323,241 @@ class OffersApi {
     }
   }
 
+  /// PR-02: Fetches applications/offers for a specific mission (employer view).
+  ///
+  /// Calls `GET /api/v1/offers?missionId=...`.
+  ///
+  /// Returns a list of [Offer] objects with applicant details if available.
+  ///
+  /// Throws:
+  /// - [UnauthorizedException] if not authenticated
+  /// - [OffersApiException] on other errors
+  Future<List<Offer>> fetchMissionApplications(String missionId) async {
+    debugPrint('[OffersApi] Fetching applications for mission: $missionId');
+
+    if (!AuthService.hasSession) {
+      throw const UnauthorizedException();
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      throw const UnauthorizedException();
+    }
+
+    final baseUri = ApiClient.buildUri('/offers');
+    final uri = baseUri.replace(queryParameters: {'missionId': missionId});
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      debugPrint('[OffersApi] GET $uri');
+      final response = await ApiClient.client
+          .get(uri, headers: headers)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[OffersApi] fetchMissionApplications response: ${response.statusCode}');
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw const UnauthorizedException();
+      }
+
+      if (response.statusCode != 200) {
+        if (response.statusCode == 404) {
+          debugPrint('[OffersApi] No applications found for mission');
+          return [];
+        }
+        throw OffersApiException('Erreur ${response.statusCode}');
+      }
+
+      final json = jsonDecode(response.body);
+
+      // Handle various response formats
+      List<dynamic> items;
+      if (json is List) {
+        items = json;
+      } else if (json is Map<String, dynamic>) {
+        items = json['data'] ?? json['offers'] ?? json['applications'] ?? [];
+      } else {
+        items = [];
+      }
+
+      // Parse as Offer objects
+      final offers = <Offer>[];
+      for (final item in items) {
+        if (item is Map<String, dynamic>) {
+          try {
+            offers.add(Offer.fromJson(item));
+          } catch (e) {
+            debugPrint('[OffersApi] Failed to parse application: $e');
+          }
+        }
+      }
+
+      debugPrint('[OffersApi] Parsed ${offers.length} applications');
+      return offers;
+    } on TimeoutException {
+      throw const OffersApiException('Connexion impossible. Vérifiez votre réseau.');
+    } on http.ClientException {
+      throw const OffersApiException('Erreur réseau. Vérifiez votre connexion.');
+    } on Exception catch (e) {
+      if (e is OffersApiException || e is AuthException) rethrow;
+      debugPrint('[OffersApi] fetchMissionApplications unexpected error: $e');
+      throw const OffersApiException('Une erreur est survenue.');
+    }
+  }
+
+  /// PR-03: Accepts an offer/application (employer action).
+  ///
+  /// PR-F1: Calls `PATCH /api/v1/offers/:offerId/accept` (no body).
+  ///
+  /// This assigns the worker to the mission and updates the offer status.
+  ///
+  /// Throws:
+  /// - [UnauthorizedException] if not authenticated
+  /// - [OffersApiException] on other errors
+  Future<Offer> acceptOffer(String offerId) async {
+    debugPrint('[OffersApi] Accepting offer: $offerId');
+
+    if (!AuthService.hasSession) {
+      throw const UnauthorizedException();
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      throw const UnauthorizedException();
+    }
+
+    // PR-F1: Use dedicated /accept endpoint
+    final uri = ApiClient.buildUri('/offers/$offerId/accept');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      debugPrint('[OffersApi] PATCH $uri');
+      final response = await ApiClient.client
+          .patch(uri, headers: headers)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[OffersApi] acceptOffer response: ${response.statusCode}');
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw const UnauthorizedException();
+      }
+
+      if (response.statusCode == 404) {
+        throw const OffersApiException('Candidature non trouvée', 404);
+      }
+
+      if (response.statusCode == 409) {
+        throw const OffersApiException('Cette candidature a déjà été traitée', 409);
+      }
+
+      if (response.statusCode >= 400 && response.statusCode < 500) {
+        final msg = _extractErrorMessage(response.body);
+        throw OffersApiException(msg ?? 'Erreur lors de l\'acceptation', response.statusCode);
+      }
+
+      if (response.statusCode >= 500) {
+        throw const OffersApiException('Erreur serveur. Réessayez plus tard.', 500);
+      }
+
+      final json = jsonDecode(response.body);
+      final data = json is Map<String, dynamic>
+          ? (json['data'] ?? json)
+          : json;
+
+      final offer = Offer.fromJson(data as Map<String, dynamic>);
+      debugPrint('[OffersApi] Offer accepted: ${offer.id} -> ${offer.status}');
+      return offer;
+    } on TimeoutException {
+      throw const OffersApiException('Connexion impossible. Vérifiez votre réseau.');
+    } on http.ClientException {
+      throw const OffersApiException('Erreur réseau. Vérifiez votre connexion.');
+    } on Exception catch (e) {
+      if (e is OffersApiException || e is AuthException) rethrow;
+      debugPrint('[OffersApi] acceptOffer unexpected error: $e');
+      throw const OffersApiException('Une erreur est survenue.');
+    }
+  }
+
+  /// PR-03: Rejects an offer/application (employer action).
+  ///
+  /// PR-F1: Calls `PATCH /api/v1/offers/:offerId/reject` (no body).
+  ///
+  /// Throws:
+  /// - [UnauthorizedException] if not authenticated
+  /// - [OffersApiException] on other errors
+  Future<Offer> rejectOffer(String offerId) async {
+    debugPrint('[OffersApi] Rejecting offer: $offerId');
+
+    if (!AuthService.hasSession) {
+      throw const UnauthorizedException();
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      throw const UnauthorizedException();
+    }
+
+    // PR-F1: Use dedicated /reject endpoint
+    final uri = ApiClient.buildUri('/offers/$offerId/reject');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      debugPrint('[OffersApi] PATCH $uri');
+      final response = await ApiClient.client
+          .patch(uri, headers: headers)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[OffersApi] rejectOffer response: ${response.statusCode}');
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw const UnauthorizedException();
+      }
+
+      if (response.statusCode == 404) {
+        throw const OffersApiException('Candidature non trouvée', 404);
+      }
+
+      if (response.statusCode == 409) {
+        throw const OffersApiException('Cette candidature a déjà été traitée', 409);
+      }
+
+      if (response.statusCode >= 400 && response.statusCode < 500) {
+        final msg = _extractErrorMessage(response.body);
+        throw OffersApiException(msg ?? 'Erreur lors du refus', response.statusCode);
+      }
+
+      if (response.statusCode >= 500) {
+        throw const OffersApiException('Erreur serveur. Réessayez plus tard.', 500);
+      }
+
+      final json = jsonDecode(response.body);
+      final data = json is Map<String, dynamic>
+          ? (json['data'] ?? json)
+          : json;
+
+      final offer = Offer.fromJson(data as Map<String, dynamic>);
+      debugPrint('[OffersApi] Offer rejected: ${offer.id} -> ${offer.status}');
+      return offer;
+    } on TimeoutException {
+      throw const OffersApiException('Connexion impossible. Vérifiez votre réseau.');
+    } on http.ClientException {
+      throw const OffersApiException('Erreur réseau. Vérifiez votre connexion.');
+    } on Exception catch (e) {
+      if (e is OffersApiException || e is AuthException) rethrow;
+      debugPrint('[OffersApi] rejectOffer unexpected error: $e');
+      throw const OffersApiException('Une erreur est survenue.');
+    }
+  }
+
   /// Extracts error message from response body.
   String? _extractErrorMessage(String body) {
     try {

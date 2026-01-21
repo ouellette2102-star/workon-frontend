@@ -1,4 +1,4 @@
-package com.migambi.sparkly
+package com.workon.workon
 
 import io.flutter.embedding.android.FlutterActivity
 

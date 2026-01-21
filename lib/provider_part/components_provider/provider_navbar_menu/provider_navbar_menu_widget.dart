@@ -149,9 +149,10 @@ class _ProviderNavbarMenuWidgetState extends State<ProviderNavbarMenuWidget> {
               borderRadius: BorderRadius.circular(14.0),
             ),
           ),
+          // PR-JOBS-LIST: Fixed navigation to JobsRealWidget
           FFButtonWidget(
             onPressed: () async {
-              context.pushNamed(MessagesProviderWidget.routeName);
+              context.pushNamed(JobsRealWidget.routeName);
             },
             text: FFLocalizations.of(context).getText(
               '12l3wux4' /* My Jobs                       ... */,
@@ -209,9 +210,10 @@ class _ProviderNavbarMenuWidgetState extends State<ProviderNavbarMenuWidget> {
               borderRadius: BorderRadius.circular(14.0),
             ),
           ),
+          // PR-EARNINGS: Navigate to real earnings widget (backend connected)
           FFButtonWidget(
             onPressed: () async {
-              context.pushNamed(EarningsWidget.routeName);
+              context.pushNamed(EarningsRealWidget.routeName);
             },
             text: FFLocalizations.of(context).getText(
               'tmijg8br' /* Earnings                      ... */,

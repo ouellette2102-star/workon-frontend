@@ -3,11 +3,17 @@ import '/config/ui_tokens.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/analytics/analytics_service.dart';
 import '/services/missions/mission_models.dart';
 import '/services/missions/missions_api.dart';
 import '/services/missions/missions_service.dart';
 import '/services/offers/offers_service.dart';
+import '/services/auth/auth_service.dart';
 import '/services/saved/saved_missions_store.dart';
+// PR-CHAT: Import ChatWidget for mission chat access
+import '/client_part/chat/chat_widget.dart';
+// PR-BOOKING: Import StripeService for payment flow
+import '/services/payments/stripe_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
@@ -63,6 +69,13 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
   bool _hasApplied = false;
   bool _isApplying = false;
 
+  // PR-04: Employer lifecycle actions
+  bool _isStarting = false;
+  bool _isCompleting = false;
+
+  // PR-BOOKING: Payment state
+  bool _isPaying = false;
+
   @override
   void initState() {
     super.initState();
@@ -79,6 +92,12 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
       debugPrint('[MissionDetail] Using provided mission: ${widget.mission!.id}');
       _mission = widget.mission;
       _isLoading = false;
+      // PR-23: Track mission viewed
+      AnalyticsService.trackMissionViewed(
+        missionId: widget.mission!.id,
+        category: widget.mission!.category,
+        price: widget.mission!.price,
+      );
     } else if (widget.missionId.isNotEmpty) {
       debugPrint('[MissionDetail] Fetching mission by ID: ${widget.missionId}');
       _loadMission();
@@ -107,6 +126,12 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
       
       if (mission != null) {
         debugPrint('[MissionDetail] Mission loaded: ${mission.title}');
+        // PR-23: Track mission viewed
+        AnalyticsService.trackMissionViewed(
+          missionId: mission.id,
+          category: mission.category,
+          price: mission.price,
+        );
         setState(() {
           _mission = mission;
           _isLoading = false;
@@ -659,6 +684,10 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
   /// PR-F09: Builds the actions section with CTA buttons.
   Widget _buildActionsSection(BuildContext context, Mission mission) {
     final isAvailable = _isMissionAvailable(mission);
+    
+    // PR-04: Check if user is the mission creator (employer view)
+    final currentUserId = AuthService.currentUserId;
+    final isOwner = currentUserId != null && mission.createdByUserId == currentUserId;
 
     return Container(
       width: double.infinity,
@@ -681,9 +710,23 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
           ),
           SizedBox(height: WkSpacing.lg),
 
-          // Primary CTA: Postuler (PR-F15: real API integration)
-          _buildApplyButton(context, mission, isAvailable),
+          // PR-04: Show employer actions if user is owner
+          if (isOwner) ...[
+            _buildStatusTimeline(context, mission),
+            SizedBox(height: WkSpacing.lg),
+            _buildEmployerActions(context, mission),
+          ] else ...[
+            // Primary CTA: Postuler (PR-F15: real API integration)
+            _buildApplyButton(context, mission, isAvailable),
+          ],
           SizedBox(height: WkSpacing.md),
+
+          // PR-CHAT: Chat button for assigned/in-progress missions
+          if (mission.status != MissionStatus.open &&
+              mission.status != MissionStatus.cancelled) ...[
+            _buildChatButton(context, mission),
+            SizedBox(height: WkSpacing.md),
+          ],
 
           // Secondary actions row: Share + Save
           Row(
@@ -796,6 +839,11 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
 
     switch (result) {
       case ApplyResult.success:
+        // PR-23: Track offer submitted
+        AnalyticsService.trackOfferSubmitted(
+          missionId: mission.id,
+          offerAmount: mission.price,
+        );
         setState(() {
           _hasApplied = true;
         });
@@ -820,6 +868,512 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
       case ApplyResult.error:
         _showSnackbar(WkCopy.applyError, isError: true);
         break;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-04: Employer Lifecycle Actions
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-04: Builds the status timeline showing mission lifecycle.
+  Widget _buildStatusTimeline(BuildContext context, Mission mission) {
+    final steps = [
+      _TimelineStep(
+        label: 'Créée',
+        icon: Icons.add_circle_outline,
+        isCompleted: true,
+        isActive: mission.status == MissionStatus.open,
+      ),
+      _TimelineStep(
+        label: 'Assignée',
+        icon: Icons.person_outline,
+        isCompleted: mission.status != MissionStatus.open,
+        isActive: mission.status == MissionStatus.assigned,
+      ),
+      _TimelineStep(
+        label: 'En cours',
+        icon: Icons.play_circle_outline,
+        isCompleted: mission.status == MissionStatus.inProgress ||
+            mission.status == MissionStatus.completed ||
+            mission.status == MissionStatus.paid,
+        isActive: mission.status == MissionStatus.inProgress,
+      ),
+      _TimelineStep(
+        label: 'Terminée',
+        icon: Icons.check_circle_outline,
+        isCompleted: mission.status == MissionStatus.completed ||
+            mission.status == MissionStatus.paid,
+        isActive: mission.status == MissionStatus.completed ||
+            mission.status == MissionStatus.paid,
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Statut de la mission',
+          style: FlutterFlowTheme.of(context).bodySmall.override(
+                fontFamily: 'General Sans',
+                color: FlutterFlowTheme.of(context).secondaryText,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.0,
+              ),
+        ),
+        SizedBox(height: WkSpacing.md),
+        Row(
+          children: steps.asMap().entries.map((entry) {
+            final index = entry.key;
+            final step = entry.value;
+            final isLast = index == steps.length - 1;
+
+            return Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: step.isCompleted
+                                ? (step.isActive
+                                    ? FlutterFlowTheme.of(context).primary
+                                    : WkStatusColors.completed)
+                                : FlutterFlowTheme.of(context).alternate,
+                          ),
+                          child: Icon(
+                            step.icon,
+                            size: 18,
+                            color: step.isCompleted
+                                ? Colors.white
+                                : FlutterFlowTheme.of(context).secondaryText,
+                          ),
+                        ),
+                        SizedBox(height: WkSpacing.xs),
+                        Text(
+                          step.label,
+                          style: FlutterFlowTheme.of(context).bodySmall.override(
+                                fontFamily: 'General Sans',
+                                fontSize: 10,
+                                color: step.isActive
+                                    ? FlutterFlowTheme.of(context).primary
+                                    : (step.isCompleted
+                                        ? FlutterFlowTheme.of(context).primaryText
+                                        : FlutterFlowTheme.of(context).secondaryText),
+                                fontWeight: step.isActive
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                letterSpacing: 0.0,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!isLast)
+                    Expanded(
+                      child: Container(
+                        height: 2,
+                        margin: EdgeInsets.only(bottom: 20),
+                        color: step.isCompleted
+                            ? WkStatusColors.completed
+                            : FlutterFlowTheme.of(context).alternate,
+                      ),
+                    ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  /// PR-04: Builds employer action buttons (Start/Complete).
+  Widget _buildEmployerActions(BuildContext context, Mission mission) {
+    // Determine which action is available
+    final canStart = mission.status == MissionStatus.assigned;
+    final canComplete = mission.status == MissionStatus.inProgress;
+    final isTerminal = mission.status == MissionStatus.completed ||
+        mission.status == MissionStatus.paid ||
+        mission.status == MissionStatus.cancelled;
+
+    if (isTerminal) {
+      // PR-BOOKING: If completed but not paid, show Pay button
+      if (mission.status == MissionStatus.completed) {
+        return Column(
+          children: [
+            // Status message
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(WkSpacing.md),
+              decoration: BoxDecoration(
+                color: WkStatusColors.completed.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(WkRadius.sm),
+                border: Border.all(
+                  color: WkStatusColors.completed.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: WkStatusColors.completed,
+                  ),
+                  SizedBox(width: WkSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'Mission terminée. Procédez au paiement.',
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            fontFamily: 'General Sans',
+                            color: WkStatusColors.completed,
+                            letterSpacing: 0.0,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: WkSpacing.md),
+            // Pay button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isPaying ? null : () => _handlePayMission(mission),
+                icon: _isPaying
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Icon(Icons.payment),
+                label: Text(_isPaying ? 'Paiement en cours...' : 'Payer ${mission.price.toStringAsFixed(0)} \$'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: WkSpacing.lg),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(WkRadius.lg),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+
+      // Mission already paid or cancelled - show final message
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(WkSpacing.md),
+        decoration: BoxDecoration(
+          color: WkStatusColors.completed.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(WkRadius.sm),
+          border: Border.all(
+            color: WkStatusColors.completed.withOpacity(0.3),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.check_circle,
+              color: WkStatusColors.completed,
+            ),
+            SizedBox(width: WkSpacing.sm),
+            Expanded(
+              child: Text(
+                mission.status == MissionStatus.paid
+                    ? 'Cette mission a été payée.'
+                    : mission.status == MissionStatus.cancelled
+                        ? 'Cette mission a été annulée.'
+                        : 'Cette mission est terminée.',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'General Sans',
+                      color: WkStatusColors.completed,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (mission.status == MissionStatus.open) {
+      // Mission still open - waiting for applications
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(WkSpacing.md),
+        decoration: BoxDecoration(
+          color: FlutterFlowTheme.of(context).primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(WkRadius.sm),
+          border: Border.all(
+            color: FlutterFlowTheme.of(context).primary.withOpacity(0.3),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.hourglass_empty,
+              color: FlutterFlowTheme.of(context).primary,
+            ),
+            SizedBox(width: WkSpacing.sm),
+            Expanded(
+              child: Text(
+                'En attente de candidatures. Acceptez un travailleur pour démarrer.',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'General Sans',
+                      color: FlutterFlowTheme.of(context).primary,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Show action buttons
+    return Column(
+      children: [
+        // Start button
+        if (canStart)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _isStarting ? null : () => _handleStartMission(mission),
+              icon: _isStarting
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Icon(Icons.play_arrow),
+              label: Text(_isStarting ? 'Démarrage...' : 'Démarrer la mission'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: FlutterFlowTheme.of(context).primary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: WkSpacing.lg),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(WkRadius.lg),
+                ),
+              ),
+            ),
+          ),
+
+        // Complete button
+        if (canComplete)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _isCompleting ? null : () => _handleCompleteMission(mission),
+              icon: _isCompleting
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Icon(Icons.check),
+              label: Text(_isCompleting ? 'Finalisation...' : 'Marquer comme terminée'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: WkStatusColors.completed,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: WkSpacing.lg),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(WkRadius.lg),
+                ),
+              ),
+            ),
+          ),
+          ],
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-CHAT: Chat Button for Mission Communication
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-CHAT: Builds the chat button to communicate about the mission.
+  ///
+  /// Opens the chat screen with the mission ID as conversation ID.
+  /// Only shown for assigned/in-progress/completed missions.
+  Widget _buildChatButton(BuildContext context, Mission mission) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => _openChat(mission),
+        icon: Icon(Icons.chat_bubble_outline),
+        label: Text('Contacter'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: FlutterFlowTheme.of(context).primary,
+          side: BorderSide(
+            color: FlutterFlowTheme.of(context).primary,
+            width: 1.5,
+          ),
+          padding: EdgeInsets.symmetric(vertical: WkSpacing.lg),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(WkRadius.lg),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// PR-CHAT: Opens chat screen for this mission.
+  void _openChat(Mission mission) {
+    debugPrint('[MissionDetail] Opening chat for mission: ${mission.id}');
+    context.pushNamed(
+      ChatWidget.routeName,
+      queryParameters: {
+        'conversationId': mission.id,
+        'participantName': 'Client', // Mission model doesn't have clientName
+      },
+    );
+  }
+
+  /// PR-04: Handles start mission action.
+  Future<void> _handleStartMission(Mission mission) async {
+    if (_isStarting) return;
+
+    setState(() {
+      _isStarting = true;
+    });
+
+    try {
+      final api = MissionsApi();
+      final updatedMission = await api.startMission(mission.id);
+
+      if (!mounted) return;
+
+      setState(() {
+        _isStarting = false;
+        _mission = updatedMission;
+      });
+
+      _showSnackbar('Mission démarrée !', isSuccess: true);
+    } catch (e) {
+      debugPrint('[MissionDetail] Error starting mission: $e');
+      if (!mounted) return;
+
+      setState(() {
+        _isStarting = false;
+      });
+
+      final message = e is MissionsApiException
+          ? e.message
+          : 'Erreur lors du démarrage';
+      _showSnackbar(message, isError: true);
+    }
+  }
+
+  /// PR-04: Handles complete mission action.
+  Future<void> _handleCompleteMission(Mission mission) async {
+    if (_isCompleting) return;
+
+    setState(() {
+      _isCompleting = true;
+    });
+
+    try {
+      final api = MissionsApi();
+      final updatedMission = await api.completeMission(mission.id);
+
+      if (!mounted) return;
+
+      // If backend returned empty mission (204), refetch
+      if (updatedMission.title.isEmpty) {
+        await _loadMission();
+      } else {
+        setState(() {
+          _mission = updatedMission;
+        });
+      }
+
+      setState(() {
+        _isCompleting = false;
+      });
+
+      _showSnackbar('Mission terminée !', isSuccess: true);
+    } catch (e) {
+      debugPrint('[MissionDetail] Error completing mission: $e');
+      if (!mounted) return;
+
+      setState(() {
+        _isCompleting = false;
+      });
+
+      final message = e is MissionsApiException
+          ? e.message
+          : 'Erreur lors de la finalisation';
+      _showSnackbar(message, isError: true);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PR-BOOKING: Payment Handler
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PR-BOOKING: Handles the payment flow for completed missions.
+  ///
+  /// Uses Stripe Payment Sheet to process payment.
+  Future<void> _handlePayMission(Mission mission) async {
+    if (_isPaying) return;
+
+    debugPrint('[MissionDetail] Starting payment for mission: ${mission.id}');
+
+    setState(() {
+      _isPaying = true;
+    });
+
+    try {
+      final result = await StripeService.payForMission(missionId: mission.id);
+
+      if (!mounted) return;
+
+      switch (result) {
+        case PaymentSheetSuccess():
+          debugPrint('[MissionDetail] Payment succeeded');
+          // Refresh mission to get updated status (paid)
+          await _loadMission();
+          _showSnackbar('Paiement réussi !', isSuccess: true);
+          break;
+
+        case PaymentSheetCancelled():
+          debugPrint('[MissionDetail] Payment cancelled by user');
+          _showSnackbar('Paiement annulé');
+          break;
+
+        case PaymentSheetError(:final message, :final isAuthError):
+          debugPrint('[MissionDetail] Payment error: $message (auth: $isAuthError)');
+          if (isAuthError) {
+            _showSnackbar('Session expirée. Reconnectez-vous.', isError: true);
+          } else {
+            _showSnackbar(message, isError: true);
+          }
+          break;
+      }
+    } catch (e) {
+      debugPrint('[MissionDetail] Payment exception: $e');
+      if (!mounted) return;
+      _showSnackbar('Erreur de paiement. Réessayez.', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPaying = false;
+        });
+      }
     }
   }
 
@@ -997,5 +1551,20 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
       _showSnackbar(WkCopy.shareError);
     }
   }
+}
+
+/// PR-04: Helper class for timeline steps.
+class _TimelineStep {
+  final String label;
+  final IconData icon;
+  final bool isCompleted;
+  final bool isActive;
+
+  const _TimelineStep({
+    required this.label,
+    required this.icon,
+    required this.isCompleted,
+    required this.isActive,
+  });
 }
 

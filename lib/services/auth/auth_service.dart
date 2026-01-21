@@ -19,6 +19,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 
+import '../analytics/analytics_service.dart';
 import '../push/push_service.dart';
 import '../user/user_service.dart';
 import 'app_session.dart';
@@ -54,9 +55,8 @@ import 'token_storage.dart';
 ///
 /// ## Repository Pattern
 ///
-/// This service delegates to an [AuthRepository] implementation:
-/// - [RealAuthRepository]: Default, connects to Railway backend
-/// - [MockAuthRepository]: For testing, returns mock data
+/// This service delegates to [RealAuthRepository] which connects to the
+/// Railway backend. For testing, use [initialize] to inject a mock.
 abstract final class AuthService {
   // ─────────────────────────────────────────────────────────────────────────
   // Repository (Dependency Injection Point)
@@ -64,24 +64,13 @@ abstract final class AuthService {
 
   /// The repository used for authentication operations.
   ///
-  /// Defaults to [RealAuthRepository] (PR#5).
-  /// Use [initialize] to switch to [MockAuthRepository] for testing.
+  /// Defaults to [RealAuthRepository] which connects to Railway backend.
   static AuthRepository _repository = RealAuthRepository();
 
   /// Initializes the AuthService with a custom repository.
   ///
-  /// Call this at app startup to inject dependencies:
-  /// ```dart
-  /// // For production (PR#5+):
-  /// AuthService.initialize(
-  ///   repository: RealAuthRepository(apiClient: ApiClient),
-  /// );
-  ///
-  /// // For testing:
-  /// AuthService.initialize(
-  ///   repository: MockAuthRepository(),
-  /// );
-  /// ```
+  /// Primarily used for testing to inject a mock implementation.
+  /// Production code uses the default [RealAuthRepository].
   static void initialize({AuthRepository? repository}) {
     if (repository != null) {
       _repository = repository;
@@ -153,6 +142,18 @@ abstract final class AuthService {
   /// Internal method - use login/logout methods instead.
   static void _setSession(AppSession next) {
     _session.value = next;
+  }
+
+  /// Sets the in-memory session during bootstrap without extra network calls.
+  ///
+  /// Used by AuthBootstrap after /auth/me validation to ensure
+  /// [hasSession] and [session] are ready before protected API calls.
+  static void setSessionFromBootstrap({
+    required AuthUser user,
+    required AuthTokens tokens,
+  }) {
+    _currentSession = AuthSession(user: user, tokens: tokens);
+    _setSession(AppSession.fromToken(tokens.accessToken));
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -240,6 +241,9 @@ abstract final class AuthService {
     UserService.refreshFromBackendIfPossible();
     // PR-F20: Register device for push notifications (fire-and-forget)
     PushService.registerDeviceIfNeeded();
+    // PR-23: Track login success
+    AnalyticsService.setUserId(session.user.id);
+    AnalyticsService.trackLoginSuccess(method: 'email');
     return session.user;
   }
 
@@ -299,6 +303,9 @@ abstract final class AuthService {
     UserService.refreshFromBackendIfPossible();
     // PR-F20: Register device for push notifications (fire-and-forget)
     PushService.registerDeviceIfNeeded();
+    // PR-23: Track sign up completed
+    AnalyticsService.setUserId(session.user.id);
+    AnalyticsService.trackSignUpCompleted(method: 'email');
     return session.user;
   }
 
@@ -358,6 +365,10 @@ abstract final class AuthService {
   /// ```
   static Future<void> logout() async {
     final token = _currentSession?.tokens.accessToken;
+
+    // PR-23: Track logout before clearing session
+    AnalyticsService.track(AnalyticsEvent.logout);
+    AnalyticsService.clearUserId();
 
     // PR-F20: Unregister device from push (fire-and-forget, before clearing session)
     await PushService.unregisterDevice();
@@ -586,6 +597,8 @@ abstract final class AuthService {
       _setSession(AppSession.fromToken(accessToken));
       await UserService.setFromAuth(userId: user.id, email: user.email);
       UserService.refreshFromBackendIfPossible();
+      // PR-22: Register device for push notifications on session restore (fire-and-forget)
+      PushService.registerDeviceIfNeeded();
 
       debugPrint('[AuthService] Session restored for ${user.email}');
       return true;
@@ -613,18 +626,6 @@ abstract final class AuthService {
   /// Use after testing to restore production state.
   static Future<void> resetRepository() async {
     _repository = RealAuthRepository();
-    _currentSession = null;
-    setAuthState(const AuthState.unknown());
-    UserService.reset(); // PR#10
-    _setSession(const AppSession.none()); // PR#11
-    await TokenStorage.clearToken(); // PR-F04
-  }
-
-  /// Switches to mock repository for testing.
-  ///
-  /// Call this in test setup to avoid real API calls.
-  static Future<void> useMockRepository() async {
-    _repository = MockAuthRepository();
     _currentSession = null;
     setAuthState(const AuthState.unknown());
     UserService.reset(); // PR#10

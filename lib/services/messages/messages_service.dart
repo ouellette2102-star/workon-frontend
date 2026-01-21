@@ -65,6 +65,10 @@ abstract final class MessagesService {
   /// Current conversation ID being viewed.
   static String? _currentConversationId;
 
+  /// PR-PUSH: Public getter for current conversation ID.
+  /// Used by PushService to suppress notifications for active chat.
+  static String? get currentConversationId => _currentConversationId;
+
   /// Sets the current conversation and loads messages.
   static Future<MessagesResult<List<Message>>> openConversation(
       String conversationId) async {

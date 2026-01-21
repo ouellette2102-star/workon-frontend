@@ -16,9 +16,10 @@ import 'message_models.dart';
 class MessagesApi {
   const MessagesApi();
 
-  /// Fetches all conversations for the current user.
+  /// PR-INBOX: Fetches all conversations for the current user.
   ///
-  /// Calls `GET /conversations` with Bearer token.
+  /// Calls `GET /messages/conversations` with Bearer token.
+  /// Returns conversations sorted by most recent message first.
   Future<List<Conversation>> getConversations() async {
     if (!AuthService.hasSession) {
       debugPrint('[MessagesApi] getConversations: no session');
@@ -31,7 +32,7 @@ class MessagesApi {
       throw const MessagesApiException('Token non disponible');
     }
 
-    final uri = ApiClient.buildUri('/conversations');
+    final uri = ApiClient.buildUri('/messages/conversations');
     final headers = {
       ...ApiClient.defaultHeaders,
       'Authorization': 'Bearer $token',
@@ -58,9 +59,8 @@ class MessagesApi {
       }
 
       final body = jsonDecode(response.body);
-      final List<dynamic> data = body is List
-          ? body
-          : (body['conversations'] ?? body['data'] ?? []);
+      final List<dynamic> data =
+          body is List ? body : (body['conversations'] ?? body['data'] ?? []);
 
       return data
           .map((json) => Conversation.fromJson(json as Map<String, dynamic>))
@@ -76,10 +76,11 @@ class MessagesApi {
     }
   }
 
-  /// Fetches messages for a conversation.
+  /// Fetches messages for a mission thread.
   ///
-  /// Calls `GET /conversations/{id}/messages` with Bearer token.
-  Future<List<Message>> getMessages(String conversationId) async {
+  /// **PR-4:** Aligned to backend endpoint `GET /messages/thread/:missionId`.
+  /// [missionId] is the mission ID (previously called conversationId).
+  Future<List<Message>> getMessages(String missionId) async {
     if (!AuthService.hasSession) {
       debugPrint('[MessagesApi] getMessages: no session');
       throw const MessagesApiException('Pas de session active');
@@ -91,7 +92,7 @@ class MessagesApi {
       throw const MessagesApiException('Token non disponible');
     }
 
-    final uri = ApiClient.buildUri('/conversations/$conversationId/messages');
+    final uri = ApiClient.buildUri('/messages/thread/$missionId');
     final headers = {
       ...ApiClient.defaultHeaders,
       'Authorization': 'Bearer $token',
@@ -110,7 +111,7 @@ class MessagesApi {
       }
 
       if (response.statusCode == 404) {
-        throw const MessagesApiException('Conversation introuvable');
+        throw const MessagesApiException('Mission introuvable');
       }
 
       if (response.statusCode >= 500) {
@@ -139,10 +140,12 @@ class MessagesApi {
     }
   }
 
-  /// Sends a message in a conversation.
+  /// Sends a message in a mission thread.
   ///
-  /// Calls `POST /conversations/{id}/messages` with Bearer token.
-  Future<Message> sendMessage(String conversationId, String text) async {
+  /// **PR-4:** Aligned to backend endpoint `POST /messages`.
+  /// [missionId] is the mission ID (previously called conversationId).
+  /// [content] is the message text.
+  Future<Message> sendMessage(String missionId, String content) async {
     if (!AuthService.hasSession) {
       debugPrint('[MessagesApi] sendMessage: no session');
       throw const MessagesApiException('Pas de session active');
@@ -154,7 +157,7 @@ class MessagesApi {
       throw const MessagesApiException('Token non disponible');
     }
 
-    final uri = ApiClient.buildUri('/conversations/$conversationId/messages');
+    final uri = ApiClient.buildUri('/messages');
     final headers = {
       ...ApiClient.defaultHeaders,
       'Authorization': 'Bearer $token',
@@ -166,7 +169,10 @@ class MessagesApi {
           .post(
             uri,
             headers: headers,
-            body: jsonEncode({'text': text}),
+            body: jsonEncode({
+              'missionId': missionId,
+              'content': content,
+            }),
           )
           .timeout(ApiClient.connectionTimeout);
 
@@ -177,7 +183,7 @@ class MessagesApi {
       }
 
       if (response.statusCode == 404) {
-        throw const MessagesApiException('Conversation introuvable');
+        throw const MessagesApiException('Mission introuvable');
       }
 
       if (response.statusCode >= 500) {
@@ -199,6 +205,53 @@ class MessagesApi {
     } catch (e) {
       debugPrint('[MessagesApi] sendMessage: error: $e');
       throw MessagesApiException('Erreur réseau: $e');
+    }
+  }
+
+  /// PR-F3: Gets the count of unread messages for the current user.
+  ///
+  /// Calls `GET /messages/unread-count` with Bearer token.
+  /// Returns 0 if no unread messages or on error (graceful degradation).
+  Future<int> getUnreadCount() async {
+    if (!AuthService.hasSession) {
+      debugPrint('[MessagesApi] getUnreadCount: no session');
+      return 0;
+    }
+
+    final token = AuthService.session.token;
+    if (token == null || token.isEmpty) {
+      debugPrint('[MessagesApi] getUnreadCount: no token');
+      return 0;
+    }
+
+    final uri = ApiClient.buildUri('/messages/unread-count');
+    final headers = {
+      ...ApiClient.defaultHeaders,
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      debugPrint('[MessagesApi] GET $uri');
+      final response = await ApiClient.client
+          .get(uri, headers: headers)
+          .timeout(ApiClient.connectionTimeout);
+
+      debugPrint('[MessagesApi] getUnreadCount: ${response.statusCode}');
+
+      if (response.statusCode != 200) {
+        debugPrint('[MessagesApi] getUnreadCount: non-200, returning 0');
+        return 0;
+      }
+
+      final body = jsonDecode(response.body);
+      final count = body['count'] ?? body['unreadCount'] ?? 0;
+      return count is int ? count : int.tryParse(count.toString()) ?? 0;
+    } on TimeoutException {
+      debugPrint('[MessagesApi] getUnreadCount: timeout');
+      return 0;
+    } catch (e) {
+      debugPrint('[MessagesApi] getUnreadCount: error: $e');
+      return 0;
     }
   }
 }

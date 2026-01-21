@@ -1,3 +1,4 @@
+import '/components/coming_soon_screen.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -164,13 +165,14 @@ class _JobItemUpcomingWidgetState extends State<JobItemUpcomingWidget> {
               height: 1.0,
               color: FlutterFlowTheme.of(context).alternate,
             ),
+            // PR-15: Replace dead-end routes with coming soon
             Row(
               mainAxisSize: MainAxisSize.max,
               children: [
                 Expanded(
                   child: FFButtonWidget(
                     onPressed: () async {
-                      context.pushNamed(CancelBookingWidget.routeName);
+                      showComingSoon(context, 'Annulation');
                     },
                     text: FFLocalizations.of(context).getText(
                       '9ut1ccl8' /* Cancel */,
@@ -216,7 +218,7 @@ class _JobItemUpcomingWidgetState extends State<JobItemUpcomingWidget> {
                     size: 22.0,
                   ),
                   onPressed: () async {
-                    context.pushNamed(VoiceCallWidget.routeName);
+                    showComingSoon(context, 'Appels vocaux');
                   },
                 ),
                 FlutterFlowIconButton(

@@ -51,6 +51,7 @@ class MissionsApi {
   /// - [radiusKm]: Search radius in kilometers (default: 10)
   /// - [sort]: Sort order (optional): 'proximity', 'price_asc', 'price_desc', 'newest'
   /// - [category]: Filter by category (optional)
+  /// - [query]: Search text query (optional) - PR-09
   ///
   /// Returns a list of [Mission] sorted by distance (or specified sort).
   ///
@@ -59,14 +60,16 @@ class MissionsApi {
   /// - [MissionsApiException] on other errors
   ///
   /// **PR-F10:** Added sort and category parameters.
+  /// **PR-09:** Added query parameter for text search.
   Future<List<Mission>> fetchNearby({
     required double latitude,
     required double longitude,
     double radiusKm = 10,
     String? sort,
     String? category,
+    String? query,
   }) async {
-    debugPrint('[MissionsApi] Fetching nearby missions (radius: $radiusKm, sort: $sort, category: $category)...');
+    debugPrint('[MissionsApi] Fetching nearby missions (radius: $radiusKm, sort: $sort, category: $category, query: $query)...');
 
     // Check auth
     if (!AuthService.hasSession) {
@@ -94,6 +97,10 @@ class MissionsApi {
     }
     if (category != null && category.isNotEmpty) {
       queryParams['category'] = category;
+    }
+    // PR-09: Add query parameter for text search
+    if (query != null && query.isNotEmpty) {
+      queryParams['query'] = query;
     }
 
     // Build URI with query params
