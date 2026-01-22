@@ -190,10 +190,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: AddNewCardWidget.routePath,
           builder: (context, params) => AddNewCardWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: VideoCallWidget.routeName,
           path: VideoCallWidget.routePath,
-          builder: (context, params) => VideoCallWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
         // PR-F21: All reviews with optional userId
         FFRoute(
@@ -217,10 +218,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: MessagesWidget.routePath,
           builder: (context, params) => MessagesWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: VoiceCallWidget.routeName,
           path: VoiceCallWidget.routePath,
-          builder: (context, params) => VoiceCallWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
         FFRoute(
           name: OnboardingWidget.routeName,
@@ -242,35 +244,41 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: InterviewUserWidget.routePath,
           builder: (context, params) => InterviewUserWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: SingleCategoryWidget.routeName,
           path: SingleCategoryWidget.routePath,
-          builder: (context, params) => SingleCategoryWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: SearchWidget.routeName,
           path: SearchWidget.routePath,
-          builder: (context, params) => SearchWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect to real search results
         FFRoute(
           name: SearchResultsWidget.routeName,
           path: SearchResultsWidget.routePath,
-          builder: (context, params) => SearchResultsWidget(),
+          builder: (context, params) => SearchResultsRealWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: ServiceDetailsWidget.routeName,
           path: ServiceDetailsWidget.routePath,
-          builder: (context, params) => ServiceDetailsWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: ReportServiceWidget.routeName,
           path: ReportServiceWidget.routePath,
-          builder: (context, params) => ReportServiceWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: ProviderPublicProfileWidget.routeName,
           path: ProviderPublicProfileWidget.routePath,
-          builder: (context, params) => ProviderPublicProfileWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
         // PR-BOOKING: Redirect legacy /bookings to functional /employerMissions
         FFRoute(
@@ -278,25 +286,29 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: BookingsWidget.routePath,
           builder: (context, params) => EmployerMissionsWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: BookingDetailsWidget.routeName,
           path: BookingDetailsWidget.routePath,
-          builder: (context, params) => BookingDetailsWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: RescheduleBookingWidget.routeName,
           path: RescheduleBookingWidget.routePath,
-          builder: (context, params) => RescheduleBookingWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: CancelBookingWidget.routeName,
           path: CancelBookingWidget.routePath,
-          builder: (context, params) => CancelBookingWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home (use LeaveReviewSimple for real reviews)
         FFRoute(
           name: LeaveReviewWidget.routeName,
           path: LeaveReviewWidget.routePath,
-          builder: (context, params) => LeaveReviewWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
         // PR-F21: Leave review with real API
         FFRoute(
@@ -310,20 +322,23 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
             missionTitle: params.getParam('missionTitle', ParamType.String),
           ),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: BookAgainWidget.routeName,
           path: BookAgainWidget.routePath,
-          builder: (context, params) => BookAgainWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect to real saved missions page
         FFRoute(
           name: BookmarksWidget.routeName,
           path: BookmarksWidget.routePath,
-          builder: (context, params) => BookmarksWidget(),
+          builder: (context, params) => SavedMissionsPage(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: ReviewSummaryWidget.routeName,
           path: ReviewSummaryWidget.routePath,
-          builder: (context, params) => ReviewSummaryWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
         FFRoute(
           name: MyAddressWidget.routeName,
@@ -340,175 +355,202 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: ChooseAddressWidget.routePath,
           builder: (context, params) => ChooseAddressWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: ProviderRegistrationWidget.routeName,
           path: ProviderRegistrationWidget.routePath,
-          builder: (context, params) => ProviderRegistrationWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: HomeProviderWidget.routeName,
           path: HomeProviderWidget.routePath,
-          builder: (context, params) => HomeProviderWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: JobRequestsWidget.routeName,
           path: JobRequestsWidget.routePath,
-          builder: (context, params) => JobRequestsWidget(
-            initialTab: params.getParam(
-              'initialTab',
-              ParamType.int,
-            ),
-          ),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect to real messages widget
         FFRoute(
           name: MessagesProviderWidget.routeName,
           path: MessagesProviderWidget.routePath,
-          builder: (context, params) => MessagesProviderWidget(),
+          builder: (context, params) => MessagesWidget(),
         ),
+        // PR-2: Redirect to real jobs widget
         FFRoute(
           name: JobsWidget.routeName,
           path: JobsWidget.routePath,
-          builder: (context, params) => JobsWidget(
+          builder: (context, params) => JobsRealWidget(
             initialTab: params.getParam(
               'initialTab',
               ParamType.int,
-            ),
+            ) ?? 0,
           ),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: RequestDetailsWidget.routeName,
           path: RequestDetailsWidget.routePath,
-          builder: (context, params) => RequestDetailsWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: JobDetailsWidget.routeName,
           path: JobDetailsWidget.routePath,
-          builder: (context, params) => JobDetailsWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect to real earnings widget
         FFRoute(
           name: EarningsWidget.routeName,
           path: EarningsWidget.routePath,
-          builder: (context, params) => EarningsWidget(),
+          builder: (context, params) => EarningsRealWidget(),
         ),
+        // PR-2: Redirect to client notifications widget
         FFRoute(
           name: NotificationsProviderWidget.routeName,
           path: NotificationsProviderWidget.routePath,
-          builder: (context, params) => NotificationsProviderWidget(),
+          builder: (context, params) => NotificationsWidget(),
         ),
+        // PR-2: Redirect to real transactions widget
         FFRoute(
           name: TransactionsProviderWidget.routeName,
           path: TransactionsProviderWidget.routePath,
-          builder: (context, params) => TransactionsProviderWidget(),
+          builder: (context, params) => TransactionsWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: TransactionDetailsWidget.routeName,
           path: TransactionDetailsWidget.routePath,
-          builder: (context, params) => TransactionDetailsWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: UpdatePayoutAccountWidget.routeName,
           path: UpdatePayoutAccountWidget.routePath,
-          builder: (context, params) => UpdatePayoutAccountWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: ServicesWidget.routeName,
           path: ServicesWidget.routePath,
-          builder: (context, params) => ServicesWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: RatingsWidget.routeName,
           path: RatingsWidget.routePath,
-          builder: (context, params) => RatingsWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: AddNewServiceWidget.routeName,
           path: AddNewServiceWidget.routePath,
-          builder: (context, params) => AddNewServiceWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect to client account widget
         FFRoute(
           name: ProfileWidget.routeName,
           path: ProfileWidget.routePath,
-          builder: (context, params) => ProfileWidget(),
+          builder: (context, params) => AccountWidget(),
         ),
+        // PR-2: Redirect to client edit profile widget
         FFRoute(
           name: EditProviderProfileWidget.routeName,
           path: EditProviderProfileWidget.routePath,
-          builder: (context, params) => EditProviderProfileWidget(),
+          builder: (context, params) => EditProfileWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: AvailabilityWidget.routeName,
           path: AvailabilityWidget.routePath,
-          builder: (context, params) => AvailabilityWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: PricingPlansWidget.routeName,
           path: PricingPlansWidget.routePath,
-          builder: (context, params) => PricingPlansWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: MySubscriptionWidget.routeName,
           path: MySubscriptionWidget.routePath,
-          builder: (context, params) => MySubscriptionWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect to real notification settings widget
         FFRoute(
           name: NotificationSettingsProviderWidget.routeName,
           path: NotificationSettingsProviderWidget.routePath,
-          builder: (context, params) => NotificationSettingsProviderWidget(),
+          builder: (context, params) => NotificationSettingsRealWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: ServiceAreaWidget.routeName,
           path: ServiceAreaWidget.routePath,
-          builder: (context, params) => ServiceAreaWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect to client terms of service widget
         FFRoute(
           name: TermsOfServiceProviderWidget.routeName,
           path: TermsOfServiceProviderWidget.routePath,
-          builder: (context, params) => TermsOfServiceProviderWidget(),
+          builder: (context, params) => TermsOfServiceWidget(),
         ),
+        // PR-2: Redirect to client privacy policy widget
         FFRoute(
           name: PrivacyPolicyProviderWidget.routeName,
           path: PrivacyPolicyProviderWidget.routePath,
-          builder: (context, params) => PrivacyPolicyProviderWidget(),
+          builder: (context, params) => PrivacyPolicyWidget(),
         ),
+        // PR-2: Redirect to client help center widget
         FFRoute(
           name: HelpCenterProvidersWidget.routeName,
           path: HelpCenterProvidersWidget.routePath,
-          builder: (context, params) => HelpCenterProvidersWidget(),
+          builder: (context, params) => HelpCenterWidget(),
         ),
+        // PR-2: Redirect to client customer support widget
         FFRoute(
           name: CustomerSupportProviderWidget.routeName,
           path: CustomerSupportProviderWidget.routePath,
-          builder: (context, params) => CustomerSupportProviderWidget(),
+          builder: (context, params) => CustomerSupportWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: ShareExperienceWidget.routeName,
           path: ShareExperienceWidget.routePath,
-          builder: (context, params) => ShareExperienceWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: ClientPublicProfileWidget.routeName,
           path: ClientPublicProfileWidget.routePath,
-          builder: (context, params) => ClientPublicProfileWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: AddInformationWidget.routeName,
           path: AddInformationWidget.routePath,
-          builder: (context, params) => AddInformationWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: SelectServicesWidget.routeName,
           path: SelectServicesWidget.routePath,
-          builder: (context, params) => SelectServicesWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: SetDateAndAddressWidget.routeName,
           path: SetDateAndAddressWidget.routePath,
-          builder: (context, params) => SetDateAndAddressWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
+        // PR-2: Redirect template route to Home
         FFRoute(
           name: ChoosePaymentMethodWidget.routeName,
           path: ChoosePaymentMethodWidget.routePath,
-          builder: (context, params) => ChoosePaymentMethodWidget(),
+          builder: (context, params) => HomeWidget(),
         ),
         // PR-F05b: Mission detail route
         FFRoute(

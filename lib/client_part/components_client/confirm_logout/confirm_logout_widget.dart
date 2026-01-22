@@ -1,6 +1,8 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/services/auth/auth_service.dart';
+import '/index.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -108,7 +110,8 @@ class _ConfirmLogoutWidgetState extends State<ConfirmLogoutWidget> {
                   Expanded(
                     child: FFButtonWidget(
                       onPressed: () {
-                        print('Button pressed ...');
+                        // PR-3: Close modal on cancel
+                        Navigator.of(context).pop();
                       },
                       text: FFLocalizations.of(context).getText(
                         'n5k3hib9' /* Cancel */,
@@ -134,8 +137,13 @@ class _ConfirmLogoutWidgetState extends State<ConfirmLogoutWidget> {
                   ),
                   Expanded(
                     child: FFButtonWidget(
-                      onPressed: () {
-                        print('Button pressed ...');
+                      onPressed: () async {
+                        // PR-3: Implement real logout
+                        await AuthService.logout();
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          context.goNamed(SignInWidget.routeName);
+                        }
                       },
                       text: FFLocalizations.of(context).getText(
                         'vd8ph9vc' /* Yes, Logout */,
