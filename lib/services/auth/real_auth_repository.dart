@@ -95,15 +95,31 @@ class RealAuthRepository implements AuthRepository {
 
     try {
       debugPrint('[RealAuthRepository] POST $uri');
+      
+      // Build request body matching backend CreateUserDto
+      // Backend expects: email, password, firstName?, lastName?, role?
+      // NOTE: 'name' is NOT a valid field - use firstName/lastName
+      final Map<String, dynamic> requestBody = {
+        'email': email,
+        'password': password,
+        // Default role for new users (can be changed in profile later)
+        'role': 'worker',
+      };
+      
+      // If name provided, split into firstName/lastName
+      if (name != null && name.isNotEmpty) {
+        final parts = name.trim().split(' ');
+        requestBody['firstName'] = parts.first;
+        if (parts.length > 1) {
+          requestBody['lastName'] = parts.sublist(1).join(' ');
+        }
+      }
+      
       final response = await ApiClient.client
           .post(
             uri,
             headers: ApiClient.defaultHeaders,
-            body: jsonEncode({
-              'email': email,
-              'password': password,
-              if (name != null) 'name': name,
-            }),
+            body: jsonEncode(requestBody),
           )
           .timeout(ApiClient.connectionTimeout);
 
