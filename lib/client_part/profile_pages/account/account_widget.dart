@@ -9,6 +9,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:ui';
 import '/index.dart';
 import '/client_part/payments/transactions_widget.dart';
+import '/services/user/user_service.dart'; // PR-4: Real user data
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -34,6 +35,46 @@ class _AccountWidgetState extends State<AccountWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => AccountModel());
+    _loadUserProfile(); // PR-4: Load real user data
+  }
+
+  // PR-4: Load user profile from backend
+  Future<void> _loadUserProfile() async {
+    final profile = await UserService.fetchCurrentProfile();
+    if (mounted) {
+      setState(() {
+        _model.userProfile = profile;
+        _model.isLoadingProfile = false;
+      });
+    }
+  }
+
+  // PR-4: Build profile photo widget
+  Widget _buildProfilePhoto() {
+    final photoUrl = _model.userProfile?['photoUrl'] ??
+        _model.userProfile?['avatarUrl'] ??
+        _model.userProfile?['profilePicture'];
+
+    if (photoUrl != null && photoUrl.toString().isNotEmpty) {
+      return Image.network(
+        photoUrl.toString(),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
+      );
+    }
+    return _buildDefaultAvatar();
+  }
+
+  // PR-4: Default avatar when no photo
+  Widget _buildDefaultAvatar() {
+    return Container(
+      color: FlutterFlowTheme.of(context).primary.withOpacity(0.1),
+      child: Icon(
+        Icons.person,
+        size: 30,
+        color: FlutterFlowTheme.of(context).primary,
+      ),
+    );
   }
 
   @override
@@ -186,10 +227,8 @@ class _AccountWidgetState extends State<AccountWidget> {
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
                                               ),
-                                              child: Image.network(
-                                                'https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8aGVhZHNob3R8ZW58MHx8MHx8fDA%3D',
-                                                fit: BoxFit.cover,
-                                              ),
+                                              // PR-4: Real user photo or placeholder
+                                              child: _buildProfilePhoto(),
                                             ),
                                           ),
                                         ),
@@ -199,11 +238,12 @@ class _AccountWidgetState extends State<AccountWidget> {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
+                                              // PR-4: Real user name from backend
                                               Text(
-                                                FFLocalizations.of(context)
-                                                    .getText(
-                                                  'r1c0juom' /* Andrew Ainshley */,
-                                                ),
+                                                _model.userProfile?['fullName'] ??
+                                                    _model.userProfile?['name'] ??
+                                                    UserService.context.email?.split('@').first ??
+                                                    'Mon profil',
                                                 style:
                                                     FlutterFlowTheme.of(context)
                                                         .bodyMedium
@@ -216,11 +256,11 @@ class _AccountWidgetState extends State<AccountWidget> {
                                                               FontWeight.bold,
                                                         ),
                                               ),
+                                              // PR-4: Real user email from backend
                                               Text(
-                                                FFLocalizations.of(context)
-                                                    .getText(
-                                                  'nw5ol8nz' /* example@domain.com */,
-                                                ),
+                                                _model.userProfile?['email'] ??
+                                                    UserService.context.email ??
+                                                    '',
                                                 style:
                                                     FlutterFlowTheme.of(context)
                                                         .bodyMedium

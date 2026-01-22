@@ -19,6 +19,10 @@ class AccountModel extends FlutterFlowModel<AccountWidget> {
   // Model for MigNavBar component.
   late MigNavBarModel migNavBarModel;
 
+  // PR-4: User profile data from backend
+  Map<String, dynamic>? userProfile;
+  bool isLoadingProfile = true;
+
   @override
   void initState(BuildContext context) {
     migNavBarModel = createModel(context, () => MigNavBarModel());
