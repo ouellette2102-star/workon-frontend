@@ -1225,7 +1225,13 @@ class _ResetPasswordWidgetState extends State<ResetPasswordWidget> {
                                       }(_model.pinCodeController!.text))
                                           ? null
                                           : () {
-                                              print('Button pressed ...');
+                                              // PR-3: Show feedback instead of dead button
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Fonctionnalité bientôt disponible'),
+                                                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                                                ),
+                                              );
                                             },
                                       text: FFLocalizations.of(context).getText(
                                         '9el9ejiz' /* * */,
