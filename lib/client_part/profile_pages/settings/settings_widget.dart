@@ -657,7 +657,12 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                     onTap: () async {
                       // PR#14: Call AuthService.logout()
                       await AuthService.logout();
-                      // AuthGate will redirect to unauthenticated flow
+                      // PR-FIX-NAV: Navigate to root after logout
+                      // AuthGate will see unauthenticated state and show Onboarding
+                      debugPrint('[Settings] Logout success, navigating to /');
+                      if (context.mounted) {
+                        context.go('/');
+                      }
                     },
                     child: Container(
                       decoration: BoxDecoration(

@@ -32,7 +32,8 @@ class MessagesApi {
       throw const MessagesApiException('Token non disponible');
     }
 
-    final uri = ApiClient.buildUri('/messages/conversations');
+    // PR-B2: Use messages-local endpoint (LocalUser system)
+    final uri = ApiClient.buildUri('/messages-local/conversations');
     final headers = {
       ...ApiClient.defaultHeaders,
       'Authorization': 'Bearer $token',
@@ -92,7 +93,8 @@ class MessagesApi {
       throw const MessagesApiException('Token non disponible');
     }
 
-    final uri = ApiClient.buildUri('/messages/thread/$missionId');
+    // PR-B2: Use messages-local endpoint (LocalUser system)
+    final uri = ApiClient.buildUri('/messages-local/thread/$missionId');
     final headers = {
       ...ApiClient.defaultHeaders,
       'Authorization': 'Bearer $token',
@@ -157,7 +159,8 @@ class MessagesApi {
       throw const MessagesApiException('Token non disponible');
     }
 
-    final uri = ApiClient.buildUri('/messages');
+    // PR-B2: Use messages-local endpoint (LocalUser system)
+    final uri = ApiClient.buildUri('/messages-local');
     final headers = {
       ...ApiClient.defaultHeaders,
       'Authorization': 'Bearer $token',
@@ -224,7 +227,8 @@ class MessagesApi {
       return 0;
     }
 
-    final uri = ApiClient.buildUri('/messages/unread-count');
+    // PR-B2: Use messages-local endpoint (LocalUser system)
+    final uri = ApiClient.buildUri('/messages-local/unread-count');
     final headers = {
       ...ApiClient.defaultHeaders,
       'Authorization': 'Bearer $token',

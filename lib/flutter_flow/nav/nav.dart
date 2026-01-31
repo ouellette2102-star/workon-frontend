@@ -35,6 +35,10 @@ import '/client_part/discovery/swipe_discovery_page.dart';
 import '/client_part/discovery/map_discovery_page.dart';
 // PR-V1-01: Legal consent
 import '/client_part/legal/legal_consent_widget.dart';
+// PR-FIX-02: Coming Soon screen for unimplemented routes
+import '/components/coming_soon_screen.dart';
+// PR-FIX-03: User public profile
+import '/client_part/user_profile/user_public_profile_widget.dart';
 
 export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
@@ -190,11 +194,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: AddNewCardWidget.routePath,
           builder: (context, params) => AddNewCardWidget(),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: VideoCallWidget.routeName,
           path: VideoCallWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Appels vidéo'),
         ),
         // PR-F21: All reviews with optional userId
         FFRoute(
@@ -218,11 +222,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: MessagesWidget.routePath,
           builder: (context, params) => MessagesWidget(),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: VoiceCallWidget.routeName,
           path: VoiceCallWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Appels vocaux'),
         ),
         FFRoute(
           name: OnboardingWidget.routeName,
@@ -244,17 +248,17 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: InterviewUserWidget.routePath,
           builder: (context, params) => InterviewUserWidget(),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: SingleCategoryWidget.routeName,
           path: SingleCategoryWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Catégorie'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: SearchWidget.routeName,
           path: SearchWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Recherche avancée'),
         ),
         // PR-2: Redirect to real search results
         FFRoute(
@@ -262,23 +266,25 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: SearchResultsWidget.routePath,
           builder: (context, params) => SearchResultsRealWidget(),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: ServiceDetailsWidget.routeName,
           path: ServiceDetailsWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Détails du service'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: ReportServiceWidget.routeName,
           path: ReportServiceWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Signalement'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-03: Provider public profile -> real user profile
         FFRoute(
           name: ProviderPublicProfileWidget.routeName,
           path: ProviderPublicProfileWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => UserPublicProfileWidget(
+            userId: params.getParam('userId', ParamType.String) ?? '',
+          ),
         ),
         // PR-BOOKING: Redirect legacy /bookings to functional /employerMissions
         FFRoute(
@@ -286,29 +292,29 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: BookingsWidget.routePath,
           builder: (context, params) => EmployerMissionsWidget(),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: BookingDetailsWidget.routeName,
           path: BookingDetailsWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Détails réservation'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: RescheduleBookingWidget.routeName,
           path: RescheduleBookingWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Replanification'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: CancelBookingWidget.routeName,
           path: CancelBookingWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Annulation'),
         ),
-        // PR-2: Redirect template route to Home (use LeaveReviewSimple for real reviews)
+        // PR-FIX-02: Redirect to Coming Soon (use LeaveReviewSimple for real reviews)
         FFRoute(
           name: LeaveReviewWidget.routeName,
           path: LeaveReviewWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Avis détaillé'),
         ),
         // PR-F21: Leave review with real API
         FFRoute(
@@ -322,11 +328,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
             missionTitle: params.getParam('missionTitle', ParamType.String),
           ),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: BookAgainWidget.routeName,
           path: BookAgainWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Réserver à nouveau'),
         ),
         // PR-2: Redirect to real saved missions page
         FFRoute(
@@ -334,11 +340,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: BookmarksWidget.routePath,
           builder: (context, params) => SavedMissionsPage(),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: ReviewSummaryWidget.routeName,
           path: ReviewSummaryWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Récapitulatif'),
         ),
         FFRoute(
           name: MyAddressWidget.routeName,
@@ -355,23 +361,23 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: ChooseAddressWidget.routePath,
           builder: (context, params) => ChooseAddressWidget(),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: ProviderRegistrationWidget.routeName,
           path: ProviderRegistrationWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Inscription prestataire'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: HomeProviderWidget.routeName,
           path: HomeProviderWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Espace prestataire'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: JobRequestsWidget.routeName,
           path: JobRequestsWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Demandes d\'emploi'),
         ),
         // PR-2: Redirect to real messages widget
         FFRoute(
@@ -390,17 +396,17 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
             ) ?? 0,
           ),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: RequestDetailsWidget.routeName,
           path: RequestDetailsWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Détails de la demande'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: JobDetailsWidget.routeName,
           path: JobDetailsWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Détails du travail'),
         ),
         // PR-2: Redirect to real earnings widget
         FFRoute(
@@ -420,35 +426,35 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: TransactionsProviderWidget.routePath,
           builder: (context, params) => TransactionsWidget(),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: TransactionDetailsWidget.routeName,
           path: TransactionDetailsWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Détails transaction'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: UpdatePayoutAccountWidget.routeName,
           path: UpdatePayoutAccountWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Compte de versement'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: ServicesWidget.routeName,
           path: ServicesWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Services'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: RatingsWidget.routeName,
           path: RatingsWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Évaluations'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: Redirect template route to Coming Soon
         FFRoute(
           name: AddNewServiceWidget.routeName,
           path: AddNewServiceWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Ajouter un service'),
         ),
         // PR-2: Redirect to client account widget
         FFRoute(
@@ -462,23 +468,21 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: EditProviderProfileWidget.routePath,
           builder: (context, params) => EditProfileWidget(),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: ComingSoon for template routes
         FFRoute(
           name: AvailabilityWidget.routeName,
           path: AvailabilityWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Disponibilités'),
         ),
-        // PR-2: Redirect template route to Home
         FFRoute(
           name: PricingPlansWidget.routeName,
           path: PricingPlansWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Plans tarifaires'),
         ),
-        // PR-2: Redirect template route to Home
         FFRoute(
           name: MySubscriptionWidget.routeName,
           path: MySubscriptionWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Mon abonnement'),
         ),
         // PR-2: Redirect to real notification settings widget
         FFRoute(
@@ -486,11 +490,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: NotificationSettingsProviderWidget.routePath,
           builder: (context, params) => NotificationSettingsRealWidget(),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: ComingSoon for template route
         FFRoute(
           name: ServiceAreaWidget.routeName,
           path: ServiceAreaWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Zone de service'),
         ),
         // PR-2: Redirect to client terms of service widget
         FFRoute(
@@ -516,41 +520,39 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: CustomerSupportProviderWidget.routePath,
           builder: (context, params) => CustomerSupportWidget(),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-02: ComingSoon for template routes
         FFRoute(
           name: ShareExperienceWidget.routeName,
           path: ShareExperienceWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Partager l\'expérience'),
         ),
-        // PR-2: Redirect template route to Home
+        // PR-FIX-03: Client public profile -> real user profile
         FFRoute(
           name: ClientPublicProfileWidget.routeName,
           path: ClientPublicProfileWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => UserPublicProfileWidget(
+            userId: params.getParam('userId', ParamType.String) ?? '',
+          ),
         ),
-        // PR-2: Redirect template route to Home
         FFRoute(
           name: AddInformationWidget.routeName,
           path: AddInformationWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Ajouter des informations'),
         ),
-        // PR-2: Redirect template route to Home
         FFRoute(
           name: SelectServicesWidget.routeName,
           path: SelectServicesWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Sélectionner des services'),
         ),
-        // PR-2: Redirect template route to Home
         FFRoute(
           name: SetDateAndAddressWidget.routeName,
           path: SetDateAndAddressWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Date et adresse'),
         ),
-        // PR-2: Redirect template route to Home
         FFRoute(
           name: ChoosePaymentMethodWidget.routeName,
           path: ChoosePaymentMethodWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          builder: (context, params) => const ComingSoonScreen(featureName: 'Mode de paiement'),
         ),
         // PR-F05b: Mission detail route
         FFRoute(
@@ -697,6 +699,16 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               utmMedium: params.getParam('utm_medium', ParamType.String),
             );
           },
+        ),
+        // PR-FIX-03: User public profile (direct route)
+        FFRoute(
+          name: UserPublicProfileWidget.routeName,
+          path: UserPublicProfileWidget.routePath,
+          builder: (context, params) => UserPublicProfileWidget(
+            userId: params.getParam('userId', ParamType.String) ?? '',
+            userName: params.getParam('userName', ParamType.String),
+            userAvatar: params.getParam('userAvatar', ParamType.String),
+          ),
         ),
         // Deep link error page
         FFRoute(

@@ -1,4 +1,5 @@
 import '/client_part/components_client/back_icon_btn/back_icon_btn_widget.dart';
+import '/client_part/components_client/social_auth_buttons/social_auth_buttons_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -432,8 +433,12 @@ class _SignInWidgetState extends State<SignInWidget> {
                                   email: email,
                                   password: password,
                                 );
-                                // Success: AuthGate will redirect to Home
-                                // No manual navigation needed
+                                // FIX: Navigate to root after successful login
+                                // AuthGate will detect authenticated state and show Home
+                                if (context.mounted) {
+                                  context.go('/');
+                                }
+                                return; // Prevent finally block from setting isLoading=false
                               } on InvalidCredentialsException {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -551,89 +556,8 @@ class _SignInWidgetState extends State<SignInWidget> {
                         ],
                       ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          child: Container(
-                            width: double.infinity,
-                            height: 50.0,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              borderRadius: BorderRadius.circular(30.0),
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context).alternate,
-                                width: 0.5,
-                              ),
-                            ),
-                            child: Align(
-                              alignment: AlignmentDirectional(0.0, 0.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(0.0),
-                                child: Image.asset(
-                                  'assets/images/Google.png',
-                                  width: 25.0,
-                                  height: 25.0,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            width: double.infinity,
-                            height: 50.0,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              borderRadius: BorderRadius.circular(30.0),
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context).alternate,
-                                width: 0.5,
-                              ),
-                            ),
-                            child: Align(
-                              alignment: AlignmentDirectional(0.0, 0.0),
-                              child: Icon(
-                                Icons.apple_rounded,
-                                color: FlutterFlowTheme.of(context).primaryText,
-                                size: 25.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            width: double.infinity,
-                            height: 50.0,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              borderRadius: BorderRadius.circular(30.0),
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context).alternate,
-                                width: 0.5,
-                              ),
-                            ),
-                            child: Align(
-                              alignment: AlignmentDirectional(0.0, 0.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(0.0),
-                                child: Image.asset(
-                                  'assets/images/Facebook.png',
-                                  width: 28.0,
-                                  height: 28.0,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ].divide(SizedBox(width: 15.0)),
-                    ),
+                    // PR-FIX-01: Social auth buttons with "Coming Soon" feedback
+                    const SocialAuthButtonsWidget(),
                   ].divide(SizedBox(height: 40.0)),
                 ),
                 Padding(

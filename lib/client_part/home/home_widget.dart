@@ -31,6 +31,7 @@ import '/client_part/missions/complete/complete_handler.dart';
 import '/client_part/payments/pay_button.dart';
 import '/client_part/payments/payment_receipt_screen.dart';
 import '/services/analytics/analytics_service.dart';
+import '/services/notifications/notification_count_service.dart';
 import '/services/payments/stripe_service.dart';
 import '/config/app_config.dart';
 import '/client_part/discovery/swipe_discovery_page.dart';
@@ -228,41 +229,50 @@ class _HomeWidgetState extends State<HomeWidget> {
               Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  // PR-NAV: Notifications icon with badge
-                  GestureDetector(
-                    onTap: () {
-                      context.pushNamed(NotificationsWidget.routeName);
-                    },
-                    child: Stack(
-                      alignment: AlignmentDirectional(1.0, -1.0),
-                      children: [
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 8.0, 8.0),
-                          child: Icon(
-                            Icons.notifications_outlined,
-                            color: FlutterFlowTheme.of(context).primaryText,
-                            size: 26.0,
-                          ),
-                        ),
-                        Positioned(
-                          top: 6.0,
-                          right: 6.0,
-                          child: Container(
-                            width: 10.0,
-                            height: 10.0,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context).error,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context)
-                                    .primaryBackground,
-                                width: 2.0,
+                  // PR-REAL-03: Notifications icon with conditional badge
+                  StreamBuilder<int>(
+                    stream: NotificationCountService.stream,
+                    initialData: NotificationCountService.count,
+                    builder: (context, snapshot) {
+                      final hasUnread = (snapshot.data ?? 0) > 0;
+                      return GestureDetector(
+                        onTap: () {
+                          context.pushNamed(NotificationsWidget.routeName);
+                        },
+                        child: Stack(
+                          alignment: AlignmentDirectional(1.0, -1.0),
+                          children: [
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 8.0, 8.0),
+                              child: Icon(
+                                Icons.notifications_outlined,
+                                color: FlutterFlowTheme.of(context).primaryText,
+                                size: 26.0,
                               ),
                             ),
-                          ),
+                            // Badge only shown when there are unread notifications
+                            if (hasUnread)
+                              Positioned(
+                                top: 6.0,
+                                right: 6.0,
+                                child: Container(
+                                  width: 10.0,
+                                  height: 10.0,
+                                  decoration: BoxDecoration(
+                                    color: FlutterFlowTheme.of(context).error,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: FlutterFlowTheme.of(context)
+                                          .primaryBackground,
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 ].divide(SizedBox(width: 5.0)),
               ),

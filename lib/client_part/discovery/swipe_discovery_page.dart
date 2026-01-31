@@ -5,6 +5,7 @@
 /// Swipe left = Skip / Not interested
 ///
 /// **PR-DISCOVERY:** Initial implementation.
+/// **FL-4:** Added category filter.
 library;
 
 import 'package:flutter/material.dart';
@@ -17,6 +18,8 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/services/discovery/discovery_service.dart';
 import '/services/missions/mission_models.dart';
+import '/services/catalog/catalog_service.dart';
+import '/services/catalog/catalog_models.dart' show ServiceCategory;
 
 /// Route name for navigation.
 class SwipeDiscoveryPage extends StatefulWidget {
@@ -33,11 +36,37 @@ class _SwipeDiscoveryPageState extends State<SwipeDiscoveryPage> {
   final CardSwiperController _controller = CardSwiperController();
   final DiscoveryService _discovery = DiscoveryService.instance;
 
+  /// **FL-4:** Category filter state.
+  List<ServiceCategory> _categories = [];
+  String? _selectedCategory;
+  bool _categoriesLoading = true;
+
   @override
   void initState() {
     super.initState();
     _discovery.addListener(_onDiscoveryChanged);
+    _loadCategories();
     _loadMissions();
+  }
+
+  /// **FL-4:** Load categories from API.
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await CatalogService.getCategories();
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+          _categoriesLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('[SwipeDiscovery] Failed to load categories: $e');
+      if (mounted) {
+        setState(() {
+          _categoriesLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -52,7 +81,20 @@ class _SwipeDiscoveryPageState extends State<SwipeDiscoveryPage> {
   }
 
   Future<void> _loadMissions() async {
-    await _discovery.loadNearby();
+    // **FL-4:** Pass category filter to discovery
+    await _discovery.loadNearby(category: _selectedCategory);
+  }
+
+  /// **FL-4:** Handle category filter change.
+  void _onCategorySelected(String? category) {
+    if (_selectedCategory == category) return;
+    
+    setState(() {
+      _selectedCategory = category;
+    });
+    
+    // Force refresh with new category
+    _discovery.loadNearby(category: category, forceRefresh: true);
   }
 
   void _onSwipe(int previousIndex, int? currentIndex, CardSwiperDirection direction) {
@@ -134,6 +176,77 @@ class _SwipeDiscoveryPageState extends State<SwipeDiscoveryPage> {
   }
 
   Widget _buildBody(BuildContext context) {
+    return Column(
+      children: [
+        // **FL-4:** Category filter chips
+        _buildCategoryFilter(context),
+        
+        // Main content
+        Expanded(
+          child: _buildMainContent(context),
+        ),
+      ],
+    );
+  }
+
+  /// **FL-4:** Build category filter chips.
+  Widget _buildCategoryFilter(BuildContext context) {
+    if (_categoriesLoading) {
+      return const SizedBox(height: 8);
+    }
+    
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          // "All" chip
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilterChip(
+              label: Text('Toutes'),
+              selected: _selectedCategory == null,
+              onSelected: (_) => _onCategorySelected(null),
+              selectedColor: FlutterFlowTheme.of(context).primary.withOpacity(0.2),
+              checkmarkColor: FlutterFlowTheme.of(context).primary,
+              labelStyle: TextStyle(
+                color: _selectedCategory == null
+                    ? FlutterFlowTheme.of(context).primary
+                    : FlutterFlowTheme.of(context).secondaryText,
+                fontWeight: _selectedCategory == null ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ),
+          
+          // Category chips
+          ..._categories.map((cat) {
+            final isSelected = _selectedCategory == cat.name;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                label: Text(cat.displayName),
+                selected: isSelected,
+                onSelected: (_) => _onCategorySelected(cat.name),
+                selectedColor: FlutterFlowTheme.of(context).primary.withOpacity(0.2),
+                checkmarkColor: FlutterFlowTheme.of(context).primary,
+                labelStyle: TextStyle(
+                  color: isSelected
+                      ? FlutterFlowTheme.of(context).primary
+                      : FlutterFlowTheme.of(context).secondaryText,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  /// Main content based on discovery state.
+  Widget _buildMainContent(BuildContext context) {
     switch (_discovery.state) {
       case DiscoveryState.loading:
         return _buildLoadingState(context);
