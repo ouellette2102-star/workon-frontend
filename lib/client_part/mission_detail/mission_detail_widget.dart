@@ -14,6 +14,8 @@ import '/services/saved/saved_missions_store.dart';
 import '/client_part/chat/chat_widget.dart';
 // PR-BOOKING: Import StripeService for payment flow
 import '/services/payments/stripe_service.dart';
+// FL-SPRINT3: Mission Timeline
+import '/components/mission_timeline_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
@@ -403,6 +405,44 @@ class _MissionDetailWidgetState extends State<MissionDetailWidget> {
 
             // PR-F09: Legal disclaimer
             _buildLegalDisclaimer(context),
+            SizedBox(height: WkSpacing.sectionGap),
+
+            // FL-SPRINT3: Mission Timeline (events history)
+            if (mission.status != MissionStatus.open)
+              Container(
+                padding: EdgeInsets.all(WkSpacing.md),
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                  borderRadius: BorderRadius.circular(WkRadius.card),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.history_rounded,
+                          size: WkIconSize.md,
+                          color: FlutterFlowTheme.of(context).primary,
+                        ),
+                        SizedBox(width: WkSpacing.sm),
+                        Text(
+                          'Historique',
+                          style: FlutterFlowTheme.of(context).titleSmall.override(
+                                fontFamily: 'General Sans',
+                                letterSpacing: 0.0,
+                              ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: WkSpacing.md),
+                    MissionTimelineWidget(
+                      missionId: mission.id,
+                      compact: true,
+                    ),
+                  ],
+                ),
+              ),
             SizedBox(height: 100), // Bottom padding for scroll
           ],
         ),

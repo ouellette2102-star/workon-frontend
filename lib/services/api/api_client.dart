@@ -169,5 +169,20 @@ abstract final class ApiClient {
       ).timeout(connectionTimeout),
     );
   }
+
+  /// Executes an authenticated PATCH request with automatic token refresh on 401.
+  static Future<http.Response> authenticatedPatch(
+    Uri uri, {
+    Object? body,
+    Map<String, String>? additionalHeaders,
+  }) async {
+    return TokenRefreshInterceptor.executeWithRefresh(
+      () => _client.patch(
+        uri,
+        headers: {...authHeaders, ...?additionalHeaders},
+        body: body is String ? body : (body != null ? jsonEncode(body) : null),
+      ).timeout(connectionTimeout),
+    );
+  }
 }
 
