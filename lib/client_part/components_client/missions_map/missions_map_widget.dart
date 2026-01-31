@@ -127,16 +127,17 @@ class _MissionsMapWidgetState extends State<MissionsMapWidget> {
   }
 
   /// Returns marker hue based on mission status.
+  /// WorkOn Brand: Red pins for open missions (primary CTA).
   double _getMarkerHue(MissionStatus status) {
     switch (status) {
       case MissionStatus.open:
-        return BitmapDescriptor.hueGreen; // Available
+        return BitmapDescriptor.hueRed; // WorkOn Red - Available
       case MissionStatus.assigned:
-        return BitmapDescriptor.hueAzure; // Assigned
+        return BitmapDescriptor.hueOrange; // Assigned
       case MissionStatus.inProgress:
-        return BitmapDescriptor.hueOrange; // In progress
+        return BitmapDescriptor.hueYellow; // In progress
       case MissionStatus.completed:
-        return BitmapDescriptor.hueViolet; // Completed
+        return BitmapDescriptor.hueGreen; // Completed ✓
       case MissionStatus.paid:
         return BitmapDescriptor.hueCyan; // PR-6: Paid
       case MissionStatus.cancelled:

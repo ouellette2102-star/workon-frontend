@@ -1,4 +1,5 @@
 import '/client_part/components_client/back_icon_btn/back_icon_btn_widget.dart';
+import '/client_part/components_client/social_auth_buttons/social_auth_buttons_widget.dart';
 import '/client_part/profile_pages/privacy_policy/privacy_policy_widget.dart';
 import '/client_part/profile_pages/terms_of_service/terms_of_service_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -8,6 +9,8 @@ import '/services/analytics/analytics_service.dart';
 import '/services/auth/auth_errors.dart';
 import '/services/auth/auth_service.dart';
 import '/services/legal/consent_store.dart';
+import '/config/workon_colors.dart';
+import '/config/workon_widgets.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:flutter/gestures.dart';
@@ -90,15 +93,29 @@ class _SignUpWidgetState extends State<SignUpWidget> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // WorkOn Logo with Red Phone Icon
                 Flexible(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30.0),
-                    child: Image.asset(
-                      'assets/images/Sparkly_Logo.png',
-                      width: 100.0,
-                      height: 100.0,
-                      fit: BoxFit.contain,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Red Phone Icon
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: WkColors.brandRedSoft,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: const Icon(
+                          Icons.phone_in_talk_rounded,
+                          size: 40,
+                          color: WkColors.brandRed,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // WorkOn Logo with Pin
+                      const WorkOnLogo(size: 32),
+                    ],
                   ),
                 ),
                 Column(
@@ -459,8 +476,12 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                                   email: email,
                                   password: password,
                                 );
-                                // Success: AuthGate will redirect to Home
-                                // No manual navigation needed
+                                // FIX: Navigate to root after successful registration
+                                // AuthGate will detect authenticated state and show Home
+                                if (context.mounted) {
+                                  context.go('/');
+                                }
+                                return; // Prevent finally block from setting isLoading=false
                               } on EmailAlreadyInUseException {
                                 // PR-23: Track sign up failed
                                 AnalyticsService.track(
@@ -589,101 +610,8 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                         ],
                       ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          child: MouseRegion(
-                            opaque: false,
-                            cursor: MouseCursor.defer ?? MouseCursor.defer,
-                            child: Container(
-                              width: double.infinity,
-                              height: 50.0,
-                              decoration: BoxDecoration(
-                                color: FlutterFlowTheme.of(context)
-                                    .secondaryBackground,
-                                borderRadius: BorderRadius.circular(30.0),
-                                border: Border.all(
-                                  color: FlutterFlowTheme.of(context).alternate,
-                                  width: 0.5,
-                                ),
-                              ),
-                              child: Align(
-                                alignment: AlignmentDirectional(0.0, 0.0),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(0.0),
-                                  child: Image.asset(
-                                    'assets/images/Google.png',
-                                    width: 25.0,
-                                    height: 25.0,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            onEnter: ((event) async {
-                              safeSetState(
-                                  () => _model.mouseRegionHovered = true);
-                            }),
-                            onExit: ((event) async {
-                              safeSetState(
-                                  () => _model.mouseRegionHovered = false);
-                            }),
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            width: double.infinity,
-                            height: 50.0,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              borderRadius: BorderRadius.circular(30.0),
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context).alternate,
-                                width: 0.5,
-                              ),
-                            ),
-                            child: Align(
-                              alignment: AlignmentDirectional(0.0, 0.0),
-                              child: Icon(
-                                Icons.apple_rounded,
-                                color: FlutterFlowTheme.of(context).primaryText,
-                                size: 25.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            width: double.infinity,
-                            height: 50.0,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              borderRadius: BorderRadius.circular(30.0),
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context).alternate,
-                                width: 0.5,
-                              ),
-                            ),
-                            child: Align(
-                              alignment: AlignmentDirectional(0.0, 0.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(0.0),
-                                child: Image.asset(
-                                  'assets/images/Facebook.png',
-                                  width: 28.0,
-                                  height: 28.0,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ].divide(SizedBox(width: 15.0)),
-                    ),
+                    // PR-FIX-01: Social auth buttons with "Coming Soon" feedback
+                    const SocialAuthButtonsWidget(),
                   ].divide(SizedBox(height: 40.0)),
                 ),
                 Padding(

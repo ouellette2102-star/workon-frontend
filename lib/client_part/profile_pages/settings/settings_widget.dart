@@ -1,8 +1,12 @@
 import '/client_part/components_client/back_icon_btn/back_icon_btn_widget.dart';
+import '/client_part/profile_pages/terms_of_service/terms_of_service_widget.dart';
+import '/client_part/profile_pages/privacy_policy/privacy_policy_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/services/auth/auth_service.dart';
+import '/config/workon_colors.dart';
+import '/config/workon_widgets.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -657,7 +661,12 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                     onTap: () async {
                       // PR#14: Call AuthService.logout()
                       await AuthService.logout();
-                      // AuthGate will redirect to unauthenticated flow
+                      // PR-FIX-NAV: Navigate to root after logout
+                      // AuthGate will see unauthenticated state and show Onboarding
+                      debugPrint('[Settings] Logout success, navigating to /');
+                      if (context.mounted) {
+                        context.go('/');
+                      }
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -716,10 +725,100 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                       ),
                     ),
                   ),
+                  // ────────────────────────────────────────────────────────
+                  // WorkOn Legal Footer - Apple/Google Store Compliance
+                  // ────────────────────────────────────────────────────────
+                  const SizedBox(height: 40),
+                  Center(
+                    child: Column(
+                      children: [
+                        // WorkOn Logo
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: WkColors.brandRedSoft,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.phone_in_talk_rounded,
+                                size: 16,
+                                color: WkColors.brandRed,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const WorkOnLogo(size: 18),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Legal Links
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () => context.pushNamed(TermsOfServiceWidget.routeName),
+                              child: Text(
+                                'Conditions d\'utilisation',
+                                style: FlutterFlowTheme.of(context).bodySmall.override(
+                                  fontFamily: 'General Sans',
+                                  color: FlutterFlowTheme.of(context).secondaryText,
+                                  fontSize: 11,
+                                  letterSpacing: 0.0,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              ' • ',
+                              style: TextStyle(
+                                color: FlutterFlowTheme.of(context).secondaryText,
+                                fontSize: 11,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => context.pushNamed(PrivacyPolicyWidget.routeName),
+                              child: Text(
+                                'Confidentialité',
+                                style: FlutterFlowTheme.of(context).bodySmall.override(
+                                  fontFamily: 'General Sans',
+                                  color: FlutterFlowTheme.of(context).secondaryText,
+                                  fontSize: 11,
+                                  letterSpacing: 0.0,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Copyright
+                        Text(
+                          '© 2026 WorkOn Inc. • Montréal, QC',
+                          style: FlutterFlowTheme.of(context).bodySmall.override(
+                            fontFamily: 'General Sans',
+                            color: FlutterFlowTheme.of(context).secondaryText.withOpacity(0.6),
+                            fontSize: 10,
+                            letterSpacing: 0.0,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'v1.0.0',
+                          style: FlutterFlowTheme.of(context).bodySmall.override(
+                            fontFamily: 'General Sans',
+                            color: FlutterFlowTheme.of(context).secondaryText.withOpacity(0.4),
+                            fontSize: 9,
+                            letterSpacing: 0.0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ]
                     .divide(SizedBox(height: 20.0))
                     .addToStart(SizedBox(height: 20.0))
-                    .addToEnd(SizedBox(height: 20.0)),
+                    .addToEnd(SizedBox(height: 30.0)),
               ),
             ),
           ),

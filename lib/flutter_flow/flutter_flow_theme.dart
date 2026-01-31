@@ -142,22 +142,23 @@ class LightModeTheme extends FlutterFlowTheme {
   @Deprecated('Use tertiary instead')
   Color get tertiaryColor => tertiary;
 
-  late Color primary = const Color(0xFF40E0D0);
-  late Color secondary = const Color(0xFF1FBBA9);
-  late Color tertiary = const Color(0xFFFCBB1C);
-  late Color alternate = const Color(0xFFEBEBEE);
-  late Color primaryText = const Color(0xFF021C38);
-  late Color secondaryText = const Color(0xFF636F81);
-  late Color primaryBackground = const Color(0xFFFFFFFF);
-  late Color secondaryBackground = const Color(0xFFF6F8FB);
-  late Color accent1 = const Color(0x4C40E0D0);
-  late Color accent2 = const Color(0x4C1FBBA9);
-  late Color accent3 = const Color(0x4CFCBB1C);
-  late Color accent4 = const Color(0xFFEEEEEE);
-  late Color success = const Color(0xFF1FCB8C);
-  late Color warning = const Color(0xFFFC964D);
-  late Color error = const Color(0xFFFF4C4C);
-  late Color info = const Color(0xFFFFFFFF);
+  // WorkOn Brand Colors - Light Mode (for specific screens if needed)
+  late Color primary = const Color(0xFFE53935);       // Brand Red
+  late Color secondary = const Color(0xFFB71C1C);     // Dark Red
+  late Color tertiary = const Color(0xFFF59E0B);      // Warning Amber
+  late Color alternate = const Color(0xFFE2E8F0);     // Light border
+  late Color primaryText = const Color(0xFF1E293B);   // Dark text
+  late Color secondaryText = const Color(0xFF64748B); // Secondary text
+  late Color primaryBackground = const Color(0xFFF8FAFC);  // Light background
+  late Color secondaryBackground = const Color(0xFFFFFFFF); // White
+  late Color accent1 = const Color(0x4CE53935);       // Red 30%
+  late Color accent2 = const Color(0x4CB71C1C);       // Dark red 30%
+  late Color accent3 = const Color(0x4CF59E0B);       // Amber 30%
+  late Color accent4 = const Color(0xFFE2E8F0);       // Light gray
+  late Color success = const Color(0xFF10B981);       // Success green
+  late Color warning = const Color(0xFFF59E0B);       // Warning amber
+  late Color error = const Color(0xFFEF4444);         // Error red
+  late Color info = const Color(0xFF3B82F6);          // Info blue
 }
 
 abstract class Typography {
@@ -343,22 +344,23 @@ class DarkModeTheme extends FlutterFlowTheme {
   @Deprecated('Use tertiary instead')
   Color get tertiaryColor => tertiary;
 
-  late Color primary = const Color(0xFF40E0D0);
-  late Color secondary = const Color(0xFF1FBBA9);
-  late Color tertiary = const Color(0xFFFCBB1C);
-  late Color alternate = const Color(0xFF35383F);
-  late Color primaryText = const Color(0xFFFFFFFF);
-  late Color secondaryText = const Color(0xFF919BAB);
-  late Color primaryBackground = const Color(0xFF181A20);
-  late Color secondaryBackground = const Color(0xFF1F222A);
-  late Color accent1 = const Color(0x4C40E0D0);
-  late Color accent2 = const Color(0x4C1FBBA9);
-  late Color accent3 = const Color(0x4CFCBB1C);
-  late Color accent4 = const Color(0xB3161C24);
-  late Color success = const Color(0xFF1FCB8C);
-  late Color warning = const Color(0xFFFC964D);
-  late Color error = const Color(0xFFFF4C4C);
-  late Color info = const Color(0xFFFFFFFF);
+  // WorkOn Brand Colors - Premium Dark Mode
+  late Color primary = const Color(0xFFE53935);       // Brand Red - CTAs, highlights
+  late Color secondary = const Color(0xFFB71C1C);     // Dark Red - pressed states
+  late Color tertiary = const Color(0xFFF59E0B);      // Warning Amber
+  late Color alternate = const Color(0xFF2F2F35);     // Border/separator
+  late Color primaryText = const Color(0xFFFFFFFF);   // White text
+  late Color secondaryText = const Color(0xFFB0B0B0); // Gray text
+  late Color primaryBackground = const Color(0xFF0D0D0F);  // Deep black
+  late Color secondaryBackground = const Color(0xFF1A1A1E); // Card background
+  late Color accent1 = const Color(0x4CE53935);       // Red 30% - soft backgrounds
+  late Color accent2 = const Color(0x4CB71C1C);       // Dark red 30%
+  late Color accent3 = const Color(0x4CF59E0B);       // Amber 30%
+  late Color accent4 = const Color(0xFF252529);       // Tertiary background
+  late Color success = const Color(0xFF10B981);       // Success green
+  late Color warning = const Color(0xFFF59E0B);       // Warning amber
+  late Color error = const Color(0xFFEF4444);         // Error red
+  late Color info = const Color(0xFF3B82F6);          // Info blue
 }
 
 extension TextStyleHelper on TextStyle {

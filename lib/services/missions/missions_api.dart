@@ -83,25 +83,26 @@ class MissionsApi {
       throw const UnauthorizedException();
     }
 
-    // Build query params
+    // Build query params - **FL-3:** Backend now supports sort/category/query (PR-3)
+    // Backend NearbyMissionsQueryDto accepts: latitude, longitude, radiusKm, sort, category, query
     final queryParams = <String, String>{
       'latitude': latitude.toString(),
       'longitude': longitude.toString(),
       'radiusKm': radiusKm.toString(),
     };
-
-    // PR-F10: Add optional params if supported by backend
-    // These are passed but may be ignored by backend if not implemented
+    
+    // **FL-3:** Send sort/category/query to backend
     if (sort != null && sort.isNotEmpty) {
       queryParams['sort'] = sort;
     }
     if (category != null && category.isNotEmpty) {
       queryParams['category'] = category;
     }
-    // PR-09: Add query parameter for text search
     if (query != null && query.isNotEmpty) {
       queryParams['query'] = query;
     }
+    
+    debugPrint('[MissionsApi] Query params: $queryParams');
 
     // Build URI with query params
     final uri = Uri.parse('${ApiClient.baseUrl}/api/v1/missions-local/nearby')
@@ -307,17 +308,25 @@ class MissionsApi {
     };
 
     try {
+      debugPrint('[MissionsApi] GET $uri');
       final response = await ApiClient.client
           .get(uri, headers: headers)
           .timeout(ApiClient.connectionTimeout);
 
+      debugPrint('[MissionsApi] my-assignments response: ${response.statusCode}');
+      if (response.statusCode >= 400) {
+        debugPrint('[MissionsApi] my-assignments error body: ${response.body}');
+      }
+      
       return _handleListResponse(response);
     } on TimeoutException {
       throw const MissionsApiException('Connexion timeout');
-    } on http.ClientException {
+    } on http.ClientException catch (e) {
+      debugPrint('[MissionsApi] my-assignments network error: $e');
       throw const MissionsApiException('Erreur réseau');
     } on Exception catch (e) {
       if (e is MissionsApiException || e is AuthException) rethrow;
+      debugPrint('[MissionsApi] my-assignments unexpected error: $e');
       throw const MissionsApiException();
     }
   }

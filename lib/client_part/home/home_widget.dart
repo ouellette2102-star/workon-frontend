@@ -4,6 +4,8 @@ import '/client_part/components_client/mig_nav_bar/mig_nav_bar_widget.dart';
 import '/client_part/components_client/missions_map/missions_map_widget.dart';
 // PR-CLEANUP: Removed unused service_item_widget.dart import
 import '/client_part/create_mission/create_mission_widget.dart';
+import '/config/workon_colors.dart';
+import '/config/workon_widgets.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
 import '/client_part/my_applications/my_applications_widget.dart';
 import '/client_part/worker_assignments/worker_assignments_widget.dart';
@@ -31,6 +33,7 @@ import '/client_part/missions/complete/complete_handler.dart';
 import '/client_part/payments/pay_button.dart';
 import '/client_part/payments/payment_receipt_screen.dart';
 import '/services/analytics/analytics_service.dart';
+import '/services/notifications/notification_count_service.dart';
 import '/services/payments/stripe_service.dart';
 import '/config/app_config.dart';
 import '/client_part/discovery/swipe_discovery_page.dart';
@@ -189,80 +192,76 @@ class _HomeWidgetState extends State<HomeWidget> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12.0),
-                      child: Container(
-                        width: 40.0,
-                        height: 40.0,
-                        decoration: BoxDecoration(
-                          color: FlutterFlowTheme.of(context).alternate,
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: Image.asset(
-                            'assets/images/workonlogo2.jpg',
-                            width: 200.0,
-                            height: 200.0,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
+              // WorkOn Premium Logo with Red Phone Icon
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Red Phone Icon - Brand Symbol
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: WkColors.brandRedSoft,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset(
-                        'assets/images/nomworkon.jpg',
-                        width: 200.0,
-                        height: 200.0,
-                        fit: BoxFit.cover,
-                      ),
+                    child: const Icon(
+                      Icons.phone_in_talk_rounded,
+                      size: 20,
+                      color: WkColors.brandRed,
                     ),
-                  ].divide(SizedBox(width: 10.0)),
-                ),
+                  ),
+                  const SizedBox(width: 10),
+                  // WorkOn Text Logo
+                  const WorkOnLogo(size: 22),
+                ],
               ),
               Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  // PR-NAV: Notifications icon with badge
-                  GestureDetector(
-                    onTap: () {
-                      context.pushNamed(NotificationsWidget.routeName);
-                    },
-                    child: Stack(
-                      alignment: AlignmentDirectional(1.0, -1.0),
-                      children: [
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 8.0, 8.0),
-                          child: Icon(
-                            Icons.notifications_outlined,
-                            color: FlutterFlowTheme.of(context).primaryText,
-                            size: 26.0,
-                          ),
-                        ),
-                        Positioned(
-                          top: 6.0,
-                          right: 6.0,
-                          child: Container(
-                            width: 10.0,
-                            height: 10.0,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context).error,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context)
-                                    .primaryBackground,
-                                width: 2.0,
+                  // PR-REAL-03: Notifications icon with conditional badge
+                  StreamBuilder<int>(
+                    stream: NotificationCountService.stream,
+                    initialData: NotificationCountService.count,
+                    builder: (context, snapshot) {
+                      final hasUnread = (snapshot.data ?? 0) > 0;
+                      return GestureDetector(
+                        onTap: () {
+                          context.pushNamed(NotificationsWidget.routeName);
+                        },
+                        child: Stack(
+                          alignment: AlignmentDirectional(1.0, -1.0),
+                          children: [
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 8.0, 8.0),
+                              child: Icon(
+                                Icons.notifications_outlined,
+                                color: FlutterFlowTheme.of(context).primaryText,
+                                size: 26.0,
                               ),
                             ),
-                          ),
+                            // Badge only shown when there are unread notifications
+                            if (hasUnread)
+                              Positioned(
+                                top: 6.0,
+                                right: 6.0,
+                                child: Container(
+                                  width: 10.0,
+                                  height: 10.0,
+                                  decoration: BoxDecoration(
+                                    color: FlutterFlowTheme.of(context).error,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: FlutterFlowTheme.of(context)
+                                          .primaryBackground,
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 ].divide(SizedBox(width: 5.0)),
               ),

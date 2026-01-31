@@ -25,6 +25,7 @@ import '/services/legal/consent_gate.dart';
 import '/services/legal/consent_store.dart';
 import '/services/offers/offers_service.dart';
 import '/services/push/push_service.dart';
+import '/services/notifications/notification_count_service.dart';
 import '/services/saved/saved_missions_store.dart';
 import '/client_part/legal/legal_consent_gate.dart';
 
@@ -32,92 +33,89 @@ import '/client_part/legal/legal_consent_gate.dart';
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  GoRouter.optionURLReflectsImperativeAPIs = true;
-  usePathUrlStrategy();
-
-  // PR-ERROR: Initialize global error handlers
-  ErrorHandler.initialize();
-
-  // PR-G2: Validate environment configuration (safety guards)
-  AppConfig.validateConfiguration();
-  
-  // PR-ERROR: Custom error widget for release builds (replaces red screen)
-  if (!kDebugMode) {
-    ErrorWidget.builder = (FlutterErrorDetails details) {
-      return const AppErrorWidget();
-    };
-  }
-
-  await FlutterFlowTheme.initialize();
-
-  // PR-14: Initialize localization (for locale persistence)
-  await FFLocalizations.initialize();
-
-  // PR-5: Initialize Stripe with publishable key
-  if (AppConfig.hasStripeKey) {
-    Stripe.publishableKey = AppConfig.stripePublishableKey;
-    Stripe.merchantIdentifier = 'merchant.com.workon.app';
-    debugPrint('[Stripe] Initialized with publishable key');
-  } else {
-    debugPrint('[Stripe] ⚠️ No publishable key configured');
-  }
-
-  // PR-F11: Initialize saved missions store
-  await SavedMissionsStore.initialize();
-
-  // PR-F15: Initialize offers service (applied missions store)
-  await OffersService.initialize();
-
-  // PR-F20: Initialize push service
-  await PushService.initialize();
-
-  // PR-V1-01: Initialize consent store
-  await ConsentStore.initialize();
-
-  // PR-F17: Set up token refresh interceptor callbacks
-  TokenRefreshInterceptor.setLogoutCallback(() async {
-    await AuthService.logout();
-  });
-  TokenRefreshInterceptor.setSessionExpiredCallback(() {
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        content: Text(WkCopy.sessionExpired),
-        backgroundColor: WkStatusColors.cancelled,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 4),
-      ),
-    );
-  });
-
-  // PR-23: Load saved attribution for analytics
-  await AnalyticsService.loadAttribution();
-
-  // PR-BOOT: Uber-grade cold-start bootstrap (before runApp)
-  // - Attempts silent refresh if tokens exist
-  // - Clears tokens only on auth error (401/403)
-  // - Keeps tokens on network error (user can retry later)
-  final bootstrapResult = await AuthBootstrap.bootstrapAuth();
-  debugPrint('[main] Bootstrap result: $bootstrapResult');
-
-  // PR-23: Track app open
-  AnalyticsService.trackAppOpen();
-
-  final appState = FFAppState(); // Initialize FFAppState
-  await appState.initializePersistedState();
-
-  // PR-24: Wrap runApp in runZonedGuarded for async error catching
-  _runAppWithErrorBoundary(appState);
-}
-
-/// PR-24: Runs the app with a global error zone.
-///
-/// Catches async errors not caught by Flutter framework.
-void _runAppWithErrorBoundary(FFAppState appState) {
-  // Use runZonedGuarded to catch all async errors
+void main() {
+  // PR-24: Run ENTIRE app initialization in runZonedGuarded to fix Zone mismatch
+  // This ensures WidgetsFlutterBinding.ensureInitialized() and runApp() 
+  // are in the same zone, preventing the "Zone mismatch" warning.
   runZonedGuarded(
-    () {
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      GoRouter.optionURLReflectsImperativeAPIs = true;
+      usePathUrlStrategy();
+
+      // PR-ERROR: Initialize global error handlers
+      ErrorHandler.initialize();
+
+      // PR-G2: Validate environment configuration (safety guards)
+      AppConfig.validateConfiguration();
+      
+      // PR-ERROR: Custom error widget for release builds (replaces red screen)
+      if (!kDebugMode) {
+        ErrorWidget.builder = (FlutterErrorDetails details) {
+          return const AppErrorWidget();
+        };
+      }
+
+      await FlutterFlowTheme.initialize();
+
+      // PR-14: Initialize localization (for locale persistence)
+      await FFLocalizations.initialize();
+
+      // PR-5: Initialize Stripe with publishable key
+      if (AppConfig.hasStripeKey) {
+        Stripe.publishableKey = AppConfig.stripePublishableKey;
+        Stripe.merchantIdentifier = 'merchant.com.workon.app';
+        debugPrint('[Stripe] Initialized with publishable key');
+      } else {
+        debugPrint('[Stripe] ⚠️ No publishable key configured');
+      }
+
+      // PR-F11: Initialize saved missions store
+      await SavedMissionsStore.initialize();
+
+      // PR-F15: Initialize offers service (applied missions store)
+      await OffersService.initialize();
+
+      // PR-F20: Initialize push service
+      await PushService.initialize();
+
+      // PR-REAL-03: Initialize notification count service
+      await NotificationCountService.initialize();
+
+      // PR-V1-01: Initialize consent store
+      await ConsentStore.initialize();
+
+      // PR-F17: Set up token refresh interceptor callbacks
+      TokenRefreshInterceptor.setLogoutCallback(() async {
+        await AuthService.logout();
+      });
+      TokenRefreshInterceptor.setSessionExpiredCallback(() {
+        rootScaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text(WkCopy.sessionExpired),
+            backgroundColor: WkStatusColors.cancelled,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      });
+
+      // PR-23: Load saved attribution for analytics
+      await AnalyticsService.loadAttribution();
+
+      // PR-BOOT: Uber-grade cold-start bootstrap (before runApp)
+      // - Attempts silent refresh if tokens exist
+      // - Clears tokens only on auth error (401/403)
+      // - Keeps tokens on network error (user can retry later)
+      final bootstrapResult = await AuthBootstrap.bootstrapAuth();
+      debugPrint('[main] Bootstrap result: $bootstrapResult');
+
+      // PR-23: Track app open
+      AnalyticsService.trackAppOpen();
+
+      final appState = FFAppState(); // Initialize FFAppState
+      await appState.initializePersistedState();
+
       // PR-G2: Wrap with environment badge overlay
       runApp(EnvBadge(
         child: ChangeNotifierProvider(

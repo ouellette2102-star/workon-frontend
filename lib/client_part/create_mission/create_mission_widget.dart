@@ -4,6 +4,7 @@
 /// Calls POST /api/v1/missions-local.
 ///
 /// **PR-F20:** Employer Flow - Create Mission.
+/// **FL-2:** Updated to use CatalogService for dynamic categories.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -14,32 +15,23 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/services/missions/missions_service.dart';
 import '/services/missions/mission_models.dart';
 import '/services/location/location_service.dart';
+import '/services/catalog/catalog_service.dart';
+import '/services/catalog/catalog_models.dart' show ServiceCategory;
 
-/// Categories available for missions.
-const List<String> _categories = [
-  'cleaning',
-  'snow_removal',
-  'lawn_care',
-  'moving',
-  'handyman',
-  'painting',
-  'plumbing',
-  'electrical',
-  'other',
+/// Fallback categories if API is unavailable.
+/// **FL-2:** These are only used when backend catalog is empty.
+const List<String> _fallbackCategories = [
+  'Entretien',
+  'Réparation',
+  'Commerce',
+  'Restauration',
+  'Construction légère',
+  'Éducation',
+  'Numérique',
+  'Beauté',
+  'Culture',
+  'Services à la personne',
 ];
-
-/// Category display names (French).
-const Map<String, String> _categoryNames = {
-  'cleaning': 'Ménage',
-  'snow_removal': 'Déneigement',
-  'lawn_care': 'Entretien pelouse',
-  'moving': 'Déménagement',
-  'handyman': 'Bricolage',
-  'painting': 'Peinture',
-  'plumbing': 'Plomberie',
-  'electrical': 'Électricité',
-  'other': 'Autre',
-};
 
 class CreateMissionWidget extends StatefulWidget {
   const CreateMissionWidget({super.key});
@@ -59,7 +51,16 @@ class _CreateMissionWidgetState extends State<CreateMissionWidget> {
   final _cityController = TextEditingController();
   final _addressController = TextEditingController();
 
-  String _selectedCategory = 'cleaning';
+  /// Dynamic categories from API.
+  /// **FL-2:** Loaded from CatalogService.
+  List<ServiceCategory> _apiCategories = [];
+  
+  /// Whether categories are loading.
+  bool _categoriesLoading = true;
+  
+  /// Selected category name.
+  String? _selectedCategory;
+  
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -71,6 +72,57 @@ class _CreateMissionWidgetState extends State<CreateMissionWidget> {
   void initState() {
     super.initState();
     _initLocation();
+    _loadCategories();
+  }
+
+  /// **FL-2:** Load categories from backend API.
+  Future<void> _loadCategories() async {
+    try {
+      debugPrint('[CreateMission] Loading categories from API...');
+      final categories = await CatalogService.getCategories();
+      
+      if (mounted) {
+        setState(() {
+          _apiCategories = categories;
+          _categoriesLoading = false;
+          // Select first category by default
+          if (categories.isNotEmpty && _selectedCategory == null) {
+            _selectedCategory = categories.first.name;
+          }
+        });
+        debugPrint('[CreateMission] Loaded ${categories.length} categories from API');
+      }
+    } catch (e) {
+      debugPrint('[CreateMission] Failed to load categories: $e - using fallback');
+      if (mounted) {
+        setState(() {
+          _categoriesLoading = false;
+          // Use fallback when API fails
+          if (_selectedCategory == null && _fallbackCategories.isNotEmpty) {
+            _selectedCategory = _fallbackCategories.first;
+          }
+        });
+      }
+    }
+  }
+
+  /// Get available category names (API or fallback).
+  List<String> get _categoryNames {
+    if (_apiCategories.isNotEmpty) {
+      return _apiCategories.map((c) => c.name).toList();
+    }
+    return _fallbackCategories;
+  }
+
+  /// Get display name for a category.
+  String _getCategoryDisplayName(String name) {
+    if (_apiCategories.isNotEmpty) {
+      final cat = _apiCategories.where((c) => c.name == name).firstOrNull;
+      if (cat != null) {
+        return cat.displayName; // Includes emoji icon
+      }
+    }
+    return name;
   }
 
   /// Initialize location from device or use default.
@@ -109,6 +161,14 @@ class _CreateMissionWidgetState extends State<CreateMissionWidget> {
       return;
     }
 
+    // **FL-2:** Ensure category is selected
+    if (_selectedCategory == null || _selectedCategory!.isEmpty) {
+      setState(() {
+        _errorMessage = 'Veuillez sélectionner une catégorie';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -126,7 +186,7 @@ class _CreateMissionWidgetState extends State<CreateMissionWidget> {
       final mission = await MissionsService.create(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
-        category: _selectedCategory,
+        category: _selectedCategory!,
         price: price,
         latitude: _latitude,
         longitude: _longitude,
@@ -267,23 +327,60 @@ class _CreateMissionWidgetState extends State<CreateMissionWidget> {
                 ),
                 const SizedBox(height: 16),
 
-                // Category
+                // Category - **FL-2:** Dynamic from API
                 _buildLabel('Catégorie'),
-                DropdownButtonFormField<String>(
-                  value: _selectedCategory,
-                  decoration: _inputDecoration(''),
-                  items: _categories.map((cat) {
-                    return DropdownMenuItem(
-                      value: cat,
-                      child: Text(_categoryNames[cat] ?? cat),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedCategory = value);
-                    }
-                  },
-                ),
+                if (_categoriesLoading)
+                  Container(
+                    height: 56,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: FlutterFlowTheme.of(context).secondaryBackground,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: FlutterFlowTheme.of(context).primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Chargement des catégories...',
+                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                fontFamily: 'General Sans',
+                                color: FlutterFlowTheme.of(context).secondaryText,
+                                useGoogleFonts: false,
+                              ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  DropdownButtonFormField<String>(
+                    value: _selectedCategory,
+                    decoration: _inputDecoration(''),
+                    items: _categoryNames.map((catName) {
+                      return DropdownMenuItem(
+                        value: catName,
+                        child: Text(_getCategoryDisplayName(catName)),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _selectedCategory = value);
+                      }
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Sélectionnez une catégorie';
+                      }
+                      return null;
+                    },
+                  ),
                 const SizedBox(height: 16),
 
                 // Price
