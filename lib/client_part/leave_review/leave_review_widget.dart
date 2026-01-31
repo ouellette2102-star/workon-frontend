@@ -19,7 +19,37 @@ import 'leave_review_model.dart';
 export 'leave_review_model.dart';
 
 class LeaveReviewWidget extends StatefulWidget {
-  const LeaveReviewWidget({super.key});
+  const LeaveReviewWidget({
+    super.key,
+    this.targetUserId,
+    this.missionId,
+    this.missionTitle,
+    this.missionImageUrl,
+    this.missionPrice,
+    this.targetUserName,
+    this.targetUserAvatarUrl,
+  });
+
+  /// ID of the user being reviewed (required for API call).
+  final String? targetUserId;
+  
+  /// Optional mission ID this review is for.
+  final String? missionId;
+  
+  /// Mission title to display.
+  final String? missionTitle;
+  
+  /// Mission image URL.
+  final String? missionImageUrl;
+  
+  /// Mission price to display.
+  final String? missionPrice;
+  
+  /// Name of the user being reviewed (for worker review page).
+  final String? targetUserName;
+  
+  /// Avatar URL of the user being reviewed.
+  final String? targetUserAvatarUrl;
 
   static String routeName = 'LeaveReview';
   static String routePath = '/leaveReview';
@@ -756,15 +786,59 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                     Padding(
                       padding: EdgeInsets.all(20.0),
                       child: FFButtonWidget(
-                        onPressed: () async {
-                          await _model.pageViewController?.nextPage(
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.ease,
+                        onPressed: _model.isLoading ? null : () async {
+                          // Validate rating
+                          if ((_model.ratingBarValue1 ?? 0) < 1) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Veuillez sélectionner une note'),
+                                backgroundColor: FlutterFlowTheme.of(context).error,
+                              ),
+                            );
+                            return;
+                          }
+                          
+                          // If no targetUserId, just go to next page (worker review)
+                          if (widget.targetUserId == null) {
+                            await _model.pageViewController?.nextPage(
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            );
+                            return;
+                          }
+                          
+                          // Submit mission review
+                          safeSetState(() {});
+                          final success = await _model.submitReview(
+                            targetUserId: widget.targetUserId!,
+                            rating: _model.ratingBarValue1!,
+                            missionId: widget.missionId,
+                            comment: _model.reviewMessageTextController1?.text,
+                            tags: _model.choiceChipsValues1,
                           );
+                          safeSetState(() {});
+                          
+                          if (success) {
+                            // Go to success page
+                            await _model.pageViewController?.animateToPage(
+                              2,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            );
+                          } else {
+                            // Go to failed page
+                            await _model.pageViewController?.animateToPage(
+                              3,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            );
+                          }
                         },
-                        text: FFLocalizations.of(context).getText(
-                          '1jgh8iwi' /* Submit Review */,
-                        ),
+                        text: _model.isLoading 
+                            ? 'Envoi en cours...'
+                            : FFLocalizations.of(context).getText(
+                                '1jgh8iwi' /* Submit Review */,
+                              ),
                         options: FFButtonOptions(
                           width: double.infinity,
                           height: 50.0,
@@ -1349,15 +1423,60 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                     Padding(
                       padding: EdgeInsets.all(20.0),
                       child: FFButtonWidget(
-                        onPressed: () async {
-                          await _model.pageViewController?.nextPage(
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.ease,
+                        onPressed: _model.isLoading ? null : () async {
+                          // Validate rating
+                          if ((_model.ratingBarValue2 ?? 0) < 1) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Veuillez sélectionner une note'),
+                                backgroundColor: FlutterFlowTheme.of(context).error,
+                              ),
+                            );
+                            return;
+                          }
+                          
+                          // If no targetUserId, just show success (demo mode)
+                          if (widget.targetUserId == null) {
+                            await _model.pageViewController?.animateToPage(
+                              2,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            );
+                            return;
+                          }
+                          
+                          // Submit worker review
+                          safeSetState(() {});
+                          final success = await _model.submitReview(
+                            targetUserId: widget.targetUserId!,
+                            rating: _model.ratingBarValue2!,
+                            missionId: widget.missionId,
+                            comment: _model.reviewMessageTextController2?.text,
+                            tags: _model.choiceChipsValues2,
                           );
+                          safeSetState(() {});
+                          
+                          if (success) {
+                            // Go to success page
+                            await _model.pageViewController?.animateToPage(
+                              2,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            );
+                          } else {
+                            // Go to failed page
+                            await _model.pageViewController?.animateToPage(
+                              3,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            );
+                          }
                         },
-                        text: FFLocalizations.of(context).getText(
-                          'vo8hcjck' /* Submit Review */,
-                        ),
+                        text: _model.isLoading 
+                            ? 'Envoi en cours...'
+                            : FFLocalizations.of(context).getText(
+                                'vo8hcjck' /* Submit Review */,
+                              ),
                         options: FFButtonOptions(
                           width: double.infinity,
                           height: 50.0,
