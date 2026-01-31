@@ -12,12 +12,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../api/api_client.dart';
-import '../auth/auth_service.dart';
 import '../auth/token_storage.dart';
 
 /// Minimal API client for user-related endpoints.
 ///
-/// Uses existing [ApiClient] infrastructure and [AuthService.session]
+/// Uses existing [ApiClient] infrastructure with automatic token refresh
 /// for authentication.
 ///
 /// ## Usage

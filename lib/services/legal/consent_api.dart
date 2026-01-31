@@ -14,7 +14,7 @@ import 'package:http/http.dart' as http;
 
 import '../api/api_client.dart';
 import '../auth/auth_errors.dart';
-import '../auth/auth_service.dart';
+import '../auth/token_storage.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Models
@@ -283,30 +283,22 @@ class ComplianceApi {
   ///
   /// Calls `GET /api/v1/compliance/status`.
   /// Requires authentication.
+  /// **FIX-TOKEN-SYNC:** Uses TokenStorage + authenticatedGet with auto-refresh.
   Future<ConsentStatus> getStatus() async {
     debugPrint('[ComplianceApi] Fetching consent status...');
 
-    if (!AuthService.hasSession) {
-      debugPrint('[ComplianceApi] No active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
-      debugPrint('[ComplianceApi] No token available');
+      debugPrint('[ComplianceApi] No token available in storage');
       throw const UnauthorizedException();
     }
 
     final uri = ApiClient.buildUri('/compliance/status');
-    final headers = {
-      ...ApiClient.defaultHeaders,
-      'Authorization': 'Bearer $token',
-    };
 
     try {
-      final response = await ApiClient.client
-          .get(uri, headers: headers)
-          .timeout(ApiClient.connectionTimeout);
+      // FIX-TOKEN-SYNC: Use authenticatedGet with auto-refresh
+      final response = await ApiClient.authenticatedGet(uri);
 
       debugPrint('[ComplianceApi] status response: ${response.statusCode}');
 
@@ -343,6 +335,7 @@ class ComplianceApi {
   ///
   /// Calls `POST /api/v1/compliance/accept`.
   /// Requires authentication.
+  /// **FIX-TOKEN-SYNC:** Uses TokenStorage + authenticatedPost with auto-refresh.
   ///
   /// If VERSION_MISMATCH is returned, throws [VersionMismatchException].
   Future<AcceptResult> accept(
@@ -351,32 +344,22 @@ class ComplianceApi {
   ) async {
     debugPrint('[ComplianceApi] Accepting ${documentType.value} v$version...');
 
-    if (!AuthService.hasSession) {
-      debugPrint('[ComplianceApi] No active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
-      debugPrint('[ComplianceApi] No token available');
+      debugPrint('[ComplianceApi] No token available in storage');
       throw const UnauthorizedException();
     }
 
     final uri = ApiClient.buildUri('/compliance/accept');
-    final headers = {
-      ...ApiClient.defaultHeaders,
-      'Authorization': 'Bearer $token',
-    };
-
-    final body = jsonEncode({
+    final body = {
       'documentType': documentType.value,
       'version': version,
-    });
+    };
 
     try {
-      final response = await ApiClient.client
-          .post(uri, headers: headers, body: body)
-          .timeout(ApiClient.connectionTimeout);
+      // FIX-TOKEN-SYNC: Use authenticatedPost with auto-refresh
+      final response = await ApiClient.authenticatedPost(uri, body: body);
 
       debugPrint('[ComplianceApi] accept response: ${response.statusCode}');
 

@@ -36,6 +36,9 @@ import '/services/analytics/analytics_service.dart';
 import '/services/notifications/notification_count_service.dart';
 import '/services/payments/stripe_service.dart';
 import '/config/app_config.dart';
+// FL-CATALOG: Import catalog service for categories
+import '/services/catalog/catalog_service.dart';
+import '/services/catalog/catalog_models.dart';
 import '/client_part/discovery/swipe_discovery_page.dart';
 import '/client_part/discovery/map_discovery_page.dart';
 import 'dart:ui';
@@ -62,16 +65,43 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // FL-CATALOG: Categories from backend
+  List<ServiceCategory> _categories = [];
+  bool _categoriesLoading = true;
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => HomeModel());
+    
+    // FL-CATALOG: Load categories
+    _loadCategories();
 
     _model.searchTextController ??= TextEditingController();
     _model.searchFocusNode ??= FocusNode();
 
     // PR-F05: Load missions on init
     _loadMissions();
+  }
+
+  /// FL-CATALOG: Load categories from backend.
+  Future<void> _loadCategories() async {
+    try {
+      debugPrint('[Home] Loading categories from API...');
+      final categories = await CatalogService.getCategories();
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+          _categoriesLoading = false;
+        });
+        debugPrint('[Home] Loaded ${categories.length} categories');
+      }
+    } catch (e) {
+      debugPrint('[Home] Failed to load categories: $e');
+      if (mounted) {
+        setState(() => _categoriesLoading = false);
+      }
+    }
   }
 
   /// PR-F05: Load nearby missions from backend.
@@ -411,6 +441,8 @@ class _HomeWidgetState extends State<HomeWidget> {
                       ),
                     ),
                     // PR-CLEANUP: "Popular Services" section removed (template data)
+                    // FL-CATALOG: Categories Section from Backend
+                    _buildCategoriesSection(context),
                     // PR-F05: Missions Feed Section
                     _buildMissionsSection(context),
                   ]
@@ -652,11 +684,13 @@ class _HomeWidgetState extends State<HomeWidget> {
             SizedBox(height: WkSpacing.md),
           ],
           // Header
+          // FIX-RENDERFLEX: Wrap in Flexible to prevent overflow
           Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Flexible(
+                flex: 1,
                 child: Text(
                   _model.missionsTabMode == 'my_missions' 
                       ? 'Mes missions' 
@@ -667,56 +701,64 @@ class _HomeWidgetState extends State<HomeWidget> {
                         letterSpacing: 0.0,
                         fontWeight: FontWeight.bold,
                       ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               // PR-F05b: View mode toggle + refresh + PR-F11: Saved button
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // PR-F16: My applications button (only in available tab)
-                  if (_model.missionsTabMode == 'available')
-                    _buildApplicationsButton(context),
-                  if (_model.missionsTabMode == 'available')
-                    SizedBox(width: WkSpacing.xs),
-                  // PR-BOOKING: My assignments button (only in available tab)
-                  if (_model.missionsTabMode == 'available')
-                    _buildAssignmentsButton(context),
-                  if (_model.missionsTabMode == 'available')
-                    SizedBox(width: WkSpacing.sm),
-                  // PR-F11: Saved missions button (only in available tab)
-                  if (_model.missionsTabMode == 'available')
-                    _buildSavedButton(context),
-                  if (_model.missionsTabMode == 'available')
-                    SizedBox(width: WkSpacing.sm),
-                  // PR-DISCOVERY: Discovery buttons
-                  if (_model.missionsTabMode == 'available' && AppConfig.discoverySwipe)
-                    _buildDiscoverySwipeButton(context),
-                  if (_model.missionsTabMode == 'available' && AppConfig.discoverySwipe)
-                    SizedBox(width: WkSpacing.xs),
-                  if (_model.missionsTabMode == 'available' && AppConfig.discoveryMap)
-                    _buildDiscoveryMapButton(context),
-                  if (_model.missionsTabMode == 'available' && (AppConfig.discoverySwipe || AppConfig.discoveryMap))
-                    SizedBox(width: WkSpacing.sm),
-                  if (state.hasMissions && _model.missionsTabMode == 'available')
-                    _buildViewToggle(context),
-                  if (state.hasMissions)
-                    SizedBox(width: 8),
-                  if (state.hasMissions || state.isLoading)
-                    InkWell(
-                      onTap: () async {
-                        if (_model.missionsTabMode == 'my_missions') {
-                          await _loadMyMissions();
-                        } else {
-                          await MissionsService.refresh();
-                        }
-                      },
-                      child: Icon(
-                        Icons.refresh,
-                        color: FlutterFlowTheme.of(context).secondaryText,
-                        size: 20,
-                      ),
-                    ),
-                ],
+              // FIX-RENDERFLEX: Wrap buttons in Flexible with shrinkWrap
+              Flexible(
+                flex: 2,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // PR-F16: My applications button (only in available tab)
+                      if (_model.missionsTabMode == 'available')
+                        _buildApplicationsButton(context),
+                      if (_model.missionsTabMode == 'available')
+                        SizedBox(width: WkSpacing.xs),
+                      // PR-BOOKING: My assignments button (only in available tab)
+                      if (_model.missionsTabMode == 'available')
+                        _buildAssignmentsButton(context),
+                      if (_model.missionsTabMode == 'available')
+                        SizedBox(width: WkSpacing.sm),
+                      // PR-F11: Saved missions button (only in available tab)
+                      if (_model.missionsTabMode == 'available')
+                        _buildSavedButton(context),
+                      if (_model.missionsTabMode == 'available')
+                        SizedBox(width: WkSpacing.sm),
+                      // PR-DISCOVERY: Discovery buttons
+                      if (_model.missionsTabMode == 'available' && AppConfig.discoverySwipe)
+                        _buildDiscoverySwipeButton(context),
+                      if (_model.missionsTabMode == 'available' && AppConfig.discoverySwipe)
+                        SizedBox(width: WkSpacing.xs),
+                      if (_model.missionsTabMode == 'available' && AppConfig.discoveryMap)
+                        _buildDiscoveryMapButton(context),
+                      if (_model.missionsTabMode == 'available' && (AppConfig.discoverySwipe || AppConfig.discoveryMap))
+                        SizedBox(width: WkSpacing.sm),
+                      if (state.hasMissions && _model.missionsTabMode == 'available')
+                        _buildViewToggle(context),
+                      if (state.hasMissions)
+                        SizedBox(width: 8),
+                      if (state.hasMissions || state.isLoading)
+                        InkWell(
+                          onTap: () async {
+                            if (_model.missionsTabMode == 'my_missions') {
+                              await _loadMyMissions();
+                            } else {
+                              await MissionsService.refresh();
+                            }
+                          },
+                          child: Icon(
+                            Icons.refresh,
+                            color: FlutterFlowTheme.of(context).secondaryText,
+                            size: 20,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -2256,6 +2298,146 @@ class _HomeWidgetState extends State<HomeWidget> {
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.0,
                   ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // FL-CATALOG: Categories Section (Dynamic from Backend)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// FL-CATALOG: Builds the categories section from backend API.
+  Widget _buildCategoriesSection(BuildContext context) {
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 0.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Catégories',
+                style: FlutterFlowTheme.of(context).titleMedium.override(
+                      fontFamily: 'General Sans',
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+              if (_categories.length > 6)
+                TextButton(
+                  onPressed: () {
+                    // TODO: Navigate to full catalog page
+                    debugPrint('[Home] See all categories tapped');
+                  },
+                  child: Text(
+                    'Voir tout',
+                    style: FlutterFlowTheme.of(context).bodySmall.override(
+                          fontFamily: 'General Sans',
+                          color: FlutterFlowTheme.of(context).primary,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.0,
+                        ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 12),
+          // Categories Grid
+          if (_categoriesLoading)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: CircularProgressIndicator(
+                  color: FlutterFlowTheme.of(context).primary,
+                ),
+              ),
+            )
+          else if (_categories.isEmpty)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Text(
+                  'Aucune catégorie disponible',
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily: 'General Sans',
+                        color: FlutterFlowTheme.of(context).secondaryText,
+                        letterSpacing: 0.0,
+                      ),
+                ),
+              ),
+            )
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: _categories.length > 6 ? 6 : _categories.length,
+              itemBuilder: (context, index) {
+                final category = _categories[index];
+                return _buildCategoryCard(context, category);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// FL-CATALOG: Builds a single category card.
+  Widget _buildCategoryCard(BuildContext context, ServiceCategory category) {
+    return InkWell(
+      onTap: () {
+        // Filter missions by this category
+        setState(() {
+          _model.selectedCategory = category.name;
+        });
+        _reloadWithFilters();
+        debugPrint('[Home] Category selected: ${category.name}');
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: FlutterFlowTheme.of(context).secondaryBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: _model.selectedCategory == category.name
+              ? Border.all(
+                  color: FlutterFlowTheme.of(context).primary,
+                  width: 2,
+                )
+              : null,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Emoji icon
+            Text(
+              category.icon ?? '📦',
+              style: TextStyle(fontSize: 28),
+            ),
+            SizedBox(height: 8),
+            // Name
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                category.name,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: FlutterFlowTheme.of(context).bodySmall.override(
+                      fontFamily: 'General Sans',
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.0,
+                    ),
+              ),
             ),
           ],
         ),

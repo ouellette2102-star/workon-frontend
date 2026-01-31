@@ -11,8 +11,14 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 import '../api/api_client.dart';
-import '../auth/auth_service.dart';
+import '../auth/token_storage.dart';
 import 'notification_prefs.dart';
+
+// Helper function to check if user has an active session
+bool _hasActiveSession() {
+  final token = TokenStorage.getToken();
+  return token != null && token.isNotEmpty;
+}
 
 /// API client for push notification device registration.
 ///
@@ -35,7 +41,7 @@ class PushApi {
     required String token,
     required String platform,
   }) async {
-    if (!AuthService.hasSession) {
+    if (!_hasActiveSession()) {
       debugPrint('[PushApi] registerDevice: no session');
       return false;
     }
@@ -105,7 +111,7 @@ class PushApi {
     // Note: token param kept for backward compatibility but not used.
     // We use the stored device record ID instead.
     
-    if (!AuthService.hasSession) {
+    if (!_hasActiveSession()) {
       debugPrint('[PushApi] unregisterDevice: no session');
       // Still try to clear local state
       await NotificationPrefs.setDeviceRecordId(null);

@@ -13,8 +13,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../api/api_client.dart';
-import '../auth/auth_service.dart';
 import '../auth/auth_errors.dart';
+import '../auth/token_storage.dart';
 import 'earnings_models.dart';
 
 /// Exception thrown by [EarningsApi].
@@ -46,13 +46,8 @@ class EarningsApi {
   Future<EarningsSummary> fetchSummary() async {
     debugPrint('[EarningsApi] Fetching summary...');
 
-    // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[EarningsApi] fetchSummary: no active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[EarningsApi] fetchSummary: no token available');
       throw const UnauthorizedException();
@@ -125,13 +120,8 @@ class EarningsApi {
   }) async {
     debugPrint('[EarningsApi] Fetching history (cursor: $cursor, limit: $limit)...');
 
-    // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[EarningsApi] fetchHistory: no active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[EarningsApi] fetchHistory: no token available');
       throw const UnauthorizedException();
@@ -212,13 +202,8 @@ class EarningsApi {
       throw const EarningsApiException('ID de mission invalide');
     }
 
-    // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[EarningsApi] fetchByMission: no active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[EarningsApi] fetchByMission: no token available');
       throw const UnauthorizedException();

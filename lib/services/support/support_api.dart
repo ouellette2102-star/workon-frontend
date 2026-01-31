@@ -12,8 +12,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../api/api_client.dart';
-import '../auth/auth_service.dart';
 import '../auth/auth_errors.dart';
+import '../auth/token_storage.dart';
 import 'support_models.dart';
 
 /// Exception thrown by [SupportApi].
@@ -37,11 +37,8 @@ class SupportApi {
   Future<SupportTicket> createTicket(CreateTicketDto dto) async {
     debugPrint('[SupportApi] Creating ticket: ${dto.subject}');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -96,11 +93,8 @@ class SupportApi {
   Future<TicketListResponse> getTickets({int page = 1, int limit = 20}) async {
     debugPrint('[SupportApi] Getting tickets (page: $page, limit: $limit)');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -150,11 +144,8 @@ class SupportApi {
   Future<SupportTicket> getTicket(String ticketId) async {
     debugPrint('[SupportApi] Getting ticket: $ticketId');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -205,11 +196,8 @@ class SupportApi {
   Future<SupportTicket> addMessage(String ticketId, AddMessageDto dto) async {
     debugPrint('[SupportApi] Adding message to ticket: $ticketId');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -268,11 +256,8 @@ class SupportApi {
   Future<SupportTicket> closeTicket(String ticketId) async {
     debugPrint('[SupportApi] Closing ticket: $ticketId');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }

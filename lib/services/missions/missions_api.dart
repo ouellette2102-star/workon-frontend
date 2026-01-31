@@ -13,8 +13,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../api/api_client.dart';
-import '../auth/auth_service.dart';
 import '../auth/auth_errors.dart';
+import '../auth/token_storage.dart';
 import 'mission_models.dart';
 
 /// Exception thrown by [MissionsApi].
@@ -71,13 +71,8 @@ class MissionsApi {
   }) async {
     debugPrint('[MissionsApi] Fetching nearby missions (radius: $radiusKm, sort: $sort, category: $category, query: $query)...');
 
-    // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[MissionsApi] No active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[MissionsApi] No token available');
       throw const UnauthorizedException();
@@ -180,12 +175,8 @@ class MissionsApi {
     }
 
     // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[MissionsApi] fetchById: no active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[MissionsApi] fetchById: no token available');
       throw const UnauthorizedException();
@@ -255,11 +246,8 @@ class MissionsApi {
   Future<List<Mission>> fetchMyMissions() async {
     debugPrint('[MissionsApi] Fetching my missions...');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -292,11 +280,8 @@ class MissionsApi {
   Future<List<Mission>> fetchMyAssignments() async {
     debugPrint('[MissionsApi] Fetching my assignments...');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -351,12 +336,8 @@ class MissionsApi {
     debugPrint('[MissionsApi] Creating mission: $title');
 
     // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[MissionsApi] createMission: no active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[MissionsApi] createMission: no token available');
       throw const UnauthorizedException();
@@ -456,12 +437,8 @@ class MissionsApi {
     }
 
     // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[MissionsApi] acceptMission: no active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[MissionsApi] acceptMission: no token available');
       throw const UnauthorizedException();
@@ -562,12 +539,8 @@ class MissionsApi {
     }
 
     // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[MissionsApi] startMission: no active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[MissionsApi] startMission: no token available');
       throw const UnauthorizedException();
@@ -668,12 +641,8 @@ class MissionsApi {
     }
 
     // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[MissionsApi] completeMission: no active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[MissionsApi] completeMission: no token available');
       throw const UnauthorizedException();

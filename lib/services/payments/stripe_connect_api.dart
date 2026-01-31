@@ -13,8 +13,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../api/api_client.dart';
-import '../auth/auth_service.dart';
 import '../auth/auth_errors.dart';
+import '../auth/token_storage.dart';
 
 /// Exception thrown by [StripeConnectApi].
 class StripeConnectException implements Exception {
@@ -197,11 +197,8 @@ class StripeConnectApi {
   Future<StripeConnectStatus> getStatus() async {
     debugPrint('[StripeConnectApi] Fetching status');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -257,11 +254,8 @@ class StripeConnectApi {
   Future<String> getOnboardingLink() async {
     debugPrint('[StripeConnectApi] Fetching onboarding link');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -315,11 +309,8 @@ class StripeConnectApi {
   Future<String> refreshOnboardingLink() async {
     debugPrint('[StripeConnectApi] Refreshing onboarding link');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -381,11 +372,8 @@ class StripeConnectApi {
     debugPrint(
         '[StripeConnectApi] Creating connect payment intent for mission: $missionId');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }

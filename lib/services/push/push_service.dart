@@ -35,6 +35,7 @@ import 'package:flutter/material.dart';
 import '../../flutter_flow/flutter_flow_util.dart';
 import '../../index.dart';
 import '../auth/auth_service.dart';
+import '../auth/token_storage.dart';
 import '../messages/messages_service.dart';
 import 'notification_prefs.dart';
 import 'push_api.dart';
@@ -301,8 +302,10 @@ abstract final class PushService {
       return true; // Not an error, just not configured
     }
 
-    if (!AuthService.hasSession) {
-      debugPrint('[PushService] registerDevice: no session');
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final authToken = TokenStorage.getToken();
+    if (authToken == null || authToken.isEmpty) {
+      debugPrint('[PushService] registerDevice: no auth token available');
       return false;
     }
 
@@ -374,7 +377,9 @@ abstract final class PushService {
 
     _retryTimer?.cancel();
     _retryTimer = Timer(Duration(seconds: delay), () async {
-      if (AuthService.hasSession) {
+      // FIX-TOKEN-SYNC: Use TokenStorage directly
+      final retryToken = TokenStorage.getToken();
+      if (retryToken != null && retryToken.isNotEmpty) {
         await registerDeviceIfNeeded();
       }
     });

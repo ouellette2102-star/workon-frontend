@@ -10,6 +10,7 @@ library;
 import 'package:flutter/foundation.dart';
 
 import '../auth/auth_service.dart';
+import '../auth/token_storage.dart';
 import 'user_api.dart';
 import 'user_context.dart';
 
@@ -146,16 +147,10 @@ abstract final class UserService {
   /// print('Role: ${UserService.context.role}');
   /// ```
   static Future<void> refreshFromBackendIfPossible() async {
-    // Skip if no session
-    if (!AuthService.hasSession) {
-      debugPrint('[UserService] refreshFromBackendIfPossible: no session');
-      return;
-    }
-
-    // Skip if no token (cannot authenticate request)
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
-      debugPrint('[UserService] refreshFromBackendIfPossible: no token');
+      debugPrint('[UserService] refreshFromBackendIfPossible: no token available');
       return;
     }
 

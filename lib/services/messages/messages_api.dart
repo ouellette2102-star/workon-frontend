@@ -9,7 +9,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../api/api_client.dart';
-import '../auth/auth_service.dart';
+import '../auth/token_storage.dart';
 import 'message_models.dart';
 
 /// API client for messaging endpoints.
@@ -21,12 +21,8 @@ class MessagesApi {
   /// Calls `GET /messages/conversations` with Bearer token.
   /// Returns conversations sorted by most recent message first.
   Future<List<Conversation>> getConversations() async {
-    if (!AuthService.hasSession) {
-      debugPrint('[MessagesApi] getConversations: no session');
-      throw const MessagesApiException('Pas de session active');
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[MessagesApi] getConversations: no token');
       throw const MessagesApiException('Token non disponible');
@@ -82,12 +78,8 @@ class MessagesApi {
   /// **PR-4:** Aligned to backend endpoint `GET /messages/thread/:missionId`.
   /// [missionId] is the mission ID (previously called conversationId).
   Future<List<Message>> getMessages(String missionId) async {
-    if (!AuthService.hasSession) {
-      debugPrint('[MessagesApi] getMessages: no session');
-      throw const MessagesApiException('Pas de session active');
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[MessagesApi] getMessages: no token');
       throw const MessagesApiException('Token non disponible');
@@ -148,12 +140,8 @@ class MessagesApi {
   /// [missionId] is the mission ID (previously called conversationId).
   /// [content] is the message text.
   Future<Message> sendMessage(String missionId, String content) async {
-    if (!AuthService.hasSession) {
-      debugPrint('[MessagesApi] sendMessage: no session');
-      throw const MessagesApiException('Pas de session active');
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[MessagesApi] sendMessage: no token');
       throw const MessagesApiException('Token non disponible');
@@ -216,12 +204,8 @@ class MessagesApi {
   /// Calls `GET /messages/unread-count` with Bearer token.
   /// Returns 0 if no unread messages or on error (graceful degradation).
   Future<int> getUnreadCount() async {
-    if (!AuthService.hasSession) {
-      debugPrint('[MessagesApi] getUnreadCount: no session');
-      return 0;
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[MessagesApi] getUnreadCount: no token');
       return 0;

@@ -12,6 +12,7 @@ import 'package:flutter/foundation.dart';
 import '/services/api/api_client.dart';
 import '/services/auth/auth_service.dart';
 import '/services/auth/auth_errors.dart';
+import '/services/auth/token_storage.dart';
 
 /// Basic user info for deep link resolution.
 class UserInfo {
@@ -79,12 +80,10 @@ abstract final class UsersService {
         ...ApiClient.defaultHeaders,
       };
 
-      // Add auth token if available
-      if (AuthService.hasSession) {
-        final token = AuthService.session.token;
-        if (token != null && token.isNotEmpty) {
-          headers['Authorization'] = 'Bearer $token';
-        }
+      // FIX-TOKEN-SYNC: Use TokenStorage directly
+      final token = TokenStorage.getToken();
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
       }
 
       final response = await ApiClient.client

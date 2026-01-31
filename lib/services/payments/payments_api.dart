@@ -13,7 +13,7 @@ import 'package:http/http.dart' as http;
 
 import '/services/api/api_client.dart';
 import '/services/auth/auth_errors.dart';
-import '/services/auth/auth_service.dart';
+import '/services/auth/token_storage.dart';
 import 'payment_models.dart';
 
 /// Exception thrown by [PaymentsApi].
@@ -51,13 +51,8 @@ class PaymentsApi {
   }) async {
     debugPrint('[PaymentsApi] Creating payment intent for mission: $missionId');
 
-    // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[PaymentsApi] No active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[PaymentsApi] No token available');
       throw const UnauthorizedException();
@@ -141,13 +136,8 @@ class PaymentsApi {
   Future<List<Transaction>> fetchTransactionHistory() async {
     debugPrint('[PaymentsApi] Fetching transaction history...');
 
-    // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[PaymentsApi] No active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[PaymentsApi] No token available');
       throw const UnauthorizedException();

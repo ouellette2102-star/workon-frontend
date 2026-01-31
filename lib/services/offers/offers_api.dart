@@ -15,7 +15,7 @@ import 'package:http/http.dart' as http;
 
 import '../api/api_client.dart';
 import '../auth/auth_errors.dart';
-import '../auth/auth_service.dart';
+import '../auth/token_storage.dart';
 import 'offer_models.dart';
 
 /// Exception thrown by [OffersApi].
@@ -64,13 +64,8 @@ class OffersApi {
   }) async {
     debugPrint('[OffersApi] Creating offer for mission: $missionId');
 
-    // Check auth
-    if (!AuthService.hasSession) {
-      debugPrint('[OffersApi] No active session');
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[OffersApi] No token available');
       throw const UnauthorizedException();
@@ -166,11 +161,8 @@ class OffersApi {
   Future<List<String>> fetchMyOffers() async {
     debugPrint('[OffersApi] Fetching my offers...');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -251,11 +243,8 @@ class OffersApi {
   Future<List<Offer>> fetchMyOffersDetailed() async {
     debugPrint('[OffersApi] Fetching my offers (detailed)...');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -335,11 +324,8 @@ class OffersApi {
   Future<List<Offer>> fetchMissionApplications(String missionId) async {
     debugPrint('[OffersApi] Fetching applications for mission: $missionId');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -420,11 +406,8 @@ class OffersApi {
   Future<Offer> acceptOffer(String offerId) async {
     debugPrint('[OffersApi] Accepting offer: $offerId');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -494,11 +477,8 @@ class OffersApi {
   Future<Offer> rejectOffer(String offerId) async {
     debugPrint('[OffersApi] Rejecting offer: $offerId');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }

@@ -10,8 +10,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../api/api_client.dart';
-import '../auth/auth_service.dart';
 import '../auth/auth_errors.dart';
+import '../auth/token_storage.dart';
 import 'notification_prefs_models.dart';
 
 /// Exception thrown by [NotificationPrefsApi].
@@ -35,11 +35,8 @@ class NotificationPrefsApi {
   Future<List<NotificationPreference>> getPreferences() async {
     debugPrint('[NotificationPrefsApi] Getting all preferences');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -96,11 +93,8 @@ class NotificationPrefsApi {
   Future<NotificationPreference> getPreference(NotificationType type) async {
     debugPrint('[NotificationPrefsApi] Getting preference: ${type.value}');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -150,11 +144,8 @@ class NotificationPrefsApi {
   ) async {
     debugPrint('[NotificationPrefsApi] Updating preference: ${type.value}');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -201,11 +192,8 @@ class NotificationPrefsApi {
   Future<void> setQuietHours(SetQuietHoursDto dto) async {
     debugPrint('[NotificationPrefsApi] Setting quiet hours');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -248,11 +236,8 @@ class NotificationPrefsApi {
   Future<void> unsubscribeFromMarketing() async {
     debugPrint('[NotificationPrefsApi] Unsubscribing from marketing');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -295,11 +280,8 @@ class NotificationPrefsApi {
   Future<void> initializeDefaults() async {
     debugPrint('[NotificationPrefsApi] Initializing defaults');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }

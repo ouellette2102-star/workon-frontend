@@ -14,8 +14,8 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 import '../api/api_client.dart';
-import '../auth/auth_service.dart';
 import '../auth/auth_errors.dart';
+import '../auth/token_storage.dart';
 
 /// Exception thrown by [MissionPhotosApi].
 class MissionPhotosException implements Exception {
@@ -104,11 +104,8 @@ class MissionPhotosApi {
   Future<List<MissionPhoto>> getPhotos(String missionId) async {
     debugPrint('[MissionPhotosApi] Getting photos for mission: $missionId');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -172,11 +169,8 @@ class MissionPhotosApi {
   ) async {
     debugPrint('[MissionPhotosApi] Uploading ${files.length} photos to mission: $missionId');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -255,11 +249,8 @@ class MissionPhotosApi {
   Future<void> deletePhoto(String missionId, String photoId) async {
     debugPrint('[MissionPhotosApi] Deleting photo: $photoId from mission: $missionId');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }

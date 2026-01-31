@@ -13,8 +13,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../api/api_client.dart';
-import '../auth/auth_service.dart';
 import '../auth/auth_errors.dart';
+import '../auth/token_storage.dart';
 
 /// Exception thrown by [DevicesApi].
 class DevicesApiException implements Exception {
@@ -144,11 +144,8 @@ class DevicesApi {
   Future<Device> registerDevice(RegisterDeviceDto dto) async {
     debugPrint('[DevicesApi] Registering device (platform: ${dto.platform.value})');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -195,11 +192,8 @@ class DevicesApi {
   Future<List<Device>> getMyDevices() async {
     debugPrint('[DevicesApi] Getting my devices');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }
@@ -256,11 +250,8 @@ class DevicesApi {
   Future<void> deleteDevice(String deviceId) async {
     debugPrint('[DevicesApi] Deleting device: $deviceId');
 
-    if (!AuthService.hasSession) {
-      throw const UnauthorizedException();
-    }
-
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       throw const UnauthorizedException();
     }

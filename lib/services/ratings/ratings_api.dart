@@ -42,11 +42,7 @@ class RatingsApi {
   ///
   /// Calls `GET /reviews/summary?userId=...` with Bearer token.
   Future<RatingSummary> getSummary(String userId) async {
-    if (!AuthService.hasSession) {
-      debugPrint('[RatingsApi] getSummary: no session');
-      throw const RatingsApiException('Pas de session active');
-    }
-
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
     final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[RatingsApi] getSummary: no token');
@@ -104,11 +100,7 @@ class RatingsApi {
   ///
   /// Calls `GET /reviews?userId=...` with Bearer token.
   Future<List<Review>> getReviews(String userId, {int? limit, int? offset}) async {
-    if (!AuthService.hasSession) {
-      debugPrint('[RatingsApi] getReviews: no session');
-      throw const RatingsApiException('Pas de session active');
-    }
-
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
     final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[RatingsApi] getReviews: no token');
@@ -181,11 +173,7 @@ class RatingsApi {
       throw RatingsApiException(validationError);
     }
 
-    if (!AuthService.hasSession) {
-      debugPrint('[RatingsApi] createReview: no session');
-      throw const RatingsApiException('Pas de session active');
-    }
-
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
     final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
       debugPrint('[RatingsApi] createReview: no token');
