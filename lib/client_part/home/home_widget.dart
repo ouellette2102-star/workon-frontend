@@ -4,6 +4,8 @@ import '/client_part/components_client/mig_nav_bar/mig_nav_bar_widget.dart';
 import '/client_part/components_client/missions_map/missions_map_widget.dart';
 // PR-CLEANUP: Removed unused service_item_widget.dart import
 import '/client_part/create_mission/create_mission_widget.dart';
+import '/config/workon_colors.dart';
+import '/config/workon_widgets.dart';
 import '/client_part/mission_detail/mission_detail_widget.dart';
 import '/client_part/my_applications/my_applications_widget.dart';
 import '/client_part/worker_assignments/worker_assignments_widget.dart';
@@ -190,41 +192,28 @@ class _HomeWidgetState extends State<HomeWidget> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12.0),
-                      child: Container(
-                        width: 40.0,
-                        height: 40.0,
-                        decoration: BoxDecoration(
-                          color: FlutterFlowTheme.of(context).alternate,
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: Image.asset(
-                            'assets/images/workonlogo2.jpg',
-                            width: 200.0,
-                            height: 200.0,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
+              // WorkOn Premium Logo with Red Phone Icon
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Red Phone Icon - Brand Symbol
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: WkColors.brandRedSoft,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset(
-                        'assets/images/nomworkon.jpg',
-                        width: 200.0,
-                        height: 200.0,
-                        fit: BoxFit.cover,
-                      ),
+                    child: const Icon(
+                      Icons.phone_in_talk_rounded,
+                      size: 20,
+                      color: WkColors.brandRed,
                     ),
-                  ].divide(SizedBox(width: 10.0)),
-                ),
+                  ),
+                  const SizedBox(width: 10),
+                  // WorkOn Text Logo
+                  const WorkOnLogo(size: 22),
+                ],
               ),
               Row(
                 mainAxisSize: MainAxisSize.max,

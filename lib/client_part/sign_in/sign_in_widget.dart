@@ -5,6 +5,8 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/services/auth/auth_errors.dart';
 import '/services/auth/auth_service.dart';
+import '/config/workon_colors.dart';
+import '/config/workon_widgets.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:flutter/gestures.dart';
@@ -84,15 +86,29 @@ class _SignInWidgetState extends State<SignInWidget> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // WorkOn Logo with Red Phone Icon
                 Flexible(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30.0),
-                    child: Image.asset(
-                      'assets/images/Sparkly_Logo.png',
-                      width: 100.0,
-                      height: 100.0,
-                      fit: BoxFit.contain,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Red Phone Icon
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: WkColors.brandRedSoft,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: const Icon(
+                          Icons.phone_in_talk_rounded,
+                          size: 40,
+                          color: WkColors.brandRed,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // WorkOn Logo with Pin
+                      const WorkOnLogo(size: 32),
+                    ],
                   ),
                 ),
                 Column(

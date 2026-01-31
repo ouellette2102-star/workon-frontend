@@ -9,6 +9,8 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import 'dart:ui';
 import '/index.dart';
+import '/services/ratings/ratings_service.dart';
+import '/services/ratings/ratings_models.dart';
 import 'leave_review_widget.dart' show LeaveReviewWidget;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,6 +21,12 @@ import 'package:provider/provider.dart';
 
 class LeaveReviewModel extends FlutterFlowModel<LeaveReviewWidget> {
   ///  State fields for stateful widgets in this page.
+  
+  /// Loading state for API call.
+  bool isLoading = false;
+  
+  /// Error message if API call fails.
+  String? errorMessage;
 
   // Model for BackIconBtn component.
   late BackIconBtnModel backIconBtnModel;
@@ -77,5 +85,50 @@ class LeaveReviewModel extends FlutterFlowModel<LeaveReviewWidget> {
 
     successWidgetModel.dispose();
     failedWidgetModel.dispose();
+  }
+  
+  /// Submits the review to the backend API.
+  /// Returns true on success, false on failure.
+  Future<bool> submitReview({
+    required String targetUserId,
+    required double rating,
+    String? missionId,
+    String? comment,
+    List<String>? tags,
+  }) async {
+    if (isLoading) return false;
+    
+    isLoading = true;
+    errorMessage = null;
+    
+    try {
+      // Build comment with tags if provided
+      String? fullComment = comment;
+      if (tags != null && tags.isNotEmpty) {
+        final tagText = tags.join(', ');
+        fullComment = comment?.isNotEmpty == true 
+            ? '$comment\n\nTags: $tagText'
+            : 'Tags: $tagText';
+      }
+      
+      await RatingsService.createReview(
+        toUserId: targetUserId,
+        rating: rating.round(),
+        missionId: missionId,
+        comment: fullComment,
+        tags: tags,
+      );
+      
+      isLoading = false;
+      return true;
+    } catch (e) {
+      if (e.toString().contains('déjà laissé')) {
+        errorMessage = 'Vous avez déjà laissé un avis pour cet utilisateur.';
+      } else {
+        errorMessage = 'Une erreur est survenue. Réessayez plus tard.';
+      }
+      isLoading = false;
+      return false;
+    }
   }
 }

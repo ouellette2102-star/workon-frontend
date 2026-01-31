@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- WorkOn App Icon - Red Phone on Dark Background -->
+  
+  <!-- Background with subtle gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1E"/>
+      <stop offset="100%" style="stop-color:#0D0D0F"/>
+    </linearGradient>
+    <linearGradient id="phoneGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6659"/>
+      <stop offset="100%" style="stop-color:#E53935"/>
+    </linearGradient>
+    <!-- Glow filter for premium look -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="30" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Dark background -->
+  <rect width="1024" height="1024" fill="url(#bgGradient)" rx="220"/>
+  
+  <!-- Subtle glow behind phone -->
+  <circle cx="512" cy="512" r="280" fill="#E53935" opacity="0.15" filter="url(#glow)"/>
+  
+  <!-- Phone Icon Container (rounded square) -->
+  <rect x="312" y="312" width="400" height="400" rx="80" fill="url(#phoneGradient)" opacity="0.15"/>
+  
+  <!-- Phone Icon - Material Design style phone_in_talk -->
+  <g transform="translate(512, 512)" fill="url(#phoneGradient)">
+    <!-- Main phone body -->
+    <path d="M-140 100 
+             C-160 80 -170 40 -150 0
+             L-100 -80
+             C-80 -110 -40 -120 -10 -100
+             L30 -70
+             C60 -50 70 -10 50 20
+             L30 50
+             C80 100 130 150 180 130
+             L210 110
+             C240 90 280 100 300 130
+             L330 170
+             C360 210 350 260 310 290
+             L250 330
+             C150 400 -40 250 -140 100 Z"
+           transform="scale(0.8) translate(-80, -80)"/>
+    
+    <!-- Sound waves (indicating "in talk") -->
+    <path d="M120 -100 
+             C180 -60 180 60 120 100" 
+          fill="none" 
+          stroke="url(#phoneGradient)" 
+          stroke-width="28" 
+          stroke-linecap="round"
+          transform="translate(40, -20)"/>
+    <path d="M160 -140 
+             C240 -80 240 80 160 140" 
+          fill="none" 
+          stroke="url(#phoneGradient)" 
+          stroke-width="28" 
+          stroke-linecap="round"
+          opacity="0.7"
+          transform="translate(40, -20)"/>
+    <path d="M200 -180 
+             C300 -100 300 100 200 180" 
+          fill="none" 
+          stroke="url(#phoneGradient)" 
+          stroke-width="28" 
+          stroke-linecap="round"
+          opacity="0.4"
+          transform="translate(40, -20)"/>
+  </g>
+  
+  <!-- Location pin dot (brand element) -->
+  <circle cx="780" cy="780" r="40" fill="#E53935"/>
+  
+</svg>
