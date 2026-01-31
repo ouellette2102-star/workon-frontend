@@ -123,7 +123,7 @@ abstract final class WkTheme {
     ),
     
     // ─── Card ───
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: WkColors.bgSecondary,
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -218,7 +218,7 @@ abstract final class WkTheme {
     ),
     
     // ─── Dialog ───
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       backgroundColor: WkColors.bgSecondary,
       elevation: 16,
       shape: RoundedRectangleBorder(
@@ -320,7 +320,7 @@ abstract final class WkTheme {
     ),
     
     // ─── Tab Bar ───
-    tabBarTheme: TabBarTheme(
+    tabBarTheme: TabBarThemeData(
       labelColor: WkColors.brandRed,
       unselectedLabelColor: WkColors.textTertiary,
       labelStyle: WkTypography.labelLarge.copyWith(fontWeight: FontWeight.w600),

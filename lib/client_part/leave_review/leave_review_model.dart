@@ -111,15 +111,13 @@ class LeaveReviewModel extends FlutterFlowModel<LeaveReviewWidget> {
             : 'Tags: $tagText';
       }
       
-      final request = CreateReviewRequest(
-        targetUserId: targetUserId,
+      await RatingsService.createReview(
+        toUserId: targetUserId,
         rating: rating.round(),
         missionId: missionId,
         comment: fullComment,
         tags: tags,
       );
-      
-      await RatingsService.createReview(request);
       
       isLoading = false;
       return true;
