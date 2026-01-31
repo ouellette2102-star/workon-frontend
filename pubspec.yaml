@@ -134,31 +134,42 @@ dev_dependencies:
   mocktail: ^1.0.4
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# WorkOn App Icon Configuration
+# Design: Red phone icon on dark background (#0D0D0F)
+# Brand Color: #E53935 (WorkOn Red)
+# ═══════════════════════════════════════════════════════════════════════════
 flutter_launcher_icons:
   android: true
   ios: true
   web:
     generate: true
-  image_path: 'assets/images/workon_app_icon.png'
-  adaptive_icon_background: '#E8E8E8'
-  adaptive_icon_foreground: 'assets/images/workon_app_icon.png'
+  # Main icon (will be generated from PNG export of SVG)
+  image_path: 'assets/icons/app_icon_1024.png'
+  # Android Adaptive Icon (Android 8+)
+  adaptive_icon_background: '#0D0D0F'  # WorkOn Dark
+  adaptive_icon_foreground: 'assets/icons/app_icon_foreground.png'
   min_sdk_android: 21
-  remove_alpha_ios: true
+  remove_alpha_ios: true  # Required by Apple
 
+# ═══════════════════════════════════════════════════════════════════════════
+# WorkOn Splash Screen Configuration
+# Dark theme for premium feel, red accent
+# ═══════════════════════════════════════════════════════════════════════════
 flutter_native_splash:
-  color: "#E8E8E8"
+  color: "#0D0D0F"  # Dark mode primary
   image: assets/images/workon_splash_logo.png
-  color_dark: "#1A1A1A"
+  color_dark: "#0D0D0F"
   image_dark: assets/images/workon_splash_logo.png
   android: true
   ios: true
   web: true
   android_12:
-    color: "#E8E8E8"
-    icon_background_color: "#E8E8E8"
+    color: "#0D0D0F"
+    icon_background_color: "#0D0D0F"
     image: assets/images/workon_splash_logo.png
-    color_dark: "#1A1A1A"
-    icon_background_color_dark: "#1A1A1A"
+    color_dark: "#0D0D0F"
+    icon_background_color_dark: "#0D0D0F"
     image_dark: assets/images/workon_splash_logo.png
 
 # For information on the generic Dart part of this file, see the

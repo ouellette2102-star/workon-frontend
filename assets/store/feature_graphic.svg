@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500">
+  <!-- WorkOn Feature Graphic for Google Play Store -->
+  <!-- Size: 1024 × 500 pixels -->
+  
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1E"/>
+      <stop offset="50%" style="stop-color:#0D0D0F"/>
+      <stop offset="100%" style="stop-color:#0D0D0F"/>
+    </linearGradient>
+    
+    <!-- Red glow gradient -->
+    <radialGradient id="glowGrad" cx="75%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#E53935;stop-opacity:0.3"/>
+      <stop offset="100%" style="stop-color:#E53935;stop-opacity:0"/>
+    </radialGradient>
+    
+    <!-- Phone gradient -->
+    <linearGradient id="phoneGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6659"/>
+      <stop offset="100%" style="stop-color:#E53935"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Dark background -->
+  <rect width="1024" height="500" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle glow on right side -->
+  <rect width="1024" height="500" fill="url(#glowGrad)"/>
+  
+  <!-- Decorative dots pattern (subtle) -->
+  <g fill="#FFFFFF" opacity="0.03">
+    <circle cx="100" cy="100" r="3"/>
+    <circle cx="150" cy="150" r="3"/>
+    <circle cx="200" cy="100" r="3"/>
+    <circle cx="250" cy="150" r="3"/>
+    <circle cx="100" cy="400" r="3"/>
+    <circle cx="150" cy="350" r="3"/>
+    <circle cx="200" cy="400" r="3"/>
+    <circle cx="900" cy="100" r="3"/>
+    <circle cx="950" cy="150" r="3"/>
+    <circle cx="900" cy="400" r="3"/>
+  </g>
+  
+  <!-- Left side: Text content -->
+  <g transform="translate(80, 0)">
+    <!-- Logo row -->
+    <g transform="translate(0, 120)">
+      <!-- Red phone icon box -->
+      <rect x="0" y="0" width="50" height="50" rx="12" fill="url(#phoneGrad)" opacity="0.2"/>
+      <g transform="translate(25, 25)" fill="url(#phoneGrad)">
+        <path d="M-12 8 C-13 6 -14 3 -12 0 L-8 -6 C-6 -9 -3 -10 -1 -8 L2 -6 C5 -4 6 -1 4 2 L2 4 C6 8 10 12 14 10 L17 9 C19 7 22 8 24 10 L26 14 C28 17 27 21 24 23 L20 26 C14 31 -3 20 -12 8 Z" transform="scale(0.6)"/>
+      </g>
+      
+      <!-- WorkOn text -->
+      <text x="65" y="36" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="#FFFFFF">
+        Work<tspan fill="#E53935">📍</tspan>n
+      </text>
+    </g>
+    
+    <!-- Main headline -->
+    <text x="0" y="230" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="800" fill="#FFFFFF">
+      Trouve des missions
+    </text>
+    <text x="0" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="800" fill="#FFFFFF">
+      près de <tspan fill="#E53935">toi</tspan>
+    </text>
+    
+    <!-- Subheadline -->
+    <text x="0" y="350" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#B0B0B0">
+      L'app qui connecte travailleurs et employeurs
+    </text>
+    
+    <!-- CTA hint -->
+    <g transform="translate(0, 390)">
+      <rect x="0" y="0" width="180" height="45" rx="22" fill="#E53935"/>
+      <text x="90" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle">
+        Télécharger
+      </text>
+    </g>
+  </g>
+  
+  <!-- Right side: Phone mockup with app screenshot -->
+  <g transform="translate(620, 50)">
+    <!-- Phone frame (simplified iPhone) -->
+    <rect x="0" y="0" width="280" height="400" rx="40" fill="#2A2A2E" stroke="#3A3A3E" stroke-width="2"/>
+    
+    <!-- Screen area -->
+    <rect x="10" y="10" width="260" height="380" rx="32" fill="#0D0D0F"/>
+    
+    <!-- Notch -->
+    <rect x="90" y="10" width="100" height="25" rx="12" fill="#2A2A2E"/>
+    
+    <!-- App content simulation -->
+    <g transform="translate(20, 50)">
+      <!-- Status bar simulation -->
+      <text x="10" y="15" font-family="system-ui" font-size="12" fill="#FFFFFF">9:41</text>
+      <circle cx="210" cy="10" r="8" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+      <rect x="220" y="6" width="15" height="8" rx="2" fill="#FFFFFF"/>
+      
+      <!-- Header with WorkOn logo -->
+      <g transform="translate(0, 35)">
+        <rect x="0" y="0" width="30" height="30" rx="8" fill="#E53935" opacity="0.2"/>
+        <circle cx="15" cy="15" r="6" fill="#E53935"/>
+        <text x="40" y="22" font-family="system-ui" font-size="16" font-weight="700" fill="#FFFFFF">WorkOn</text>
+      </g>
+      
+      <!-- Mission card simulation -->
+      <g transform="translate(0, 85)">
+        <rect x="0" y="0" width="220" height="180" rx="16" fill="#1A1A1E"/>
+        <!-- Card header gradient -->
+        <rect x="0" y="0" width="220" height="60" rx="16" fill="#E53935"/>
+        <rect x="0" y="40" width="220" height="20" fill="#E53935"/>
+        <!-- Category badge -->
+        <rect x="10" y="10" width="70" height="20" rx="10" fill="#FFFFFF" opacity="0.2"/>
+        <text x="45" y="24" font-family="system-ui" font-size="10" fill="#FFFFFF" text-anchor="middle">Entretien</text>
+        <!-- Price -->
+        <rect x="150" y="35" width="60" height="25" rx="8" fill="#FFFFFF"/>
+        <text x="180" y="52" font-family="system-ui" font-size="12" font-weight="700" fill="#E53935" text-anchor="middle">75$</text>
+        <!-- Content -->
+        <text x="10" y="85" font-family="system-ui" font-size="14" font-weight="600" fill="#FFFFFF">Tonte de gazon</text>
+        <g transform="translate(10, 100)">
+          <circle cx="6" cy="6" r="6" fill="#707070"/>
+          <text x="18" y="10" font-family="system-ui" font-size="11" fill="#B0B0B0">Montréal, QC</text>
+        </g>
+        <!-- Swipe indicators -->
+        <g transform="translate(0, 150)">
+          <circle cx="55" cy="15" r="20" fill="#E53935" opacity="0.1"/>
+          <text x="55" y="20" font-family="system-ui" font-size="16" text-anchor="middle">❌</text>
+          <circle cx="165" cy="15" r="20" fill="#4CAF50" opacity="0.1"/>
+          <text x="165" y="20" font-family="system-ui" font-size="16" text-anchor="middle">❤️</text>
+        </g>
+      </g>
+      
+      <!-- Bottom nav simulation -->
+      <g transform="translate(0, 285)">
+        <rect x="0" y="0" width="220" height="50" fill="#0D0D0F"/>
+        <circle cx="30" cy="25" r="4" fill="#707070"/>
+        <circle cx="70" cy="25" r="4" fill="#707070"/>
+        <!-- Center button -->
+        <circle cx="110" cy="20" r="18" fill="#E53935"/>
+        <text x="110" y="25" font-family="system-ui" font-size="14" fill="#FFFFFF" text-anchor="middle">+</text>
+        <circle cx="150" cy="25" r="4" fill="#707070"/>
+        <circle cx="190" cy="25" r="4" fill="#707070"/>
+      </g>
+    </g>
+    
+    <!-- Home indicator -->
+    <rect x="100" y="375" width="80" height="5" rx="2" fill="#FFFFFF" opacity="0.3"/>
+  </g>
+  
+  <!-- Location pin accent (brand signature) -->
+  <circle cx="950" cy="450" r="25" fill="#E53935"/>
+  
+</svg>
