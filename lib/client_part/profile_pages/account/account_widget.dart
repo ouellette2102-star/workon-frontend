@@ -9,6 +9,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:ui';
 import '/index.dart';
 import '/client_part/payments/transactions_widget.dart';
+import '/client_part/support_tickets/support_tickets_widget.dart'; // FL-SPRINT2: Support tickets
 import '/services/user/user_service.dart'; // PR-4: Real user data
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -760,8 +761,8 @@ class _AccountWidgetState extends State<AccountWidget> {
                                   hoverColor: Colors.transparent,
                                   highlightColor: Colors.transparent,
                                   onTap: () async {
-                                    context.pushNamed(
-                                        NotificationSettingsWidget.routeName);
+                                    // FL-SPRINT3: Use API-connected notification settings
+                                    context.pushNamed('NotificationSettingsAPI');
                                   },
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -1258,8 +1259,9 @@ class _AccountWidgetState extends State<AccountWidget> {
                                   hoverColor: Colors.transparent,
                                   highlightColor: Colors.transparent,
                                   onTap: () async {
+                                    // FL-SPRINT2: Redirect to real Support Tickets
                                     context.pushNamed(
-                                        CustomerSupportWidget.routeName);
+                                        SupportTicketsWidget.routeName);
                                   },
                                   child: Container(
                                     decoration: BoxDecoration(

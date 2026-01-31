@@ -144,7 +144,22 @@ class AppStartupController {
   }
 
   /// PR-STATE: Applies a [BootstrapResult] to the boot state.
+  ///
+  /// **FIX-LOGIN-STUCK:** Always check current AuthService.state for auth cases.
+  /// The cached BootstrapResult may be stale if user just logged in after
+  /// the initial bootstrap (which returned unauthenticated).
   void _applyBootstrapResult(BootstrapResult result) {
+    // FIX-LOGIN-STUCK: Always sync with current auth state first.
+    // This handles the case where user logged in after initial bootstrap,
+    // and the cached result is stale (unauthenticated) but AuthService.state
+    // is now authenticated.
+    final currentAuthState = AuthService.state;
+    if (currentAuthState.status == AuthStatus.authenticated) {
+      debugPrint('[AppStartupController] Auth state is authenticated, overriding cached result');
+      _syncFromAuthState(currentAuthState);
+      return;
+    }
+
     switch (result) {
       case BootstrapResult.authenticated:
         _syncFromAuthState(AuthService.state);

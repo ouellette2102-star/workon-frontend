@@ -39,6 +39,10 @@ import '/client_part/legal/legal_consent_widget.dart';
 import '/components/coming_soon_screen.dart';
 // PR-FIX-03: User public profile
 import '/client_part/user_profile/user_public_profile_widget.dart';
+// FL-SPRINT2-3: New features
+import '/client_part/support_tickets/support_tickets_widget.dart';
+import '/client_part/notification_settings/notification_settings_widget.dart' as notif_settings;
+import '/provider_part/provider_profile_pages/stripe_connect/stripe_connect_widget.dart';
 
 export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
@@ -715,6 +719,28 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: DeepLinkErrorWidget.routeName,
           path: DeepLinkErrorWidget.routePath,
           builder: (context, params) => const DeepLinkErrorWidget(),
+        ),
+        // ─────────────────────────────────────────────────────────────────────
+        // FL-SPRINT2-3: New Features Routes
+        // ─────────────────────────────────────────────────────────────────────
+        
+        // Support Tickets
+        FFRoute(
+          name: SupportTicketsWidget.routeName,
+          path: SupportTicketsWidget.routePath,
+          builder: (context, params) => const SupportTicketsWidget(),
+        ),
+        // Notification Settings (API-connected)
+        FFRoute(
+          name: 'NotificationSettingsAPI',
+          path: '/notificationSettingsAPI',
+          builder: (context, params) => const notif_settings.NotificationSettingsWidget(),
+        ),
+        // Stripe Connect (Worker onboarding)
+        FFRoute(
+          name: StripeConnectWidget.routeName,
+          path: StripeConnectWidget.routePath,
+          builder: (context, params) => const StripeConnectWidget(),
         ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

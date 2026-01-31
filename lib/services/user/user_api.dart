@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 
 import '../api/api_client.dart';
 import '../auth/auth_service.dart';
+import '../auth/token_storage.dart';
 
 /// Minimal API client for user-related endpoints.
 ///
@@ -33,14 +34,15 @@ class UserApi {
   /// Fetches the current user's profile from the backend.
   ///
   /// Uses `GET /auth/me` endpoint with Bearer token authentication.
+  /// **FIX-TOKEN-SYNC:** Now uses TokenStorage and ApiClient.authenticatedGet
+  /// for automatic token refresh on 401.
   ///
   /// Returns the parsed JSON response as a Map.
   ///
   /// Throws if:
-  /// - No session exists
   /// - No token available
   /// - Network error occurs
-  /// - Non-200 response
+  /// - Non-200 response after retry
   ///
   /// Example:
   /// ```dart
@@ -48,32 +50,22 @@ class UserApi {
   /// final role = profile['role'] as String?;
   /// ```
   Future<Map<String, dynamic>> fetchMe() async {
-    // Check if we have a valid session
-    if (!AuthService.hasSession) {
-      debugPrint('[UserApi] fetchMe: no active session');
-      throw const UserApiException('No active session');
-    }
-
-    // Get token from session
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly instead of AuthService.session
+    // This ensures we always get the most up-to-date token
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
-      debugPrint('[UserApi] fetchMe: no token available');
+      debugPrint('[UserApi] fetchMe: no token available in storage');
       throw const UserApiException('No token available');
     }
 
     // Build request
     final uri = ApiClient.buildUri('/auth/me');
-    final headers = {
-      ...ApiClient.defaultHeaders,
-      'Authorization': 'Bearer $token',
-    };
 
     try {
       debugPrint('[UserApi] GET $uri');
-      // Make request with timeout
-      final response = await ApiClient.client
-          .get(uri, headers: headers)
-          .timeout(ApiClient.connectionTimeout);
+      
+      // FIX-TOKEN-SYNC: Use authenticatedGet which handles automatic token refresh
+      final response = await ApiClient.authenticatedGet(uri);
 
       // PR-8: Enhanced logging for debugging profile load issues
       debugPrint('[UserApi] fetchMe response: ${response.statusCode}');
@@ -81,9 +73,9 @@ class UserApi {
         debugPrint('[UserApi] fetchMe body: ${response.body}');
       }
 
-      // Check response
+      // Check response (401 should be handled by authenticatedGet via refresh)
       if (response.statusCode == 401) {
-        debugPrint('[UserApi] fetchMe: 401 Unauthorized - session expired');
+        debugPrint('[UserApi] fetchMe: 401 Unauthorized - session expired after refresh attempt');
         throw const UserApiException('Session expirée');
       }
 
@@ -126,16 +118,17 @@ class UserApi {
   /// Updates the current user's profile.
   ///
   /// Uses `PATCH /users/me` endpoint with Bearer token authentication.
+  /// **FIX-TOKEN-SYNC:** Now uses ApiClient.authenticatedPut for automatic
+  /// token refresh on 401.
   ///
   /// Only sends non-null fields (partial update).
   ///
   /// Returns the updated profile as a Map.
   ///
   /// Throws if:
-  /// - No session exists
   /// - No token available
   /// - Network error occurs
-  /// - Non-200 response
+  /// - Non-200 response after retry
   Future<Map<String, dynamic>> patchMe({
     String? fullName,
     String? phone,
@@ -143,16 +136,10 @@ class UserApi {
     String? bio,
     String? gender,
   }) async {
-    // Check if we have a valid session
-    if (!AuthService.hasSession) {
-      debugPrint('[UserApi] patchMe: no active session');
-      throw const UserApiException('No active session');
-    }
-
-    // Get token from session
-    final token = AuthService.session.token;
+    // FIX-TOKEN-SYNC: Use TokenStorage directly
+    final token = TokenStorage.getToken();
     if (token == null || token.isEmpty) {
-      debugPrint('[UserApi] patchMe: no token available');
+      debugPrint('[UserApi] patchMe: no token available in storage');
       throw const UserApiException('No token available');
     }
 
@@ -171,27 +158,18 @@ class UserApi {
 
     // Build request
     final uri = ApiClient.buildUri('/users/me');
-    final headers = {
-      ...ApiClient.defaultHeaders,
-      'Authorization': 'Bearer $token',
-    };
 
     try {
       debugPrint('[UserApi] PATCH $uri');
-      // Make request with timeout
-      final response = await ApiClient.client
-          .patch(
-            uri,
-            headers: headers,
-            body: jsonEncode(body),
-          )
-          .timeout(ApiClient.connectionTimeout);
+      
+      // FIX-TOKEN-SYNC: Use authenticatedPatch which handles automatic token refresh
+      final response = await ApiClient.authenticatedPatch(uri, body: body);
 
       debugPrint('[UserApi] patchMe response: ${response.statusCode}');
 
-      // Check response
+      // Check response (401 should be handled by authenticatedPut via refresh)
       if (response.statusCode == 401 || response.statusCode == 403) {
-        debugPrint('[UserApi] patchMe: unauthorized/forbidden');
+        debugPrint('[UserApi] patchMe: unauthorized/forbidden after refresh attempt');
         throw UserApiException('Unauthorized: ${response.statusCode}');
       }
 
